@@ -1,11 +1,14 @@
 import { SolutionReviewProvider } from "./context/SolutionReviewContext";
 import { Dashboard } from "./components/Dashboard";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 function App() {
   return (
-    <SolutionReviewProvider>
-      <Dashboard />
-    </SolutionReviewProvider>
+    <ErrorBoundary>
+      <SolutionReviewProvider>
+        <Dashboard />
+      </SolutionReviewProvider>
+    </ErrorBoundary>
   );
 }
 

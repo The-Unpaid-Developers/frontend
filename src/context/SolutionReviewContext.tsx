@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { DocumentState } from "../types";
 import type { SolutionReview, SolutionOverview, SystemGroup } from "../types";
@@ -150,7 +151,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
       try {
         const reviews = await mockApiService.getSolutionReviews();
         dispatch({ type: "SET_REVIEWS", payload: reviews });
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to load solution reviews",
@@ -163,7 +164,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
       try {
         const systems = await mockApiService.getSystems();
         dispatch({ type: "SET_SYSTEMS", payload: systems });
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to load systems",
@@ -180,7 +181,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
         } else {
           dispatch({ type: "SET_ERROR", payload: "Solution review not found" });
         }
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to load solution review",
@@ -199,7 +200,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
         } else {
           dispatch({ type: "SET_ERROR", payload: "System not found" });
         }
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to load system",
@@ -214,7 +215,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
       try {
         const reviews = await mockApiService.getSystemReviews(systemId);
         dispatch({ type: "SET_REVIEWS", payload: reviews });
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to load system reviews",
@@ -251,7 +252,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
         if (updatedReview) {
           dispatch({ type: "UPDATE_REVIEW", payload: updatedReview });
         }
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to update solution review",
@@ -265,7 +266,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
         if (success) {
           dispatch({ type: "DELETE_REVIEW", payload: id });
         }
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to delete solution review",
@@ -282,7 +283,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
         if (updatedReview) {
           dispatch({ type: "UPDATE_REVIEW", payload: updatedReview });
         }
-      } catch (error) {
+      } catch {
         dispatch({
           type: "SET_ERROR",
           payload: "Failed to transition document state",
@@ -317,7 +318,7 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
     } else {
       actions.loadReviews();
     }
-  }, [state.viewMode]);
+  }, [state.viewMode, actions]);
 
   return (
     <SolutionReviewContext.Provider value={{ state, actions }}>

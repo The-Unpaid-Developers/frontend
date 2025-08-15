@@ -6,6 +6,7 @@ import type {
   SystemComponent,
   SystemGroup,
 } from "../types";
+import { APIError, ErrorType } from "../types/errors";
 
 // Mock data
 const mockSolutionOverviews: SolutionOverview[] = [
@@ -287,9 +288,74 @@ const generateMockSolutionReviews = (): SolutionReview[] => [
 // eslint-disable-next-line prefer-const
 let mockData = generateMockSolutionReviews();
 
-// Simulate API delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/**
+ * Simulates API network delay with optional failure simulation
+ * @param ms - Delay in milliseconds
+ * @param failureRate - Probability of simulated failure (0-1), default 0
+ * @returns Promise that resolves after delay or rejects on simulated failure
+ */
+const delay = (ms: number, failureRate: number = 0): Promise<void> =>
+  new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // Simulate random API failures for testing
+      if (failureRate > 0 && Math.random() < failureRate) {
+        reject(
+          new APIError(
+            ErrorType.SERVER_ERROR,
+            "Simulated server error for testing",
+            "Mock API failure simulation",
+            500,
+            true
+          )
+        );
+        return;
+      }
+      resolve();
+    }, ms);
+  });
 
+/**
+ * Validates that a solution review ID exists in the mock data
+ * @param id - The solution review ID to validate
+ * @throws {APIError} When the review is not found
+ */
+const validateReviewExists = (id: string): void => {
+  const exists = mockData.some((review) => review.id === id);
+  if (!exists) {
+    throw new APIError(
+      ErrorType.NOT_FOUND_ERROR,
+      `Solution review with ID '${id}' not found`,
+      `Available IDs: ${mockData.map((r) => r.id).join(", ")}`,
+      404,
+      false
+    );
+  }
+};
+
+/**
+ * Validates that a system ID exists in the mock data
+ * @param systemId - The system ID to validate
+ * @throws {APIError} When the system is not found
+ */
+const validateSystemExists = (systemId: string): void => {
+  const exists = mockData.some((review) => review.systemId === systemId);
+  if (!exists) {
+    const availableSystems = [...new Set(mockData.map((r) => r.systemId))];
+    throw new APIError(
+      ErrorType.NOT_FOUND_ERROR,
+      `System with ID '${systemId}' not found`,
+      `Available system IDs: ${availableSystems.join(", ")}`,
+      404,
+      false
+    );
+  }
+};
+
+/**
+ * Groups solution reviews by their system ID and creates SystemGroup objects
+ * @param reviews - Array of solution reviews to group
+ * @returns Array of SystemGroup objects sorted by system name
+ */
 const groupReviewsBySystem = (reviews: SolutionReview[]): SystemGroup[] => {
   const systemMap = new Map<string, SystemGroup>();
 
@@ -336,90 +402,248 @@ const groupReviewsBySystem = (reviews: SolutionReview[]): SystemGroup[] => {
 };
 
 export const mockApiService = {
-  // Get all solution reviews
+  /**
+   * Retrieves all solution reviews from the mock data store
+   * @returns Promise that resolves to an array of all solution reviews
+   * @throws {APIError} When the API call fails
+   */
   async getSolutionReviews(): Promise<SolutionReview[]> {
-    await delay(500);
-    return [...mockData];
+    try {
+      await delay(500);
+      return [...mockData];
+    } catch (error) {
+      throw error instanceof APIError
+        ? error
+        : new APIError(
+            ErrorType.SERVER_ERROR,
+            "Failed to fetch solution reviews",
+            error instanceof Error ? error.message : String(error),
+            500,
+            true
+          );
+    }
   },
 
-  // Get solution review by ID
+  /**
+   * Retrieves a specific solution review by its ID
+   * @param id - The unique identifier of the solution review
+   * @returns Promise that resolves to the solution review or null if not found
+   * @throws {APIError} When the ID is invalid or API call fails
+   */
   async getSolutionReview(id: string): Promise<SolutionReview | null> {
-    await delay(300);
-    return mockData.find((review) => review.id === id) || null;
+    try {
+      if (!id || typeof id !== "string") {
+        throw new APIError(
+          ErrorType.VALIDATION_ERROR,
+          "Invalid solution review ID provided",
+          `Expected non-empty string, received: ${typeof id}`,
+          400,
+          false
+        );
+      }
+
+      await delay(300);
+      validateReviewExists(id);
+      return mockData.find((review) => review.id === id) || null;
+    } catch (error) {
+      throw error instanceof APIError
+        ? error
+        : new APIError(
+            ErrorType.SERVER_ERROR,
+            "Failed to fetch solution review",
+            error instanceof Error ? error.message : String(error),
+            500,
+            true
+          );
+    }
   },
 
-  // Get all systems with their reviews grouped
+  /**
+   * Retrieves all systems with their associated reviews grouped together
+   * @returns Promise that resolves to an array of SystemGroup objects
+   * @throws {APIError} When the API call fails
+   */
   async getSystems(): Promise<SystemGroup[]> {
-    await delay(400);
-    return groupReviewsBySystem([...mockData]);
+    try {
+      await delay(400);
+      return groupReviewsBySystem([...mockData]);
+    } catch (error) {
+      throw error instanceof APIError
+        ? error
+        : new APIError(
+            ErrorType.SERVER_ERROR,
+            "Failed to fetch systems",
+            error instanceof Error ? error.message : String(error),
+            500,
+            true
+          );
+    }
   },
 
-  // Get specific system with all its review versions
+  /**
+   * Retrieves a specific system with all its review versions
+   * @param systemId - The unique identifier of the system
+   * @returns Promise that resolves to the SystemGroup or null if not found
+   * @throws {APIError} When the system ID is invalid or API call fails
+   */
   async getSystem(systemId: string): Promise<SystemGroup | null> {
-    await delay(300);
-    const systemReviews = mockData.filter(
-      (review) => review.systemId === systemId
-    );
-    if (systemReviews.length === 0) return null;
+    try {
+      if (!systemId || typeof systemId !== "string") {
+        throw new APIError(
+          ErrorType.VALIDATION_ERROR,
+          "Invalid system ID provided",
+          `Expected non-empty string, received: ${typeof systemId}`,
+          400,
+          false
+        );
+      }
 
-    const systems = groupReviewsBySystem(systemReviews);
-    return systems[0] || null;
+      await delay(300);
+      validateSystemExists(systemId);
+
+      const systemReviews = mockData.filter(
+        (review) => review.systemId === systemId
+      );
+
+      const systems = groupReviewsBySystem(systemReviews);
+      return systems[0] || null;
+    } catch (error) {
+      throw error instanceof APIError
+        ? error
+        : new APIError(
+            ErrorType.SERVER_ERROR,
+            "Failed to fetch system",
+            error instanceof Error ? error.message : String(error),
+            500,
+            true
+          );
+    }
   },
 
-  // Get reviews for a specific system
+  /**
+   * Retrieves all reviews for a specific system, sorted by version (newest first)
+   * @param systemId - The unique identifier of the system
+   * @returns Promise that resolves to an array of solution reviews for the system
+   * @throws {APIError} When the system ID is invalid or API call fails
+   */
   async getSystemReviews(systemId: string): Promise<SolutionReview[]> {
-    await delay(300);
-    return mockData
-      .filter((review) => review.systemId === systemId)
-      .sort((a, b) => b.version - a.version);
+    try {
+      if (!systemId || typeof systemId !== "string") {
+        throw new APIError(
+          ErrorType.VALIDATION_ERROR,
+          "Invalid system ID provided",
+          `Expected non-empty string, received: ${typeof systemId}`,
+          400,
+          false
+        );
+      }
+
+      await delay(300);
+      validateSystemExists(systemId);
+
+      return mockData
+        .filter((review) => review.systemId === systemId)
+        .sort((a, b) => b.version - a.version);
+    } catch (error) {
+      throw error instanceof APIError
+        ? error
+        : new APIError(
+            ErrorType.SERVER_ERROR,
+            "Failed to fetch system reviews",
+            error instanceof Error ? error.message : String(error),
+            500,
+            true
+          );
+    }
   },
 
-  // Create new solution review
+  /**
+   * Creates a new solution review with optional system association
+   * @param solutionOverview - The solution overview data for the new review
+   * @param systemId - Optional existing system ID to associate with
+   * @param systemName - Optional system name (used if systemId not provided)
+   * @returns Promise that resolves to the created solution review
+   * @throws {APIError} When validation fails or creation encounters an error
+   */
   async createSolutionReview(
     solutionOverview: SolutionOverview,
     systemId?: string,
     systemName?: string
   ): Promise<SolutionReview> {
-    await delay(800);
+    try {
+      // Validate input
+      if (!solutionOverview || typeof solutionOverview !== "object") {
+        throw new APIError(
+          ErrorType.VALIDATION_ERROR,
+          "Invalid solution overview provided",
+          "Expected a valid SolutionOverview object",
+          400,
+          false
+        );
+      }
 
-    // Generate system info if not provided
-    const finalSystemId =
-      systemId ||
-      `sys-${solutionOverview.title
-        .toLowerCase()
-        .replace(/\s+/g, "-")}-${Date.now()}`;
-    const finalSystemName = systemName || solutionOverview.title;
+      if (!solutionOverview.title || !solutionOverview.title.trim()) {
+        throw new APIError(
+          ErrorType.VALIDATION_ERROR,
+          "Solution title is required",
+          "title field cannot be empty",
+          400,
+          false
+        );
+      }
 
-    // Check if this is a new version of an existing system
-    const existingSystemReviews = mockData.filter(
-      (review) => review.systemId === finalSystemId
-    );
-    const nextVersion =
-      existingSystemReviews.length > 0
-        ? Math.max(...existingSystemReviews.map((r) => r.version)) + 1
-        : 1;
+      await delay(800);
 
-    const newReview: SolutionReview = {
-      id: (mockData.length + 1).toString(),
-      systemId: finalSystemId,
-      systemName: finalSystemName,
-      documentState: DocumentState.DRAFT,
-      solutionOverview,
-      businessCapabilities: [],
-      systemComponents: [],
-      integrationFlows: [],
-      dataAssets: [],
-      technologyComponents: [],
-      enterpriseTools: [],
-      processCompliances: [],
-      version: nextVersion,
-      createdAt: new Date().toISOString(),
-      lastModifiedAt: new Date().toISOString(),
-      createdBy: "current.user@company.com",
-      lastModifiedBy: "current.user@company.com",
-    };
-    mockData.push(newReview);
-    return newReview;
+      // Generate system info if not provided
+      const finalSystemId =
+        systemId ||
+        `sys-${solutionOverview.title
+          .toLowerCase()
+          .replace(/\s+/g, "-")}-${Date.now()}`;
+      const finalSystemName = systemName || solutionOverview.title;
+
+      // Check if this is a new version of an existing system
+      const existingSystemReviews = mockData.filter(
+        (review) => review.systemId === finalSystemId
+      );
+      const nextVersion =
+        existingSystemReviews.length > 0
+          ? Math.max(...existingSystemReviews.map((r) => r.version)) + 1
+          : 1;
+
+      const newReview: SolutionReview = {
+        id: (mockData.length + 1).toString(),
+        systemId: finalSystemId,
+        systemName: finalSystemName,
+        documentState: DocumentState.DRAFT,
+        solutionOverview,
+        businessCapabilities: [],
+        systemComponents: [],
+        integrationFlows: [],
+        dataAssets: [],
+        technologyComponents: [],
+        enterpriseTools: [],
+        processCompliances: [],
+        version: nextVersion,
+        createdAt: new Date().toISOString(),
+        lastModifiedAt: new Date().toISOString(),
+        createdBy: "current.user@company.com",
+        lastModifiedBy: "current.user@company.com",
+      };
+
+      mockData.push(newReview);
+      return newReview;
+    } catch (error) {
+      throw error instanceof APIError
+        ? error
+        : new APIError(
+            ErrorType.SERVER_ERROR,
+            "Failed to create solution review",
+            error instanceof Error ? error.message : String(error),
+            500,
+            true
+          );
+    }
   },
 
   // Update solution review
