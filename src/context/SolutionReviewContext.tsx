@@ -1,5 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useReducer, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+} from "react";
 import { DocumentState } from "../types";
 import type { SolutionReview, SolutionOverview, SystemGroup } from "../types";
 import { mockApiService } from "../services/mockApi";
@@ -145,32 +151,35 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
 }) => {
   const [state, dispatch] = useReducer(solutionReviewReducer, initialState);
 
-  const actions = {
-    loadReviews: async () => {
-      dispatch({ type: "SET_LOADING", payload: true });
-      try {
-        const reviews = await mockApiService.getSolutionReviews();
-        dispatch({ type: "SET_REVIEWS", payload: reviews });
-      } catch {
-        dispatch({
-          type: "SET_ERROR",
-          payload: "Failed to load solution reviews",
-        });
-      }
-    },
+  const loadReviews = useCallback(async () => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    try {
+      const reviews = await mockApiService.getSolutionReviews();
+      dispatch({ type: "SET_REVIEWS", payload: reviews });
+    } catch {
+      dispatch({
+        type: "SET_ERROR",
+        payload: "Failed to load solution reviews",
+      });
+    }
+  }, []);
 
-    loadSystems: async () => {
-      dispatch({ type: "SET_LOADING", payload: true });
-      try {
-        const systems = await mockApiService.getSystems();
-        dispatch({ type: "SET_SYSTEMS", payload: systems });
-      } catch {
-        dispatch({
-          type: "SET_ERROR",
-          payload: "Failed to load systems",
-        });
-      }
-    },
+  const loadSystems = useCallback(async () => {
+    dispatch({ type: "SET_LOADING", payload: true });
+    try {
+      const systems = await mockApiService.getSystems();
+      dispatch({ type: "SET_SYSTEMS", payload: systems });
+    } catch {
+      dispatch({
+        type: "SET_ERROR",
+        payload: "Failed to load systems",
+      });
+    }
+  }, []);
+
+  const actions = {
+    loadReviews,
+    loadSystems,
 
     loadReview: async (id: string) => {
       dispatch({ type: "SET_LOADING", payload: true });
@@ -314,11 +323,11 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
 
   useEffect(() => {
     if (state.viewMode === "systems") {
-      actions.loadSystems();
+      loadSystems();
     } else {
-      actions.loadReviews();
+      loadReviews();
     }
-  }, [state.viewMode, actions]);
+  }, [state.viewMode, loadSystems, loadReviews]);
 
   return (
     <SolutionReviewContext.Provider value={{ state, actions }}>
