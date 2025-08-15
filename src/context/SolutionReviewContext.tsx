@@ -1,16 +1,20 @@
 import React, { createContext, useContext, useReducer, useEffect } from "react";
 import { DocumentState } from "../types";
-import type { SolutionReview, SolutionOverview } from "../types";
+import type { SolutionReview, SolutionOverview, SystemGroup } from "../types";
 import { mockApiService } from "../services/mockApi";
 
 interface SolutionReviewState {
   reviews: SolutionReview[];
+  systems: SystemGroup[];
   selectedReview: SolutionReview | null;
+  selectedSystem: SystemGroup | null;
+  viewMode: "systems" | "reviews";
   loading: boolean;
   error: string | null;
   filter: {
     state?: DocumentState;
     search?: string;
+    systemId?: string;
   };
 }
 
@@ -18,15 +22,24 @@ type SolutionReviewAction =
   | { type: "SET_LOADING"; payload: boolean }
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "SET_REVIEWS"; payload: SolutionReview[] }
+  | { type: "SET_SYSTEMS"; payload: SystemGroup[] }
   | { type: "SET_SELECTED_REVIEW"; payload: SolutionReview | null }
+  | { type: "SET_SELECTED_SYSTEM"; payload: SystemGroup | null }
+  | { type: "SET_VIEW_MODE"; payload: "systems" | "reviews" }
   | { type: "ADD_REVIEW"; payload: SolutionReview }
   | { type: "UPDATE_REVIEW"; payload: SolutionReview }
   | { type: "DELETE_REVIEW"; payload: string }
-  | { type: "SET_FILTER"; payload: { state?: DocumentState; search?: string } };
+  | {
+      type: "SET_FILTER";
+      payload: { state?: DocumentState; search?: string; systemId?: string };
+    };
 
 const initialState: SolutionReviewState = {
   reviews: [],
+  systems: [],
   selectedReview: null,
+  selectedSystem: null,
+  viewMode: "systems",
   loading: false,
   error: null,
   filter: {},
@@ -43,8 +56,14 @@ const solutionReviewReducer = (
       return { ...state, error: action.payload, loading: false };
     case "SET_REVIEWS":
       return { ...state, reviews: action.payload, loading: false, error: null };
+    case "SET_SYSTEMS":
+      return { ...state, systems: action.payload, loading: false, error: null };
     case "SET_SELECTED_REVIEW":
       return { ...state, selectedReview: action.payload };
+    case "SET_SELECTED_SYSTEM":
+      return { ...state, selectedSystem: action.payload };
+    case "SET_VIEW_MODE":
+      return { ...state, viewMode: action.payload };
     case "ADD_REVIEW":
       return { ...state, reviews: [...state.reviews, action.payload] };
     case "UPDATE_REVIEW":
@@ -78,7 +97,10 @@ interface SolutionReviewContextType {
   state: SolutionReviewState;
   actions: {
     loadReviews: () => Promise<void>;
+    loadSystems: () => Promise<void>;
     loadReview: (id: string) => Promise<void>;
+    loadSystem: (systemId: string) => Promise<void>;
+    loadSystemReviews: (systemId: string) => Promise<void>;
     createReview: (
       solutionOverview: SolutionOverview
     ) => Promise<SolutionReview>;
@@ -88,8 +110,14 @@ interface SolutionReviewContextType {
     ) => Promise<void>;
     deleteReview: (id: string) => Promise<void>;
     transitionState: (id: string, newState: DocumentState) => Promise<void>;
-    setFilter: (filter: { state?: DocumentState; search?: string }) => void;
+    setFilter: (filter: {
+      state?: DocumentState;
+      search?: string;
+      systemId?: string;
+    }) => void;
+    setViewMode: (mode: "systems" | "reviews") => void;
     clearSelectedReview: () => void;
+    clearSelectedSystem: () => void;
   };
 }
 
@@ -130,6 +158,19 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
       }
     },
 
+    loadSystems: async () => {
+      dispatch({ type: "SET_LOADING", payload: true });
+      try {
+        const systems = await mockApiService.getSystems();
+        dispatch({ type: "SET_SYSTEMS", payload: systems });
+      } catch (error) {
+        dispatch({
+          type: "SET_ERROR",
+          payload: "Failed to load systems",
+        });
+      }
+    },
+
     loadReview: async (id: string) => {
       dispatch({ type: "SET_LOADING", payload: true });
       try {
@@ -146,6 +187,38 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
         });
       } finally {
         dispatch({ type: "SET_LOADING", payload: false });
+      }
+    },
+
+    loadSystem: async (systemId: string) => {
+      dispatch({ type: "SET_LOADING", payload: true });
+      try {
+        const system = await mockApiService.getSystem(systemId);
+        if (system) {
+          dispatch({ type: "SET_SELECTED_SYSTEM", payload: system });
+        } else {
+          dispatch({ type: "SET_ERROR", payload: "System not found" });
+        }
+      } catch (error) {
+        dispatch({
+          type: "SET_ERROR",
+          payload: "Failed to load system",
+        });
+      } finally {
+        dispatch({ type: "SET_LOADING", payload: false });
+      }
+    },
+
+    loadSystemReviews: async (systemId: string) => {
+      dispatch({ type: "SET_LOADING", payload: true });
+      try {
+        const reviews = await mockApiService.getSystemReviews(systemId);
+        dispatch({ type: "SET_REVIEWS", payload: reviews });
+      } catch (error) {
+        dispatch({
+          type: "SET_ERROR",
+          payload: "Failed to load system reviews",
+        });
       }
     },
 
@@ -217,18 +290,34 @@ export const SolutionReviewProvider: React.FC<SolutionReviewProviderProps> = ({
       }
     },
 
-    setFilter: (filter: { state?: DocumentState; search?: string }) => {
+    setFilter: (filter: {
+      state?: DocumentState;
+      search?: string;
+      systemId?: string;
+    }) => {
       dispatch({ type: "SET_FILTER", payload: filter });
+    },
+
+    setViewMode: (mode: "systems" | "reviews") => {
+      dispatch({ type: "SET_VIEW_MODE", payload: mode });
     },
 
     clearSelectedReview: () => {
       dispatch({ type: "SET_SELECTED_REVIEW", payload: null });
     },
+
+    clearSelectedSystem: () => {
+      dispatch({ type: "SET_SELECTED_SYSTEM", payload: null });
+    },
   };
 
   useEffect(() => {
-    actions.loadReviews();
-  }, []);
+    if (state.viewMode === "systems") {
+      actions.loadSystems();
+    } else {
+      actions.loadReviews();
+    }
+  }, [state.viewMode]);
 
   return (
     <SolutionReviewContext.Provider value={{ state, actions }}>

@@ -13,7 +13,9 @@ A modern React TypeScript application for managing enterprise solution architect
 
 ### 📊 Dashboard & Analytics
 
-- Overview of all solution reviews with filtering
+- **Dual View Modes**: Systems view (grouped by system) and Reviews view (individual reviews)
+- **System-Based Organization**: Each system shows all versions with latest/current status
+- **Version Management**: Track multiple versions of solution reviews per system
 - State-based filtering and search functionality
 - Real-time statistics and counts
 - Responsive card-based layout
@@ -104,14 +106,116 @@ src/
 
 ## API Integration
 
-The application is designed to work with the backend Spring Boot core-service. Currently uses a mock API service (`mockApi.ts`) that simulates the expected backend endpoints:
+The application is designed to work with the backend Spring Boot core-service and supports a **system-versioning approach** where each group of solution reviews represents one system with multiple versions.
+
+### System-Centric Data Model
+
+The frontend now organizes solution reviews by **systems**, where:
+
+- Each system has a unique `systemId` and `systemName`
+- Multiple solution reviews belong to the same system (different versions)
+- Each review has a `version` number within its system
+- Only one review per system should be in `CURRENT` state at any time
+
+### Expected API Endpoints
+
+The mock API service (`mockApi.ts`) simulates the following backend endpoints:
+
+#### Solution Review Endpoints
 
 - `GET /api/solution-reviews` - Get all reviews
 - `GET /api/solution-reviews/{id}` - Get specific review
-- `POST /api/solution-reviews` - Create new review
+- `POST /api/solution-reviews` - Create new review (auto-assigns systemId/version)
 - `PUT /api/solution-reviews/{id}` - Update review
 - `DELETE /api/solution-reviews/{id}` - Delete review
 - `PUT /api/solution-reviews/{id}/state` - Transition document state
+
+#### System-Based Endpoints (New)
+
+- `GET /api/systems` - Get all systems with their review summaries
+- `GET /api/systems/{systemId}` - Get specific system with all versions
+- `GET /api/systems/{systemId}/reviews` - Get all reviews for a system (sorted by version)
+- `POST /api/systems/{systemId}/reviews` - Create new version for existing system
+
+### System Grouping Logic
+
+```typescript
+interface SystemGroup {
+  systemId: string;
+  systemName: string;
+  description: string;
+  category: string;
+  reviews: SolutionReview[]; // All versions, sorted by version desc
+  latestVersion: number;
+  currentReview?: SolutionReview; // The review in CURRENT state
+  totalReviews: number;
+}
+```
+
+### Backend Implementation Guidance
+
+To support this system-versioning approach, the backend should:
+
+1. **Auto-assign systemId/systemName** when creating new reviews if not provided
+2. **Generate version numbers** automatically (next version for existing system)
+3. **Enforce state constraints**: Only one CURRENT review per system
+4. **Provide system aggregation endpoints** that group reviews by system
+5. **Support version comparison** queries for change tracking
+
+### Example API Responses
+
+#### GET /api/systems
+
+```json
+[
+  {
+    "systemId": "sys-cdp-001",
+    "systemName": "Customer Data Platform",
+    "description": "Unified customer data platform...",
+    "category": "Data Management",
+    "latestVersion": 3,
+    "totalReviews": 3,
+    "currentReview": {
+      "id": "2",
+      "version": 2,
+      "documentState": "CURRENT"
+      // ... other review fields
+    },
+    "reviews": [
+      { "id": "3", "version": 3, "documentState": "DRAFT" },
+      { "id": "2", "version": 2, "documentState": "CURRENT" },
+      { "id": "1", "version": 1, "documentState": "OUTDATED" }
+    ]
+  }
+]
+```
+
+#### POST /api/solution-reviews (Create New System)
+
+```json
+{
+  "solutionOverview": {
+    "title": "New System Implementation",
+    "description": "..."
+    // ... other fields
+  }
+}
+```
+
+**Response**: Auto-generates `systemId`, `systemName`, and `version: 1`
+
+#### POST /api/systems/{systemId}/reviews (Create New Version)
+
+```json
+{
+  "solutionOverview": {
+    "title": "Enhanced System Implementation v2"
+    // ... updated fields
+  }
+}
+```
+
+**Response**: Uses existing `systemId`/`systemName`, auto-increments version
 
 ## Key Components
 

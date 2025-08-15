@@ -109,6 +109,8 @@ export interface ProcessCompliant {
 
 export interface SolutionReview {
   id: string;
+  systemId: string;
+  systemName: string;
   documentState: DocumentState;
   solutionOverview: SolutionOverview | null;
   businessCapabilities: BusinessCapability[];
@@ -123,6 +125,17 @@ export interface SolutionReview {
   lastModifiedAt: string;
   createdBy: string;
   lastModifiedBy: string;
+}
+
+export interface SystemGroup {
+  systemId: string;
+  systemName: string;
+  description: string;
+  category: string;
+  reviews: SolutionReview[];
+  latestVersion: number;
+  currentReview?: SolutionReview;
+  totalReviews: number;
 }
 
 export interface DocumentStateTransition {
