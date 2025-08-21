@@ -51,7 +51,11 @@ export const CreateSolutionReviewPage: React.FC = () => {
     nextStep();
   };
 
-  
+  // optional: handle final submit (replace console.log with actual submit)
+  const handleSubmit = async () => {
+    // TODO: replace with actual final submit logic (e.g. gather create context data and call API)
+    console.log("Submit clicked - implement final submission here");
+  };
 
   return (
     <div className="p-6">
@@ -65,6 +69,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
         currentStep={currentStep}
         nextStep={nextStep}
         prevStep={prevStep}
+        onSubmit={currentStep === steps.length - 1 ? handleSubmit : undefined}
       />
     </div>
   );

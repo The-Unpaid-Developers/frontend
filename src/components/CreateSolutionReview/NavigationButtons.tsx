@@ -12,7 +12,7 @@ interface NavigationButtonsProps {
    * If provided it will be called instead of nextStep().
    * Should return a Promise when async.
    */
-  // onNext?: () => void | Promise<void>;
+  onSubmit?: () => void | Promise<void>;
   isSaving?: boolean;
 }
 
@@ -23,7 +23,7 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   // onPrevious,
   nextStep,
   prevStep,
-  // onNext,
+  onSubmit,
   isSaving = false,
 }) => {
   const isFirst = currentStep === 0;
@@ -40,15 +40,31 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
       >
         Previous
       </button>
-      <button
+      {isLast ? (
+        <button
+          onClick={onSubmit}
+          className={`px-4 py-2 text-white bg-blue-600 rounded-md`}
+        >
+          Submit
+        </button>
+      ) : (
+        <button
         onClick={nextStep}
-        disabled={currentStep === totalSteps - 1}
-        className={`px-4 py-2 text-white bg-blue-600 rounded-md ${
-          currentStep === totalSteps - 1 ? 'opacity-50 cursor-not-allowed' : ''
-        }`}
+        className={`px-4 py-2 text-white bg-blue-600 rounded-md`}
       >
         Next
       </button>
+      )}
+      {/* <button
+        onClick={nextStep}
+        // disabled={currentStep === totalSteps - 1}
+        // className={`px-4 py-2 text-white bg-blue-600 rounded-md 
+        //   // ${currentStep === totalSteps - 1 ? 'opacity-50 cursor-not-allowed' : ''}
+        // `}
+        className={`px-4 py-2 text-white bg-blue-600 rounded-md`}
+      >
+        {isLast ? "Submit" : "Next"}
+      </button> */}
     </div>
   );
 };
