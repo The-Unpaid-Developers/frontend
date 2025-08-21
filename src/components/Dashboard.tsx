@@ -4,7 +4,8 @@ import type { SolutionReview, SystemGroup } from "../types";
 import { useSolutionReview } from "../context/SolutionReviewContext";
 import { SolutionReviewCard } from "./SolutionReviewCard";
 import { SolutionReviewDetail } from "./SolutionReviewDetail";
-import { CreateSolutionReviewModal } from "./CreateSolutionReviewModal";
+// import { CreateSolutionReviewModal } from "./CreateSolutionReviewModal";
+import { CreateSolutionReviewPage } from "./CreateSolutionReview";
 import { SystemCard } from "./SystemCard";
 import { SystemDetail } from "./SystemDetail";
 import { Button, Input } from "./ui";
@@ -17,7 +18,8 @@ export const Dashboard: React.FC = () => {
   const [selectedSystem, setSelectedSystem] = useState<SystemGroup | null>(
     null
   );
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [showCreatePage, setShowCreatePage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter, setStateFilter] = useState<DocumentState | "ALL">("ALL");
 
@@ -66,6 +68,18 @@ export const Dashboard: React.FC = () => {
       return acc;
     }, {} as Record<DocumentState, number>);
   }, [state.reviews, state.systems, state.viewMode]);
+
+  if (showCreatePage) {
+  return (
+    <CreateSolutionReviewPage
+      onClose={() => setShowCreatePage(false)}
+      onSuccess={() => {
+        setShowCreatePage(false);
+        // Optionally refresh data or show success message
+      }}
+    />
+  );
+}
 
   if (selectedReview) {
     return (
@@ -126,7 +140,8 @@ export const Dashboard: React.FC = () => {
                   : "Manage individual solution architecture reviews"}
               </p>
             </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
+            {/* <Button onClick={() => setIsCreateModalOpen(true)}> */}
+            <Button onClick={() => setShowCreatePage(true)}>
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -284,7 +299,8 @@ export const Dashboard: React.FC = () => {
                       : "Get started by creating your first solution review."}
                   </p>
                   {!searchTerm && (
-                    <Button onClick={() => setIsCreateModalOpen(true)}>
+                    // <Button onClick={() => setIsCreateModalOpen(true)}>
+                    <Button onClick={() => setShowCreatePage(true)}>
                       Create Your First Solution Review
                     </Button>
                   )}
@@ -325,7 +341,8 @@ export const Dashboard: React.FC = () => {
                     : "Get started by creating your first solution review."}
                 </p>
                 {!searchTerm && stateFilter === "ALL" && (
-                  <Button onClick={() => setIsCreateModalOpen(true)}>
+                  // <Button onClick={() => setIsCreateModalOpen(true)}>
+                  <Button onClick={() => setShowCreatePage(true)}>
                     Create Your First Solution Review
                   </Button>
                 )}
@@ -346,10 +363,10 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Create Modal */}
-      <CreateSolutionReviewModal
+      {/* <CreateSolutionReviewModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-      />
+      /> */}
     </div>
   );
 };
