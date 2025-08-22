@@ -133,3 +133,8 @@ export const saveTechnologyComponent = async (data: TechnologyComponent) => {
   const response = await axios.post(`${API_BASE_URL}/technology-component`, data);
   return response.data;
 };
+
+export const saveProcessCompliance = async (data: any) => {
+  const response = await axios.post(`${API_BASE_URL}/process-compliance`, data);
+  return response.data;
+};

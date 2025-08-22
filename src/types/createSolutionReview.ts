@@ -82,6 +82,12 @@ export interface TechnologyComponent {
   supportLevel: string;
 }
 
+export interface ProcessCompliance {
+  complianceRequirements: string[];
+  assessmentCriteria: string[];
+  approvalStatus: 'Pending' | 'Approved' | 'Rejected';
+}
+
 // Main form data interface
 export interface CreateSolutionReviewData {
   solutionOverview: SolutionOverview;

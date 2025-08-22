@@ -15,6 +15,7 @@ import IntegrationFlowStep from './steps/IntegrationFlowStep';
 import SolutionOverviewStep from './steps/SolutionOverviewStep';
 import SystemComponentStep from './steps/SystemComponentStep';
 import TechnologyComponentStep from './steps/TechnologyComponentStep';
+import ProcessComplianceStep from './steps/ProcessComplianceStep';
 import { useCreateSolutionReview } from '../../hooks/useCreateSolutionReview';
 import useStepNavigation from '../../hooks/useStepNavigation';
 
@@ -26,16 +27,18 @@ const steps = [
   TechnologyComponentStep,
   IntegrationFlowStep,
   EnterpriseToolsStep,
+  ProcessComplianceStep,
 ];
 
 const stepMeta = [
     { key: 'solutionOverview', label: 'Solution Overview' },
     { key: 'businessCapabilities', label: 'Business Capabilities' },
-    { key: 'dataAsset', label: 'Data & Assets' },
+    { key: 'dataAsset', label: 'Data and Assets' },
     { key: 'systemComponent', label: 'System Components' },
     { key: 'technologyComponent', label: 'Technology Components' },
     { key: 'integrationFlow', label: 'Integration Flow' },
     { key: 'enterpriseTools', label: 'Enterprise Tools' },
+    { key: 'processCompliance', label: 'Process Compliance' },
   ];
 
 export const CreateSolutionReviewPage: React.FC = () => {

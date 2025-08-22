@@ -72,7 +72,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ currentStep, steps, on
               </div>
 
               {/* horizontal connector line between items (mobile-friendly) */}
-              {idx < total - 1 && (
+              {idx < total && (
                 <div
                   aria-hidden
                   className={`mt-2 sm:mt-3 h-2 w-full relative`}

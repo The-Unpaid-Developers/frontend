@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { saveBusinessCapabilities, saveDataAsset, saveEnterpriseTools, saveIntegrationFlow, saveSolutionOverview, saveSystemComponent, saveTechnologyComponent } from "../services/solutionReviewApi";
-import type { BusinessCapabilities, DataAsset, EnterpriseTools, IntegrationFlow, SolutionOverview, SystemComponent, TechnologyComponent } from "../types/createSolutionReview";
+import { saveBusinessCapabilities, saveDataAsset, saveEnterpriseTools, saveIntegrationFlow, saveSolutionOverview, saveSystemComponent, saveTechnologyComponent, saveProcessCompliance } from "../services/solutionReviewApi";
+import type { BusinessCapabilities, DataAsset, EnterpriseTools, IntegrationFlow, SolutionOverview, SystemComponent, TechnologyComponent, ProcessCompliance } from "../types/createSolutionReview";
 
 export const useCreateSolutionReview = () => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -11,6 +11,7 @@ export const useCreateSolutionReview = () => {
   const [solutionOverview, setSolutionOverview] = useState<SolutionOverview | null>(null);
   const [systemComponent, setSystemComponent] = useState<SystemComponent | null>(null);
   const [technologyComponent, setTechnologyComponent] = useState<TechnologyComponent | null>(null);
+  const [processCompliance, setProcessCompliance] = useState<ProcessCompliance | null>(null);
 
   const saveSection = async (section: string) => {
     try {
@@ -50,6 +51,11 @@ export const useCreateSolutionReview = () => {
             await saveTechnologyComponent(technologyComponent);
           }
           break;
+        case "processCompliance":
+          if (processCompliance) {
+            await saveProcessCompliance(processCompliance);
+          }
+          break;
         default:
           throw new Error("Unknown section");
       }
@@ -76,6 +82,8 @@ export const useCreateSolutionReview = () => {
     setSystemComponent,
     technologyComponent,
     setTechnologyComponent,
+    processCompliance,
+    setProcessCompliance,
     saveSection,
   };
 };
