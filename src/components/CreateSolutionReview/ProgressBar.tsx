@@ -50,8 +50,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ currentStep, steps, on
                     type="button"
                     onClick={() => onStepClick?.(idx)}
                     aria-current={isActive ? 'step' : undefined}
+                    // className={`flex items-center justify-center w-8 h-8 rounded-full border-2 flex-shrink-0 transition-colors
+                    //   ${isComplete ? 'bg-primary-600 border-primary-600 text-white' : isActive ? 'bg-white border-primary-600 text-primary-600 shadow' : 'bg-white border-gray-300 text-gray-600'}
+                    // `}
                     className={`flex items-center justify-center w-8 h-8 rounded-full border-2 flex-shrink-0 transition-colors
-                      ${isComplete ? 'bg-primary-600 border-primary-600 text-white' : isActive ? 'bg-white border-primary-600 text-primary-600 shadow' : 'bg-white border-gray-300 text-gray-600'}
+                      ${isActive ? 'bg-primary-600 border-primary-600 text-white' : 'bg-white border-primary-600 text-primary-600 shadow'}
                     `}
                     title={`${idx + 1}. ${step.label}`}
                   >
