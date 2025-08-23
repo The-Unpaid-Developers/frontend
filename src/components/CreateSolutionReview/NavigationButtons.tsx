@@ -18,7 +18,7 @@ interface NavigationButtonsProps {
 
 export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   currentStep,
-  totalSteps = 7,
+  totalSteps,
   // onNext,
   // onPrevious,
   nextStep,

@@ -24,41 +24,95 @@ import type { StepProps } from './StepProps';
 //   initialData?: any;
 // };
 
-const IntegrationFlowStep: React.FC<StepProps> = ({ onSave, isSaving = false, initialData }) => {
-  const { integrationFlow, setIntegrationFlow } = useCreateSolutionReview();
-  const [inputValue, setInputValue] = useState(integrationFlow || '');
+// const IntegrationFlowStep: React.FC<StepProps> = ({ onSave, isSaving = false, initialData }) => {
+//   const { integrationFlow, setIntegrationFlow } = useCreateSolutionReview();
+//   const [inputValue, setInputValue] = useState(integrationFlow || '');
 
-  const [error, setError] = useState<string | null>(null);
-  // const handleSave = () => {
-  //   setIntegrationFlow(inputValue);
-  //   // Call the API to save the business capabilities
-  //   // Example: saveIntegrationFlow(inputValue);
-  // };
-  const handleSave = async () => {
-    console.log('hi');
-    setError(null);
-    const payload = { integrationFlow /* add other fields here */ };
-    try {
-      await onSave(payload); // calls CreateSolutionReviewPage.handleSave
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Save failed");
-    }
-  };
+//   const [error, setError] = useState<string | null>(null);
+//   // const handleSave = () => {
+//   //   setIntegrationFlow(inputValue);
+//   //   // Call the API to save the business capabilities
+//   //   // Example: saveIntegrationFlow(inputValue);
+//   // };
+//   const handleSave = async () => {
+//     console.log('hi');
+//     setError(null);
+//     const payload = { integrationFlow /* add other fields here */ };
+//     try {
+//       await onSave(payload); // calls CreateSolutionReviewPage.handleSave
+//     } catch (e) {
+//       setError(e instanceof Error ? e.message : "Save failed");
+//     }
+//   };
 
+//   return (
+//     <div className="p-6 bg-white rounded-lg shadow-md">
+//       <h2 className="text-xl font-bold mb-4">Integration Flow</h2>
+//       <Input
+//         placeholder="Describe the integration flow..."
+//         value={inputValue}
+//         onChange={(e) => setInputValue(e.target.value)}
+//         className="w-full mb-4"
+//       />
+//       <Button onClick={handleSave} className="mt-2">
+//         Save
+//       </Button>
+//     </div>
+//   );
+// };
+
+// export default IntegrationFlowStep;
+
+import type { IntegrationFlow } from '../../../types/createSolutionReview';
+
+const empty: IntegrationFlow = {
+  componentName:'', counterpartSystemCode:'', counterpartSystemRole:'',
+  integrationMethod:'', frequency:'', purpose:''
+};
+
+const IntegrationFlowStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialData }) => {
+  const initial: IntegrationFlow[] = initialData?.integrationFlow ?? [];
+  const [list,setList]=useState<IntegrationFlow[]>(initial);
+  const [row,setRow]=useState<IntegrationFlow>(empty);
+  const update=(k:keyof IntegrationFlow,v:string)=>setRow(r=>({...r,[k]:v}));
+  const add=()=>{ if(!row.componentName) return; setList(l=>[...l,row]); setRow(empty); };
+  const save=async()=>{ await onSave(list); };
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-bold mb-4">Integration Flow</h2>
-      <Input
-        placeholder="Describe the integration flow..."
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        className="w-full mb-4"
-      />
-      <Button onClick={handleSave} className="mt-2">
-        Save
-      </Button>
+    <div className="space-y-4">
+      <h2 className="text-xl font-bold">Integration Flow</h2>
+      <div className="grid md:grid-cols-3 gap-3">
+        <Input placeholder="Component" value={row.componentName} onChange={e=>update('componentName',e.target.value)} />
+        <Input placeholder="Counterpart Code" value={row.counterpartSystemCode} onChange={e=>update('counterpartSystemCode',e.target.value)} />
+        <Input placeholder="Counterpart Role" value={row.counterpartSystemRole} onChange={e=>update('counterpartSystemRole',e.target.value)} />
+        <Input placeholder="Method" value={row.integrationMethod} onChange={e=>update('integrationMethod',e.target.value)} />
+        <Input placeholder="Frequency" value={row.frequency} onChange={e=>update('frequency',e.target.value)} />
+        <Input placeholder="Purpose" value={row.purpose} onChange={e=>update('purpose',e.target.value)} />
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={add}>Add</Button>
+        <Button disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save & Next'}</Button>
+      </div>
+      {list.length>0 && (
+        <table className="w-full text-sm border">
+          <thead><tr className="bg-gray-50">
+            <th className="p-2 text-left">Component</th>
+            <th className="p-2 text-left">Counterpart</th>
+            <th className="p-2 text-left">Method</th>
+            <th className="p-2 text-left">Frequency</th>
+          </tr></thead>
+          <tbody>
+            {list.map((f,i)=>(
+              <tr key={i} className="border-t">
+                <td className="p-2">{f.componentName}</td>
+                <td className="p-2">{f.counterpartSystemCode}</td>
+                <td className="p-2">{f.integrationMethod}</td>
+                <td className="p-2">{f.frequency}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };
-
 export default IntegrationFlowStep;

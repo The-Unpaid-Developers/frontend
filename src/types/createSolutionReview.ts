@@ -2,75 +2,90 @@ import { DocumentState } from './index';
 
 // Define the step data interfaces for the multi-step solution review creation
 export interface SolutionOverview {
-  title: string;
-  description: string;
-  category: string;
-  businessPriority: 'High' | 'Medium' | 'Low';
-  projectTimeline: string;
-  stakeholders: string[];
-  businessValue: string;
-  estimatedCost: number;
-  estimatedDuration: string;
-  risksAndChallenges: string[];
+  solutionName: string;
+  projectName: string;
+  solutionReviewCode: string;
+  solutionArchitectName: string;
+  deliveryProjectManagerName: string;
+  itBusinessPartner: string;
+  reviewType: string; // dropdown list
+  businessUnit: string; // dropdown list
+  businessDriver: string; // dropdown list
+  valueOutcomes: string; 
+  applicationUsers: string[]; // multi select 
 }
 
-export interface BusinessCapabilities {
-  capabilities: string[];
-  businessProcesses: string[];
-  keyRequirements: string[];
-  successCriteria: string[];
-  domain: string;
-  maturityLevel: string;
-  strategicImportance: string;
+export interface BusinessCapability {
+  l1Capability: string; // dropdown list
+  l2Capability: string; // dropdown list
+  l3Capability: string; // dropdown list
+  remarks: string;
 }
 
 export interface DataAsset {
-  dataSources: string[];
-  dataTypes: string[];
-  dataVolume: string;
-  dataFrequency: string;
-  dataQualityRequirements: string[];
-  classification: string;
-  sensitivityLevel: string;
-  format: string;
+  componentName: string; // dropdown list based on system components
+  solutionOverviewId: string;
+  dataDomain: string; // dropdown list
+  dataClassification: string; // dropdown of PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED
+  dataOwnership: string; // dropdown list??
+  dataEntities: string[]; // dropdown list multi select
+  masteredIn: string; // dropdown list of the systems 
 }
 
-export interface EnterpriseTools {
-  existingTools: string[];
-  requiredTools: string[];
-  integrationPoints: string[];
-  licenses: string[];
-  category: string;
-  vendor: string;
-  purpose: string;
-  userBase: string;
-  licenseType: string;
+export interface EnterpriseTool {
+  toolName: string;
+  toolType: string; // dropdown list
+  onboardingStatus: string; // dropdown list
+  integrationDetails: string; // dropdown list
+  issues: string; 
 }
 
 export interface IntegrationFlow {
-  sourceSystem: string;
-  targetSystem: string;
-  dataFlow: string;
-  frequency: string;
-  protocol: string;
-  securityRequirements: string[];
-  dataFormat: string;
-  description: string;
+  componentName: string; // dropdown list based on system components
+  counterpartSystemCode: string; // dropdown list
+  counterpartSystemRole: string; // dropdown list
+  integrationMethod: string; // dropdown list
+  frequency: string; // dropdown list
+  purpose: string;
 }
 
 export interface SystemComponent {
-  componentName: string;
-  componentType: string;
-  description: string;
-  dependencies: string[];
-  scalabilityRequirements: string;
-  vendor: string;
-  version: string;
-  platform: string;
-  status: string;
+  name: string;
+  status: string; // dropdown list
+  role: string; // dropdown list
+  hostedOn: string; // dropdown list
+  hostingRegion: string; // dropdown list
+  solutionType: string; // dropdown list
+  languageFramework: string; // dropdown list
+  isOwnedByUs: boolean; // checkbox
+  isCICDUsed: boolean; // checkbox
+  customizationLevel: string; // dropdown list
+  upgradeStrategy: string; // dropdown list
+  upgradeFrequency: string; // dropdown list
+  isSubscription: boolean; // checkbox
+  isInternetFacing: boolean; // checkbox
+  availabilityRequirement: string; // dropdown list
+  latencyRequirement: number;
+  throughputRequirement: number;
+  scalabilityMethod: string; // dropdown list
+  backupSite: string; // dropdown list
+  authenticationMethod: string; // dropdown list
+  authorizationModel: string; // dropdown list
+  isAuditLoggingEnabled: boolean; // checkbox
+  sensitiveDataElements: string;
+  dataEncryptionAtRest: string; // dropdown list
+  encryptionAlgorithmForDataAtRest: string; // dropdown list?
+  hasIpWhitelisting: boolean; // checkbox
+  ssl: string; // dropdown list
+  payloadEncryptionAlgorithm: string; // dropdown list
+  digitalCertificate: string;
+  keyStore: string;
+  vulnerabilityAssessmentFrequency: string; // dropdown list
+  penetrationTestingFrequency: string; // dropdown list
 }
 
 export interface TechnologyComponent {
+  componentName: string; // dropdown list based on system components
   technology: string;
   version: string;
   purpose: string;
@@ -83,21 +98,22 @@ export interface TechnologyComponent {
 }
 
 export interface ProcessCompliance {
-  complianceRequirements: string[];
-  assessmentCriteria: string[];
-  approvalStatus: 'Pending' | 'Approved' | 'Rejected';
+  standardGuideline: string; // dropdown list
+  compliant: string; // dropdown list
+  description: string;
 }
 
 // Main form data interface
 export interface CreateSolutionReviewData {
-  solutionOverview: SolutionOverview;
-  businessCapabilities: BusinessCapabilities;
-  dataAsset: DataAsset;
-  enterpriseTools: EnterpriseTools;
-  integrationFlow: IntegrationFlow[];
-  systemComponent: SystemComponent[];
-  technologyComponent: TechnologyComponent[];
-  documentState: DocumentState;
+  solutionOverview: SolutionOverview | null;
+  businessCapabilities: BusinessCapability[] | null;
+  dataAsset: DataAsset[] | null;
+  enterpriseTools: EnterpriseTool[] | null;
+  integrationFlow: IntegrationFlow[] | null;
+  systemComponent: SystemComponent[] | null;
+  technologyComponent: TechnologyComponent[] | null;
+  processCompliance: ProcessCompliance[] | null;
+  // documentState: DocumentState;
 }
 
 // Step navigation
@@ -108,7 +124,8 @@ export type StepKey =
   | 'enterpriseTools'
   | 'integrationFlow'
   | 'systemComponent'
-  | 'technologyComponent';
+  | 'technologyComponent'
+  | 'processCompliance';
 
 export interface StepConfig {
   key: StepKey;

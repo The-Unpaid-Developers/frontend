@@ -18,6 +18,7 @@ import TechnologyComponentStep from './steps/TechnologyComponentStep';
 import ProcessComplianceStep from './steps/ProcessComplianceStep';
 import { useCreateSolutionReview } from '../../hooks/useCreateSolutionReview';
 import useStepNavigation from '../../hooks/useStepNavigation';
+import type { CreateSolutionReviewData } from '../../types/createSolutionReview';
 
 const steps = [
   SolutionOverviewStep,
@@ -43,15 +44,71 @@ const stepMeta = [
 
 export const CreateSolutionReviewPage: React.FC = () => {
   // const [currentStep, setCurrentStep] = useState(0);
-  const { saveSectionData } = useCreateSolutionReview();
+  // const { saveSection } = useCreateSolutionReview();
   // const { nextStep, prevStep } = useStepNavigation(currentStep, setCurrentStep, steps.length);
   const { currentStep, nextStep, prevStep, goToStep } = useStepNavigation(steps.length);
 
+  const {
+    saveSection,
+    setBusinessCapabilities,
+    setDataAsset,
+    setEnterpriseTools,
+    setIntegrationFlow,
+    setSolutionOverview,
+    setSystemComponent,
+    setTechnologyComponent,
+    setProcessCompliance,
+  } = useCreateSolutionReview();
+
   const StepComponent = steps[currentStep];
 
+  // const handleSave = async (data: any) => {
+  //   await saveSection(currentStep, data);
+  //   nextStep();
+  // };
   const handleSave = async (data: any) => {
-    await saveSectionData(currentStep, data);
-    nextStep();
+    // setIsSaving(true);
+    try {
+      const sectionKey = stepMeta[currentStep].key as keyof CreateSolutionReviewData;
+      // update the create-hook state for this section
+      switch (sectionKey) {
+        case "businessCapabilities":
+          setBusinessCapabilities(data);
+          break;
+        case "dataAsset":
+          setDataAsset(data);
+          break;
+        case "enterpriseTools":
+          setEnterpriseTools(data);
+          break;
+        case "integrationFlow":
+          setIntegrationFlow(data);
+          break;
+        case "solutionOverview":
+          setSolutionOverview(data);
+          break;
+        case "systemComponent":
+          setSystemComponent(data);
+          break;
+        case "technologyComponent":
+          setTechnologyComponent(data);
+          break;
+        case "processCompliance":
+          setProcessCompliance(data);
+          break;
+        default:
+          throw new Error("Unknown section");
+      }
+      // call unified save (posts payload with this section populated, others empty)
+      await saveSection(sectionKey);
+      // advance only after successful save
+      nextStep();
+    } catch (err) {
+      console.error("Save failed", err);
+      // show toast / error UI here if you have one
+    } finally {
+      // setIsSaving(false);
+    }
   };
 
   // optional: handle final submit (replace console.log with actual submit)
@@ -70,6 +127,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
       </div>
       <NavigationButtons
         currentStep={currentStep}
+        totalSteps={steps.length}
         nextStep={nextStep}
         prevStep={prevStep}
         onSubmit={currentStep === steps.length - 1 ? handleSubmit : undefined}
