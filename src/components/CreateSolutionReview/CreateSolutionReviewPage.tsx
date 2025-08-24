@@ -70,7 +70,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
     // setIsSaving(true);
     try {
       const sectionKey = stepMeta[currentStep].key as keyof CreateSolutionReviewData;
-      // update the create-hook state for this section
+      // Update the create-hook state for this section
       switch (sectionKey) {
         case "businessCapabilities":
           setBusinessCapabilities(data);
@@ -100,7 +100,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
           throw new Error("Unknown section");
       }
       // call unified save (posts payload with this section populated, others empty)
-      await saveSection(sectionKey);
+      await saveSection(sectionKey, data);
       // advance only after successful save
       nextStep();
     } catch (err) {
