@@ -30,7 +30,7 @@
 
 // export default DataAssetStep;
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
@@ -87,10 +87,17 @@ const empty: DataAsset = {
 };
 
 const DataAssetStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialData }) => {
-  const initial: DataAsset[] = initialData?.dataAsset ?? [];
-  const [list,setList]=useState<DataAsset[]>(initial);
+  const initialList: DataAsset[] | null | undefined = initialData?.dataAsset;
+  const [list,setList]=useState<DataAsset[]>(() => initialList ?? []);
   const [row,setRow]=useState<DataAsset>(empty);
   const [entity,setEntity]=useState('');
+
+  useEffect(() => {
+      // setList(initialList);
+      if (initialList && initialList !== list) {
+        setList(initialList);
+      }
+    }, [initialList]);
 
   const update=(k: keyof DataAsset, v:any)=> setRow(r=>({...r,[k]:v}));
 
@@ -109,6 +116,31 @@ const DataAssetStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialDat
     setList(l=>[...l,row]);
     setRow(empty);
   };
+
+  const [editingIndex,setEditingIndex]=useState<number | null>(null);
+    
+    const resetForm = () => {
+      setRow(empty);
+      setEditingIndex(null);
+    };
+  
+    const addOrUpdate = () => {
+      if (editingIndex != null) {
+        setList(l => l.map((item,i)=> i===editingIndex ? row : item));
+      } else {
+        setList(l=>[...l,row]);
+      }
+      resetForm();
+    };
+    const edit = (i: number) => {
+      setRow(list[i]);
+      setEditingIndex(i);
+    };
+  
+    const del = (i: number) => {
+      setList(l => l.filter((_,idx)=>idx!==i));
+      if (editingIndex === i) resetForm();
+    };
 
   const save=async()=>{ await onSave(list); };
 
@@ -139,11 +171,23 @@ const DataAssetStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialDat
           </div>
         )}
       </div>
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         <Button type="button" onClick={addRow}>Add</Button>
-        <Button type="button" disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save & Next'}</Button>
-      </div>
+        <Button type="button" disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save'}</Button>
+      </div> */}
+      <div className="flex gap-2">
+              <Button type="button" onClick={addOrUpdate}>
+                {editingIndex != null ? 'Update' : 'Add'}
+              </Button>
+              {editingIndex != null && (
+                <Button type="button" variant="secondary" onClick={resetForm}>Cancel Edit</Button>
+              )}
+              <Button type="button" disabled={isSaving} onClick={save}>
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
       {list.length>0 && (
+        <div className="border rounded max-h-80 overflow-auto">
         <table className="w-full text-sm border">
           <thead className="bg-gray-50">
             <tr>
@@ -160,10 +204,17 @@ const DataAssetStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialDat
                 <td className="p-2">{d.dataDomain}</td>
                 <td className="p-2">{d.dataClassification}</td>
                 <td className="p-2">{d.dataEntities.join(', ')}</td>
+                <td className="p-2">
+                  <div className="flex gap-2">
+                    <Button onClick={()=>edit(i)}>Edit</Button>
+                    <Button onClick={()=>del(i)}>Del</Button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

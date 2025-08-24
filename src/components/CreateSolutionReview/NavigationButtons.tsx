@@ -45,7 +45,7 @@ export const NavigationButtons: React.FC<NavigationButtonsProps> = ({
           onClick={onSubmit}
           className={`px-4 py-2 text-white bg-blue-600 rounded-md`}
         >
-          Submit
+          Review & Submit
         </button>
       ) : (
         <button

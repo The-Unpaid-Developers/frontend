@@ -11,7 +11,7 @@
 //     await saveTechnologyComponent(technologyComponent);
 //     setIsSaving(false);
 //   };
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
@@ -68,16 +68,48 @@ const empty: TechnologyComponent = {
 };
 
 const TechnologyComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialData }) => {
-  const initial: TechnologyComponent[] = initialData?.technologyComponent ?? [];
-  const [list,setList]=useState<TechnologyComponent[]>(initial);
+  const initialList: TechnologyComponent[] = initialData?.technologyComponent;
+  const [list,setList]=useState<TechnologyComponent[]>(() => initialList ?? []);
   const [row,setRow]=useState<TechnologyComponent>(empty);
   const [req,setReq]=useState('');
+
+  useEffect(() => {
+      // setList(initialList);
+      if (initialList && initialList !== list) {
+        setList(initialList);
+      }
+    }, [initialList]);
 
   const update=(k:keyof TechnologyComponent,v:any)=>setRow(r=>({...r,[k]:v}));
   const addReq=()=>{ if(!req.trim()) return; update('supportRequirements',[...row.supportRequirements,req.trim()]); setReq(''); };
   const removeReq=(r:string)=> update('supportRequirements', row.supportRequirements.filter(x=>x!==r));
   const add=()=>{ if(!row.componentName) return; setList(l=>[...l,row]); setRow(empty); };
   const save=async()=>{ await onSave(list); };
+
+  const [editingIndex,setEditingIndex]=useState<number | null>(null);
+  
+    const resetForm = () => {
+      setRow(empty);
+      setEditingIndex(null);
+    };
+  
+    const addOrUpdate = () => {
+      if (editingIndex != null) {
+        setList(l => l.map((item,i)=> i===editingIndex ? row : item));
+      } else {
+        setList(l=>[...l,row]);
+      }
+      resetForm();
+    };
+    const edit = (i: number) => {
+      setRow(list[i]);
+      setEditingIndex(i);
+    };
+  
+    const del = (i: number) => {
+      setList(l => l.filter((_,idx)=>idx!==i));
+      if (editingIndex === i) resetForm();
+    };
 
   return (
     <div className="space-y-4">
@@ -110,11 +142,64 @@ const TechnologyComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, 
         )}
       </div>
       <div className="flex gap-2">
-        <Button onClick={add}>Add</Button>
-        <Button disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save & Next'}</Button>
-      </div>
-      {list.length>0 && <div className="text-sm">{list.length} technology component(s)</div>}
-    </div>
+              <Button type="button" onClick={addOrUpdate}>
+                {editingIndex != null ? 'Update' : 'Add'}
+              </Button>
+              {editingIndex != null && (
+                <Button type="button" variant="secondary" onClick={resetForm}>Cancel Edit</Button>
+              )}
+              <Button type="button" disabled={isSaving} onClick={save}>
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+{list.length>0 && (
+        <div className="border rounded max-h-80 overflow-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="p-2 text-left">Name</th>
+                <th className="p-2 text-left">Technology</th>
+                <th className="p-2 text-left">Version</th>
+                <th className="p-2 text-left">Purpose</th>
+                <th className="p-2 text-left">Category</th>
+                <th className="p-2 text-left">Vendor</th>
+                <th className="p-2 text-left">License</th>
+                <th className="p-2 text-left">Support Level</th>
+                <th className="p-2 text-left">Support Requirements</th>
+                <th className="p-2 text-left w-28">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((t,i)=>(
+                <tr key={i} className="border-t">
+                  <td className="p-2">{t.componentName}</td>
+                  <td className="p-2">{t.technology}</td>
+                  <td className="p-2">{t.version}</td>
+                  <td className="p-2">{t.purpose}</td>
+                  <td className="p-2">{t.category}</td>
+                  <td className="p-2">{t.vendor}</td>
+                  <td className="p-2">{t.license}</td>
+                  <td className="p-2">{t.supportLevel}</td>
+                  <td className="p-2">
+                    {t.supportRequirements.length === 0
+                      ? <span className="text-gray-400">—</span>
+                      : <ul className="list-disc ml-4 space-y-1">
+                          {t.supportRequirements.map(r=> <li key={r}>{r}</li>)}
+                        </ul>}
+                  </td>
+                  <td className="p-2">
+                    <div className="flex gap-1 flex-wrap">
+                      <Button onClick={()=>edit(i)}>Edit</Button>
+                      <Button onClick={()=>del(i)}>Del</Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+          </div>
   );
 };
 

@@ -1,5 +1,10 @@
-export type StepProps<T = any> = {
-  onSave: (data: T) => Promise<void> | void;
+// export type StepProps<T = any> = {
+//   onSave: (data: T) => Promise<void> | void;
+//   isSaving?: boolean;
+//   initialData?: T | undefined;
+// };
+export interface StepProps {
+  onSave: (data: any) => Promise<void> | void;
+  initialData?: any;
   isSaving?: boolean;
-  initialData?: T | undefined;
-};
+}

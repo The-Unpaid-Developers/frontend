@@ -9,7 +9,7 @@
 //   const handleSave = async () => {
 //     await saveSystemComponent(systemComponent);
 //   };
-  import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
@@ -73,9 +73,16 @@ const empty: SystemComponent = {
 };
 
 const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialData }) => {
-  const initial: SystemComponent[] = initialData?.systemComponent ?? [];
-  const [list,setList]=useState<SystemComponent[]>(initial);
+  const initialList: SystemComponent[] | null | undefined = initialData?.systemComponent;
+  const [list,setList]=useState<SystemComponent[]>(() => initialList ?? []);
   const [row,setRow]=useState<SystemComponent>(empty);
+
+  useEffect(() => {
+      // setList(initialList);
+      if (initialList && initialList !== list) {
+        setList(initialList);
+      }
+    }, [initialList]);
 
   const update = (k: keyof SystemComponent, v:any) =>
     setRow(r=>({...r,[k]:v}));
@@ -85,6 +92,31 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
     setList(l=>[...l,row]);
     setRow(empty);
   };
+
+  const [editingIndex,setEditingIndex]=useState<number | null>(null);
+    
+      const resetForm = () => {
+        setRow(empty);
+        setEditingIndex(null);
+      };
+    
+      const addOrUpdate = () => {
+        if (editingIndex != null) {
+          setList(l => l.map((item,i)=> i===editingIndex ? row : item));
+        } else {
+          setList(l=>[...l,row]);
+        }
+        resetForm();
+      };
+      const edit = (i: number) => {
+        setRow(list[i]);
+        setEditingIndex(i);
+      };
+    
+      const del = (i: number) => {
+        setList(l => l.filter((_,idx)=>idx!==i));
+        if (editingIndex === i) resetForm();
+      };
 
   const save=async()=>{ await onSave(list); };
 
@@ -137,12 +169,108 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
         <Input placeholder="Vulnerability Assess Freq" value={row.vulnerabilityAssessmentFrequency} onChange={e=>update('vulnerabilityAssessmentFrequency',e.target.value)} />
         <Input placeholder="Pen Test Frequency" value={row.penetrationTestingFrequency} onChange={e=>update('penetrationTestingFrequency',e.target.value)} />
       </div>
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         <Button type="button" onClick={add}>Add</Button>
-        <Button type="button" disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save & Next'}</Button>
-      </div>
-      {list.length>0 && <div className="text-sm">{list.length} component(s) added</div>}
-    </div>
+        <Button type="button" disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save'}</Button>
+      </div> */}
+      <div className="flex gap-2">
+              <Button type="button" onClick={addOrUpdate}>
+                {editingIndex != null ? 'Update' : 'Add'}
+              </Button>
+              {editingIndex != null && (
+                <Button type="button" variant="secondary" onClick={resetForm}>Cancel Edit</Button>
+              )}
+              <Button type="button" disabled={isSaving} onClick={save}>
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+{list.length>0 && (
+        <div className="border rounded max-h-80 overflow-auto">
+          <table className="w-full text-xs md:text-sm">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="p-2 text-left">Name</th>
+                <th className="p-2 text-left">Status</th>
+                <th className="p-2 text-left">Role</th>
+                <th className="p-2 text-left">Hosted On</th>
+                <th className="p-2 text-left">Region</th>
+                <th className="p-2 text-left">Type</th>
+                <th className="p-2 text-left">Lang/Framework</th>
+                <th className="p-2 text-left">Owned?</th>
+                <th className="p-2 text-left">CI/CD</th>
+                <th className="p-2 text-left">Customization</th>
+                <th className="p-2 text-left">Upgrade Strat</th>
+                <th className="p-2 text-left">Upgrade Freq</th>
+                <th className="p-2 text-left">Subscription</th>
+                <th className="p-2 text-left">Internet Facing</th>
+                <th className="p-2 text-left">Avail Req</th>
+                <th className="p-2 text-left">Latency</th>
+                <th className="p-2 text-left">Throughput</th>
+                <th className="p-2 text-left">Scalability</th>
+                <th className="p-2 text-left">Backup Site</th>
+                <th className="p-2 text-left">Auth Method</th>
+                <th className="p-2 text-left">Authorization</th>
+                <th className="p-2 text-left">Audit Log</th>
+                <th className="p-2 text-left">Sensitive Data</th>
+                <th className="p-2 text-left">Data Enc Rest</th>
+                <th className="p-2 text-left">Enc Algo</th>
+                <th className="p-2 text-left">IP WL</th>
+                <th className="p-2 text-left">SSL</th>
+                <th className="p-2 text-left">Payload Enc</th>
+                <th className="p-2 text-left">Cert</th>
+                <th className="p-2 text-left">Key Store</th>
+                <th className="p-2 text-left">Vuln Assess Freq</th>
+                <th className="p-2 text-left">Pen Test Freq</th>
+                <th className="p-2 text-left w-28">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((c,i)=>(
+                <tr key={i} className="border-t">
+                  <td className="p-2">{c.name}</td>
+                  <td className="p-2">{c.status}</td>
+                  <td className="p-2">{c.role}</td>
+                  <td className="p-2">{c.hostedOn}</td>
+                  <td className="p-2">{c.hostingRegion}</td>
+                  <td className="p-2">{c.solutionType}</td>
+                  <td className="p-2">{c.languageFramework}</td>
+                  <td className="p-2">{c.isOwnedByUs?'Yes':'No'}</td>
+                  <td className="p-2">{c.isCICDUsed?'Yes':'No'}</td>
+                  <td className="p-2">{c.customizationLevel}</td>
+                  <td className="p-2">{c.upgradeStrategy}</td>
+                  <td className="p-2">{c.upgradeFrequency}</td>
+                  <td className="p-2">{c.isSubscription?'Yes':'No'}</td>
+                  <td className="p-2">{c.isInternetFacing?'Yes':'No'}</td>
+                  <td className="p-2">{c.availabilityRequirement}</td>
+                  <td className="p-2">{c.latencyRequirement}</td>
+                  <td className="p-2">{c.throughputRequirement}</td>
+                  <td className="p-2">{c.scalabilityMethod}</td>
+                  <td className="p-2">{c.backupSite}</td>
+                  <td className="p-2">{c.authenticationMethod}</td>
+                  <td className="p-2">{c.authorizationModel}</td>
+                  <td className="p-2">{c.isAuditLoggingEnabled?'Yes':'No'}</td>
+                  <td className="p-2">{c.sensitiveDataElements}</td>
+                  <td className="p-2">{c.dataEncryptionAtRest}</td>
+                  <td className="p-2">{c.encryptionAlgorithmForDataAtRest}</td>
+                  <td className="p-2">{c.hasIpWhitelisting?'Yes':'No'}</td>
+                  <td className="p-2">{c.ssl}</td>
+                  <td className="p-2">{c.payloadEncryptionAlgorithm}</td>
+                  <td className="p-2">{c.digitalCertificate}</td>
+                  <td className="p-2">{c.keyStore}</td>
+                  <td className="p-2">{c.vulnerabilityAssessmentFrequency}</td>
+                  <td className="p-2">{c.penetrationTestingFrequency}</td>
+                  <td className="p-2">
+                    <div className="flex gap-1 flex-wrap">
+                      <Button onClick={()=>edit(i)}>Edit</Button>
+                      <Button onClick={()=>del(i)}>Del</Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}    </div>
   );
 };
 

@@ -12,7 +12,7 @@
 //     // await saveSolutionOverview(localOverview);
 //   };
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
@@ -81,6 +81,13 @@ const empty: SolutionOverview = {
 const SolutionOverviewStep: React.FC<StepProps> = ({ onSave, isSaving = false, initialData }) => {
   const [data, setData] = useState<SolutionOverview>(initialData?.solutionOverview ?? empty);
   const [appUser, setAppUser] = useState('');
+
+  useEffect(() => {
+    if (initialData?.solutionOverview) {
+      setData(initialData.solutionOverview);
+    }
+  }, [initialData]);
+
   const update = (k: keyof SolutionOverview, v: any) => setData(d => ({ ...d, [k]: v }));
 
   const addUser = () => {
@@ -128,7 +135,7 @@ const SolutionOverviewStep: React.FC<StepProps> = ({ onSave, isSaving = false, i
         )}
       </div>
 
-      <Button disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save & Next'}</Button>
+      <Button disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save'}</Button>
     </div>
   );
 };

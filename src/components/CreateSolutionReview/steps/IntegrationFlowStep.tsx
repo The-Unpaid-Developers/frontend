@@ -14,7 +14,7 @@
 //     setIntegrationFlowData(localData);
 //     saveIntegrationFlow(localData);
 //   };
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Input } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
@@ -71,12 +71,43 @@ const empty: IntegrationFlow = {
 };
 
 const IntegrationFlowStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialData }) => {
-  const initial: IntegrationFlow[] = initialData?.integrationFlow ?? [];
-  const [list,setList]=useState<IntegrationFlow[]>(initial);
+  const initialList: IntegrationFlow[] | null | undefined = initialData?.integrationFlow;
+  const [list,setList]=useState<IntegrationFlow[]>(() => initialList ?? []);
   const [row,setRow]=useState<IntegrationFlow>(empty);
+  useEffect(() => {
+      // setList(initialList);
+      if (initialList && initialList !== list) {
+        setList(initialList);
+      }
+    }, [initialList]);
   const update=(k:keyof IntegrationFlow,v:string)=>setRow(r=>({...r,[k]:v}));
   const add=()=>{ if(!row.componentName) return; setList(l=>[...l,row]); setRow(empty); };
   const save=async()=>{ await onSave(list); };
+
+  const [editingIndex,setEditingIndex]=useState<number | null>(null);
+  
+    const resetForm = () => {
+      setRow(empty);
+      setEditingIndex(null);
+    };
+  
+    const addOrUpdate = () => {
+      if (editingIndex != null) {
+        setList(l => l.map((item,i)=> i===editingIndex ? row : item));
+      } else {
+        setList(l=>[...l,row]);
+      }
+      resetForm();
+    };
+    const edit = (i: number) => {
+      setRow(list[i]);
+      setEditingIndex(i);
+    };
+  
+    const del = (i: number) => {
+      setList(l => l.filter((_,idx)=>idx!==i));
+      if (editingIndex === i) resetForm();
+    };
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold">Integration Flow</h2>
@@ -88,29 +119,48 @@ const IntegrationFlowStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
         <Input placeholder="Frequency" value={row.frequency} onChange={e=>update('frequency',e.target.value)} />
         <Input placeholder="Purpose" value={row.purpose} onChange={e=>update('purpose',e.target.value)} />
       </div>
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         <Button onClick={add}>Add</Button>
-        <Button disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save & Next'}</Button>
-      </div>
+        <Button disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save'}</Button>
+      </div> */}
+      <div className="flex gap-2">
+              <Button type="button" onClick={addOrUpdate}>
+                {editingIndex != null ? 'Update' : 'Add'}
+              </Button>
+              {editingIndex != null && (
+                <Button type="button" variant="secondary" onClick={resetForm}>Cancel Edit</Button>
+              )}
+              <Button type="button" disabled={isSaving} onClick={save}>
+                {isSaving ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
       {list.length>0 && (
+        <div className="border rounded max-h-80 overflow-auto">
         <table className="w-full text-sm border">
           <thead><tr className="bg-gray-50">
             <th className="p-2 text-left">Component</th>
             <th className="p-2 text-left">Counterpart</th>
+            <th className="p-2 text-left">Role</th>
             <th className="p-2 text-left">Method</th>
-            <th className="p-2 text-left">Frequency</th>
           </tr></thead>
           <tbody>
             {list.map((f,i)=>(
               <tr key={i} className="border-t">
                 <td className="p-2">{f.componentName}</td>
                 <td className="p-2">{f.counterpartSystemCode}</td>
+                <td className="p-2">{f.counterpartSystemRole}</td>
                 <td className="p-2">{f.integrationMethod}</td>
-                <td className="p-2">{f.frequency}</td>
+                <td className="p-2">
+                  <div className="flex gap-2">
+                    <Button onClick={()=>edit(i)}>Edit</Button>
+                    <Button onClick={()=>del(i)}>Del</Button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );
