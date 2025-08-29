@@ -86,15 +86,9 @@ export interface SystemComponent {
 
 export interface TechnologyComponent {
   componentName: string; // dropdown list based on system components
-  technology: string;
-  version: string;
-  purpose: string;
-  configuration: string;
-  supportRequirements: string[];
-  category: string;
-  vendor: string;
-  license: string;
-  supportLevel: string;
+  productName: string; 
+  productVersion: string; 
+  usage: string;
 }
 
 export interface ProcessCompliance {
