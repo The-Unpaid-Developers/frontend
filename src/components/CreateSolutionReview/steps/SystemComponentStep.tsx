@@ -10,7 +10,7 @@
 //     await saveSystemComponent(systemComponent);
 //   };
 import React, { useState, useEffect } from 'react';
-import { Button, Input } from '../../ui';
+import { Button, Input, DropDown } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
 // type StepProps = {
@@ -59,6 +59,20 @@ import type { StepProps } from './StepProps';
 // export default SystemComponentStep;
 
 import type { SystemComponent } from '../../../types/createSolutionReview';
+import {
+  COMPONENT_STATUS_OPTIONS,
+  COMPONENT_ROLE_OPTIONS,
+  HOSTING_REGION_OPTIONS,
+  SOLUTION_TYPE_OPTIONS,
+  CUSTOMIZATION_LEVEL_OPTIONS,
+  UPGRADE_STRATEGY_OPTIONS,
+  AVAILABILITY_REQUIREMENT_OPTIONS,
+  SCALABILITY_METHOD_OPTIONS,
+  BACKUP_SITE_OPTIONS,
+  DATA_ENCRYPTION_AT_REST_OPTIONS,
+  SSL_TYPE_OPTIONS,
+  FRAMEWORK_OPTIONS
+} from './DropDownListValues';
 
 const empty: SystemComponent = {
   name:'', status:'', role:'', hostedOn:'', hostingRegion:'', solutionType:'',
@@ -125,20 +139,62 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
       <h2 className="text-xl font-bold">System Components</h2>
       <div className="grid md:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto pr-1">
         <Input placeholder="Name" value={row.name} onChange={e=>update('name',e.target.value)} />
-        <Input placeholder="Status" value={row.status} onChange={e=>update('status',e.target.value)} />
-        <Input placeholder="Role" value={row.role} onChange={e=>update('role',e.target.value)} />
+        <DropDown
+          label="Status"
+          value={row.status}
+          placeholder="Select Status"
+          onChange={e=>update('status', e.target.value)}
+          options={COMPONENT_STATUS_OPTIONS}
+        />
+        <DropDown
+          label="Role"
+          value={row.role}
+          placeholder="Select Role"
+          onChange={e=>update('role', e.target.value)}
+          options={COMPONENT_ROLE_OPTIONS}
+        />
         <Input placeholder="Hosted On" value={row.hostedOn} onChange={e=>update('hostedOn',e.target.value)} />
-        <Input placeholder="Hosting Region" value={row.hostingRegion} onChange={e=>update('hostingRegion',e.target.value)} />
-        <Input placeholder="Solution Type" value={row.solutionType} onChange={e=>update('solutionType',e.target.value)} />
-        <Input placeholder="Language/Framework" value={row.languageFramework} onChange={e=>update('languageFramework',e.target.value)} />
+        <DropDown
+          label="Hosting Region"
+          value={row.hostingRegion}
+          placeholder="Select Region"
+          onChange={e=>update('hostingRegion', e.target.value)}
+          options={HOSTING_REGION_OPTIONS}
+        />
+        <DropDown
+          label="Solution Type"
+          value={row.solutionType}
+          placeholder="Select Type"
+          onChange={e=>update('solutionType', e.target.value)}
+          options={SOLUTION_TYPE_OPTIONS}
+        />
+        <DropDown
+          label="Framework"
+          value={row.languageFramework}
+          placeholder="Select Framework"
+          onChange={e=>update('languageFramework', e.target.value)}
+          options={FRAMEWORK_OPTIONS}
+        />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={row.isOwnedByUs} onChange={e=>update('isOwnedByUs',e.target.checked)} /> Owned By Us
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={row.isCICDUsed} onChange={e=>update('isCICDUsed',e.target.checked)} /> CI/CD Used
         </label>
-        <Input placeholder="Customization Level" value={row.customizationLevel} onChange={e=>update('customizationLevel',e.target.value)} />
-        <Input placeholder="Upgrade Strategy" value={row.upgradeStrategy} onChange={e=>update('upgradeStrategy',e.target.value)} />
+        <DropDown
+          label="Customization Level"
+          value={row.customizationLevel}
+          placeholder="Select Level"
+          onChange={e=>update('customizationLevel', e.target.value)}
+          options={CUSTOMIZATION_LEVEL_OPTIONS}
+        />
+        <DropDown
+          label="Upgrade Strategy"
+          value={row.upgradeStrategy}
+          placeholder="Select Strategy"
+          onChange={e=>update('upgradeStrategy', e.target.value)}
+          options={UPGRADE_STRATEGY_OPTIONS}
+        />
         <Input placeholder="Upgrade Frequency" value={row.upgradeFrequency} onChange={e=>update('upgradeFrequency',e.target.value)} />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={row.isSubscription} onChange={e=>update('isSubscription',e.target.checked)} /> Subscription
@@ -146,23 +202,53 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={row.isInternetFacing} onChange={e=>update('isInternetFacing',e.target.checked)} /> Internet Facing
         </label>
-        <Input placeholder="Availability Req" value={row.availabilityRequirement} onChange={e=>update('availabilityRequirement',e.target.value)} />
+        <DropDown
+          label="Availability Requirement"
+          value={row.availabilityRequirement}
+          placeholder="Select Availability"
+          onChange={e=>update('availabilityRequirement', e.target.value)}
+          options={AVAILABILITY_REQUIREMENT_OPTIONS}
+        />
         <Input type="number" placeholder="Latency" value={row.latencyRequirement} onChange={e=>update('latencyRequirement',Number(e.target.value))} />
         <Input type="number" placeholder="Throughput" value={row.throughputRequirement} onChange={e=>update('throughputRequirement',Number(e.target.value))} />
-        <Input placeholder="Scalability Method" value={row.scalabilityMethod} onChange={e=>update('scalabilityMethod',e.target.value)} />
-        <Input placeholder="Backup Site" value={row.backupSite} onChange={e=>update('backupSite',e.target.value)} />
+        <DropDown
+          label="Scalability Method"
+          value={row.scalabilityMethod}
+          placeholder="Select Method"
+          onChange={e=>update('scalabilityMethod', e.target.value)}
+          options={SCALABILITY_METHOD_OPTIONS}
+        />
+        <DropDown
+          label="Backup Site"
+          value={row.backupSite}
+          placeholder="Select Backup Site"
+          onChange={e=>update('backupSite', e.target.value)}
+          options={BACKUP_SITE_OPTIONS}
+        />
         <Input placeholder="Auth Method" value={row.authenticationMethod} onChange={e=>update('authenticationMethod',e.target.value)} />
         <Input placeholder="Authorization Model" value={row.authorizationModel} onChange={e=>update('authorizationModel',e.target.value)} />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={row.isAuditLoggingEnabled} onChange={e=>update('isAuditLoggingEnabled',e.target.checked)} /> Audit Logging
         </label>
         <Input placeholder="Sensitive Data" value={row.sensitiveDataElements} onChange={e=>update('sensitiveDataElements',e.target.value)} />
-        <Input placeholder="Data Encryption At Rest" value={row.dataEncryptionAtRest} onChange={e=>update('dataEncryptionAtRest',e.target.value)} />
+        <DropDown
+          label="Data Encryption At Rest"
+          value={row.dataEncryptionAtRest}
+          placeholder="Select Encryption"
+          onChange={e=>update('dataEncryptionAtRest', e.target.value)}
+          options={DATA_ENCRYPTION_AT_REST_OPTIONS}
+        />
         <Input placeholder="Encryption Algorithm" value={row.encryptionAlgorithmForDataAtRest} onChange={e=>update('encryptionAlgorithmForDataAtRest',e.target.value)} />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={row.hasIpWhitelisting} onChange={e=>update('hasIpWhitelisting',e.target.checked)} /> IP Whitelisting
         </label>
-        <Input placeholder="SSL" value={row.ssl} onChange={e=>update('ssl',e.target.value)} />
+        <DropDown
+          label="SSL Type"
+          value={row.ssl}
+          placeholder="Select SSL Type"
+          onChange={e=>update('ssl', e.target.value)}
+          options={SSL_TYPE_OPTIONS}
+        />
         <Input placeholder="Payload Encryption Alg" value={row.payloadEncryptionAlgorithm} onChange={e=>update('payloadEncryptionAlgorithm',e.target.value)} />
         <Input placeholder="Digital Certificate" value={row.digitalCertificate} onChange={e=>update('digitalCertificate',e.target.value)} />
         <Input placeholder="Key Store" value={row.keyStore} onChange={e=>update('keyStore',e.target.value)} />

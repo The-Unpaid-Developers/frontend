@@ -80,8 +80,8 @@ export const CreateSolutionReviewPage: React.FC = () => {
       const sectionKey = stepMeta[currentStep].key as keyof CreateSolutionReviewData;
       // persist in lifted state
       setCreateData(prev => ({ ...prev, [sectionKey]: data }));
-
-      saveSection(sectionKey, data);
+      const systemCode = 'TEST'; // TODO: replace with actual system code from context or props
+      saveSection(sectionKey, data, systemCode);
     } catch (err) {
       console.error("Save failed", err);
       // show toast / error UI here if you have one

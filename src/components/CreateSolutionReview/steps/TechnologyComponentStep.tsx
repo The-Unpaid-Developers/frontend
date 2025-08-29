@@ -12,7 +12,7 @@
 //     setIsSaving(false);
 //   };
 import React, { useState, useEffect } from 'react';
-import { Button, Input } from '../../ui';
+import { Button, Input, DropDown } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
 // type StepProps = {
@@ -61,6 +61,7 @@ import type { StepProps } from './StepProps';
 // export default TechnologyComponentStep;
 
 import type { TechnologyComponent } from '../../../types/createSolutionReview';
+import { USAGE_OPTIONS } from './DropDownListValues';
 
 const empty: TechnologyComponent = {
   componentName:'', technology:'', version:'', purpose:'', configuration:'',
@@ -120,6 +121,13 @@ const TechnologyComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, 
         <Input placeholder="Version" value={row.version} onChange={e=>update('version',e.target.value)} />
         <Input placeholder="Purpose" value={row.purpose} onChange={e=>update('purpose',e.target.value)} />
         <Input placeholder="Configuration" value={row.configuration} onChange={e=>update('configuration',e.target.value)} />
+        {/* <DropDown
+          label="Usage"
+          placeholder="Select Usage"
+          value={row.usage}
+          onChange={e=>update('usage', e.target.value)}
+          options={USAGE_OPTIONS}
+        /> */}
         <Input placeholder="Category" value={row.category} onChange={e=>update('category',e.target.value)} />
         <Input placeholder="Vendor" value={row.vendor} onChange={e=>update('vendor',e.target.value)} />
         <Input placeholder="License" value={row.license} onChange={e=>update('license',e.target.value)} />

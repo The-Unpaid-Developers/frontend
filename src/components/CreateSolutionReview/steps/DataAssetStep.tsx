@@ -31,9 +31,10 @@
 // export default DataAssetStep;
 
 import React, { useState, useEffect } from 'react';
-import { Button, Input } from '../../ui';
+import { Button, Input, DropDown } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
+import { CLASSIFICATION_OPTIONS } from './DropDownListValues';
 // type StepProps = {
 //   onSave: (data: any) => Promise<void> | void;
 //   isSaving?: boolean;
@@ -151,7 +152,14 @@ const DataAssetStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialDat
         <Input placeholder="Component Name" value={row.componentName} onChange={e=>update('componentName',e.target.value)} />
         <Input placeholder="Solution Overview Id" value={row.solutionOverviewId} onChange={e=>update('solutionOverviewId',e.target.value)} />
         <Input placeholder="Data Domain" value={row.dataDomain} onChange={e=>update('dataDomain',e.target.value)} />
-        <Input placeholder="Classification" value={row.dataClassification} onChange={e=>update('dataClassification',e.target.value)} />
+        {/* <Input placeholder="Classification" value={row.dataClassification} onChange={e=>update('dataClassification',e.target.value)} /> */}
+        <DropDown
+          // label="Data Classification"
+          placeholder="Select Data Classification"
+          value={row.dataClassification}
+          onChange={e=>update('dataClassification', e.target.value)}
+          options={CLASSIFICATION_OPTIONS}
+        />
         <Input placeholder="Ownership" value={row.dataOwnership} onChange={e=>update('dataOwnership',e.target.value)} />
         <Input placeholder="Mastered In" value={row.masteredIn} onChange={e=>update('masteredIn',e.target.value)} />
       </div>

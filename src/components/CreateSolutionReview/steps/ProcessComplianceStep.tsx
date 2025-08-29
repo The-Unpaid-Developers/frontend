@@ -12,7 +12,7 @@
 //     setIsSaving(false);
 //   };
 import React, { useState, useEffect } from 'react';
-import { Button, Input } from '../../ui';
+import { Button, DropDown, Input } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
 // type StepProps = {
@@ -61,6 +61,7 @@ import type { StepProps } from './StepProps';
 // export default ProcessComplianceStep;
 
 import type { ProcessCompliance } from '../../../types/createSolutionReview';
+import { COMPLIANT, COMPLIANT_OPTIONS } from './DropDownListValues';
 
 const empty: ProcessCompliance = { standardGuideline:'', compliant:'', description:'' };
 
@@ -107,7 +108,14 @@ const ProcessComplianceStep: React.FC<StepProps> = ({ onSave, isSaving=false, in
       <h2 className="text-xl font-bold">Process Compliance</h2>
       <div className="grid md:grid-cols-3 gap-3">
         <Input placeholder="Standard / Guideline" value={row.standardGuideline} onChange={e=>update('standardGuideline',e.target.value)} />
-        <Input placeholder="Compliant" value={row.compliant} onChange={e=>update('compliant',e.target.value)} />
+        {/* <Input placeholder="Compliant" value={row.compliant} onChange={e=>update('compliant',e.target.value)} /> */}
+        <DropDown
+          label="Compliant"
+          placeholder="Select Compliant"
+          value={row.compliant}
+          onChange={e=>update('compliant', e.target.value)}
+          options={COMPLIANT_OPTIONS}
+        />
         <Input placeholder="Description" value={row.description} onChange={e=>update('description',e.target.value)} />
       </div>
       {/* <div className="flex gap-2">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 // import { saveBusinessCapabilities, saveDataAsset, saveEnterpriseTools, saveIntegrationFlow, saveSolutionOverview, saveSystemComponent, saveTechnologyComponent, saveProcessCompliance } from "../services/solutionReviewApi";
-import { saveSolutionReview } from "../services/solutionReviewApi";
+import { saveSolutionReviewDraft } from "../services/solutionReviewApi";
 import type { CreateSolutionReviewData, BusinessCapability, DataAsset, EnterpriseTool, IntegrationFlow, SolutionOverview, SystemComponent, TechnologyComponent, ProcessCompliance } from "../types/createSolutionReview";
 
 export const useCreateSolutionReview = () => {
@@ -120,7 +120,8 @@ export const useCreateSolutionReview = () => {
   //   }
   const saveSection = async <K extends keyof CreateSolutionReviewData>(
     section: K,
-    value: CreateSolutionReviewData[K]
+    value: CreateSolutionReviewData[K],
+    systemCode: string
   ) => {
     // Update local state synchronously (enqueue) using the passed value
     switch (section) {
@@ -169,7 +170,7 @@ export const useCreateSolutionReview = () => {
     };
 
     // Use the passed value (not the possibly stale state)
-    return await saveSolutionReview(payload as any);
+    return await saveSolutionReviewDraft(payload as any, systemCode);
   };
 
   return {

@@ -15,7 +15,7 @@
 //     saveIntegrationFlow(localData);
 //   };
 import React, { useState, useEffect } from 'react';
-import { Button, Input } from '../../ui';
+import { Button, DropDown, Input } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
 // type StepProps = {
@@ -64,6 +64,7 @@ import type { StepProps } from './StepProps';
 // export default IntegrationFlowStep;
 
 import type { IntegrationFlow } from '../../../types/createSolutionReview';
+import { EXTERNAL_SYSTEM_ROLE_OPTIONS, INTEGRATION_METHOD_OPTIONS } from './DropDownListValues';
 
 const empty: IntegrationFlow = {
   componentName:'', counterpartSystemCode:'', counterpartSystemRole:'',
@@ -114,8 +115,22 @@ const IntegrationFlowStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
       <div className="grid md:grid-cols-3 gap-3">
         <Input placeholder="Component" value={row.componentName} onChange={e=>update('componentName',e.target.value)} />
         <Input placeholder="Counterpart Code" value={row.counterpartSystemCode} onChange={e=>update('counterpartSystemCode',e.target.value)} />
-        <Input placeholder="Counterpart Role" value={row.counterpartSystemRole} onChange={e=>update('counterpartSystemRole',e.target.value)} />
-        <Input placeholder="Method" value={row.integrationMethod} onChange={e=>update('integrationMethod',e.target.value)} />
+        {/* <Input placeholder="Counterpart Role" value={row.counterpartSystemRole} onChange={e=>update('counterpartSystemRole',e.target.value)} />
+        <Input placeholder="Method" value={row.integrationMethod} onChange={e=>update('integrationMethod',e.target.value)} /> */}
+        <DropDown
+          label="Counterpart Role"
+          placeholder="Select Role"
+          value={row.counterpartSystemRole}
+          onChange={e=>update('counterpartSystemRole', e.target.value)}
+          options={EXTERNAL_SYSTEM_ROLE_OPTIONS}
+        />
+        <DropDown
+          label="Method"
+          placeholder="Select Method"
+          value={row.integrationMethod}
+          onChange={e=>update('integrationMethod', e.target.value)}
+          options={INTEGRATION_METHOD_OPTIONS}
+        />
         <Input placeholder="Frequency" value={row.frequency} onChange={e=>update('frequency',e.target.value)} />
         <Input placeholder="Purpose" value={row.purpose} onChange={e=>update('purpose',e.target.value)} />
       </div>

@@ -10,7 +10,7 @@
 //     await setEnterpriseTools(localEnterpriseTools);
 //   };
 import React, { useState, useEffect } from 'react';
-import { Button, Input } from '../../ui';
+import { Button, Input, DropDown } from '../../ui';
 import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
 
@@ -54,6 +54,7 @@ import type { StepProps } from './StepProps';
 // export default EnterpriseToolsStep;
 
 import type { EnterpriseTool } from '../../../types/createSolutionReview';
+import { ONBOARDING_STATUS_OPTIONS, TOOL_TYPE_OPTIONS } from './DropDownListValues';
 
 const empty: EnterpriseTool = {
   toolName:'', toolType:'', onboardingStatus:'', integrationDetails:'', issues:''
@@ -105,8 +106,23 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
       <h2 className="text-xl font-bold">Enterprise Tools</h2>
       <div className="grid md:grid-cols-3 gap-3">
         <Input placeholder="Tool Name" value={row.toolName} onChange={e=>update('toolName',e.target.value)} />
-        <Input placeholder="Tool Type" value={row.toolType} onChange={e=>update('toolType',e.target.value)} />
-        <Input placeholder="Onboarding Status" value={row.onboardingStatus} onChange={e=>update('onboardingStatus',e.target.value)} />
+        {/* <Input placeholder="Tool Type" value={row.toolType} onChange={e=>update('toolType',e.target.value)} />
+        <Input placeholder="Onboarding Status" value={row.onboardingStatus} onChange={e=>update('onboardingStatus',e.target.value)} /> */}
+        <DropDown
+          label="Tool Type"
+            placeholder="Select Tool Type"
+          value={row.toolType}
+          onChange={e=>update('toolType', e.target.value)}
+          options={TOOL_TYPE_OPTIONS}
+        />
+
+        <DropDown
+          label="Onboarding Status"
+          placeholder="Select Status"
+          value={row.onboardingStatus}
+          onChange={e=>update('onboardingStatus', e.target.value)}
+          options={ONBOARDING_STATUS_OPTIONS}
+        />
         <Input placeholder="Integration Details" value={row.integrationDetails} onChange={e=>update('integrationDetails',e.target.value)} />
         <Input placeholder="Issues" value={row.issues} onChange={e=>update('issues',e.target.value)} />
       </div>
