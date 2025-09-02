@@ -8,7 +8,6 @@ const emptyData: SolutionOverview = {
   solutionDetails: {
     solutionName: '',
     projectName: '',
-    systemCode: '',
     solutionArchitectName: '',
     deliveryProjectManagerName: '',
     itBusinessPartner: '',
@@ -21,6 +20,8 @@ const emptyData: SolutionOverview = {
 };
 
 const SolutionOverviewStep: React.FC<StepProps> = ({ onSave, isSaving = false, initialData }) => {
+  console.log(initialData);
+  const systemCode = initialData.systemCode ?? '';
   const [data, setData] = useState<SolutionOverview>(initialData.solutionOverview ?? emptyData);
   const [appUser, setAppUser] = useState('');
 
@@ -51,7 +52,7 @@ const SolutionOverviewStep: React.FC<StepProps> = ({ onSave, isSaving = false, i
       <div className="grid md:grid-cols-2 gap-4">
         <Input placeholder="Solution Name" value={data.solutionDetails.solutionName} onChange={e => updateSolutionDetails('solutionName', e.target.value)} />
         <Input placeholder="Project Name" value={data.solutionDetails.projectName} onChange={e => updateSolutionDetails('projectName', e.target.value)} />
-        <Input placeholder="System Code" value={data.solutionDetails.systemCode} onChange={e => updateSolutionDetails('systemCode', e.target.value)} />
+        <Input placeholder="System Code" value={systemCode} disabled/>
         <Input placeholder="Solution Architect" value={data.solutionDetails.solutionArchitectName} onChange={e => updateSolutionDetails('solutionArchitectName', e.target.value)} />
         <Input placeholder="Delivery PM" value={data.solutionDetails.deliveryProjectManagerName} onChange={e => updateSolutionDetails('deliveryProjectManagerName', e.target.value)} />
         <Input placeholder="IT Business Partner" value={data.solutionDetails.itBusinessPartner} onChange={e => updateSolutionDetails('itBusinessPartner', e.target.value)} />

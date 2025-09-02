@@ -1,12 +1,9 @@
 import React from "react";
-import {
-  DocumentState,
-  STATE_TRANSITIONS,
-  getStateDescription,
-} from "../types";
-import type { SolutionReview } from "../types";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "./ui";
-import { useSolutionReview } from "../context/SolutionReviewContext";
+import { useNavigate } from 'react-router-dom';
+import type { SolutionReview } from "../../types/solutionReview";
+import { DocumentState, STATE_TRANSITIONS, getStateColor, getStateDescription } from "../../types/solutionReview";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../ui";
+import { useSolutionReview } from "../../context/SolutionReviewContext";
 
 interface SolutionReviewDetailProps {
   review: SolutionReview;
@@ -17,6 +14,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
   review,
   onClose,
 }) => {
+  const navigate = useNavigate();
   const { actions } = useSolutionReview();
 
   const handleStateTransition = async (newState: DocumentState) => {
@@ -49,7 +47,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
             </span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {review.solutionOverview?.title || "Untitled Solution Review"}
+            {review?.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
           </h1>
           <p className="text-gray-600 mt-1">
             {getStateDescription(review.documentState)}
@@ -84,7 +82,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                 <Button
                   key={transition.operation}
                   variant={
-                    transition.to === DocumentState.CURRENT
+                    transition.to === "CURRENT"
                       ? "primary"
                       : "secondary"
                   }
@@ -95,6 +93,16 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                   {transition.operationName}
                 </Button>
               ))}
+              {review.documentState==="DRAFT" && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => navigate(`/update-solution-review/${review.id}`)}
+                  title="Edit Draft"
+                >
+                  Edit Draft
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -111,89 +119,23 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
               <div className="space-y-4">
                 <div>
                   <h4 className="font-medium text-gray-900 mb-1">
-                    Description
+                    Value Outcomes
                   </h4>
                   <p className="text-gray-600">
-                    {review.solutionOverview.description}
+                    {review?.solutionOverview?.valueOutcomes || "Untitled value outcome"}
                   </p>
                 </div>
 
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">
-                    Business Value
-                  </h4>
-                  <p className="text-gray-600">
-                    {review.solutionOverview.businessValue}
-                  </p>
-                </div>
-
-                {review.solutionOverview.stakeholders.length > 0 && (
+                {review?.solutionOverview?.applicationUsers?.length || 0 > 0 && (
                   <div>
                     <h4 className="font-medium text-gray-900 mb-2">
-                      Stakeholders
+                      Application Users
                     </h4>
                     <ul className="space-y-1">
-                      {review.solutionOverview.stakeholders.map(
-                        (stakeholder, index) => (
+                      {review?.solutionOverview?.applicationUsers?.map(
+                        (user, index) => (
                           <li key={index} className="text-gray-600 text-sm">
-                            • {stakeholder}
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">Category</h4>
-                    <Badge>{review.solutionOverview.category}</Badge>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">Priority</h4>
-                    <Badge
-                      className={
-                        review.solutionOverview.priority === "High"
-                          ? "bg-red-100 text-red-800 border-red-300"
-                          : review.solutionOverview.priority === "Medium"
-                          ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                          : "bg-green-100 text-green-800 border-green-300"
-                      }
-                    >
-                      {review.solutionOverview.priority}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">
-                      Estimated Cost
-                    </h4>
-                    <p className="text-gray-600">
-                      ${review.solutionOverview.estimatedCost.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-1">Duration</h4>
-                    <p className="text-gray-600">
-                      {review.solutionOverview.estimatedDuration}
-                    </p>
-                  </div>
-                </div>
-
-                {review.solutionOverview.risksAndChallenges.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-gray-900 mb-2">
-                      Risks & Challenges
-                    </h4>
-                    <ul className="space-y-1">
-                      {review.solutionOverview.risksAndChallenges.map(
-                        (risk, index) => (
-                          <li key={index} className="text-gray-600 text-sm">
-                            • {risk}
+                            • {user}
                           </li>
                         )
                       )}
@@ -214,7 +156,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary-600 mb-1">
-              {review.businessCapabilities.length}
+              {review?.businessCapabilities?.length}
             </div>
             <p className="text-sm text-gray-600">Capabilities defined</p>
           </CardContent>
@@ -226,7 +168,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary-600 mb-1">
-              {review.systemComponents.length}
+              {review?.systemComponents?.length}
             </div>
             <p className="text-sm text-gray-600">Systems involved</p>
           </CardContent>
@@ -238,7 +180,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary-600 mb-1">
-              {review.integrationFlows.length}
+              {review?.integrationFlows?.length}
             </div>
             <p className="text-sm text-gray-600">Integrations planned</p>
           </CardContent>

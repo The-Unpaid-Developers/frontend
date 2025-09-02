@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import type { SystemGroup, SolutionReview } from "../types";
-import { DocumentState, STATE_TRANSITIONS } from "../types";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "./ui";
-import { useSolutionReview } from "../context/SolutionReviewContext";
+import type { SolutionReview, SystemGroup } from "../../types/solutionReview";
+import { DocumentState, STATE_TRANSITIONS } from "../../types/solutionReview";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../ui";
+import { useSolutionReview } from "../../context/SolutionReviewContext";
 
 interface SystemDetailProps {
   system: SystemGroup;
@@ -44,29 +44,6 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
     if (!previousVersion) return null;
 
     const changes: string[] = [];
-
-    if (
-      currentVersion.solutionOverview?.estimatedCost !==
-      previousVersion.solutionOverview?.estimatedCost
-    ) {
-      const costDiff =
-        (currentVersion.solutionOverview?.estimatedCost || 0) -
-        (previousVersion.solutionOverview?.estimatedCost || 0);
-      changes.push(
-        `Cost ${costDiff > 0 ? "increased" : "decreased"} by $${Math.abs(
-          costDiff
-        ).toLocaleString()}`
-      );
-    }
-
-    if (
-      currentVersion.solutionOverview?.estimatedDuration !==
-      previousVersion.solutionOverview?.estimatedDuration
-    ) {
-      changes.push(
-        `Duration changed to ${currentVersion.solutionOverview?.estimatedDuration}`
-      );
-    }
 
     return changes;
   };
@@ -122,31 +99,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
               <div>
                 <h4 className="font-medium text-gray-900 mb-1">Title</h4>
                 <p className="text-gray-600">
-                  {system.currentReview.solutionOverview?.title}
-                </p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-1">Priority</h4>
-                <Badge
-                  className={
-                    system.currentReview.solutionOverview?.priority === "High"
-                      ? "bg-red-100 text-red-800 border-red-300"
-                      : system.currentReview.solutionOverview?.priority ===
-                        "Medium"
-                      ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                      : "bg-green-100 text-green-800 border-green-300"
-                  }
-                >
-                  {system.currentReview.solutionOverview?.priority}
-                </Badge>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-1">
-                  Estimated Cost
-                </h4>
-                <p className="text-gray-600 font-semibold">
-                  $
-                  {system.currentReview.solutionOverview?.estimatedCost.toLocaleString()}
+                  {system.currentReview.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
                 </p>
               </div>
             </div>
@@ -170,11 +123,10 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
               return (
                 <div
                   key={review.id}
-                  className={`border rounded-lg p-4 ${
-                    selectedVersion?.id === review.id
-                      ? "border-primary-300 bg-primary-50"
-                      : "border-gray-200"
-                  }`}
+                  className={`border rounded-lg p-4 ${selectedVersion?.id === review.id
+                    ? "border-primary-300 bg-primary-50"
+                    : "border-gray-200"
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center space-x-3">
@@ -189,7 +141,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                           Latest
                         </Badge>
                       )}
-                      {review.documentState === DocumentState.CURRENT && (
+                      {review.documentState === "CURRENT" && (
                         <Badge className="bg-blue-100 text-blue-800 border-blue-300">
                           Current
                         </Badge>
@@ -223,7 +175,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                     <div>
                       <h4 className="font-medium text-gray-900 mb-1">Title</h4>
                       <p className="text-sm text-gray-600">
-                        {review.solutionOverview?.title}
+                        {review.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
                       </p>
                     </div>
                     <div>
@@ -257,7 +209,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                     </div>
                   )}
 
-                  {selectedVersion?.id === review.id && (
+                  {/* {selectedVersion?.id === review.id && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
@@ -268,51 +220,11 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                             {review.solutionOverview?.description}
                           </p>
                         </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            Business Value
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {review.solutionOverview?.businessValue}
-                          </p>
-                        </div>
                       </div>
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-1">
-                            Priority & Cost
-                          </h4>
-                          <div className="flex items-center space-x-4 text-sm">
-                            <Badge
-                              className={
-                                review.solutionOverview?.priority === "High"
-                                  ? "bg-red-100 text-red-800 border-red-300"
-                                  : review.solutionOverview?.priority ===
-                                    "Medium"
-                                  ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                                  : "bg-green-100 text-green-800 border-green-300"
-                              }
-                            >
-                              {review.solutionOverview?.priority}
-                            </Badge>
-                            <span className="font-medium">
-                              $
-                              {review.solutionOverview?.estimatedCost.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-1">
-                            Duration
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {review.solutionOverview?.estimatedDuration}
-                          </p>
-                        </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {availableTransitions.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
@@ -324,7 +236,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                           <Button
                             key={transition.operation}
                             variant={
-                              transition.to === DocumentState.CURRENT
+                              transition.to === "CURRENT"
                                 ? "primary"
                                 : "ghost"
                             }

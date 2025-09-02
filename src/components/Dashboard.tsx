@@ -3,12 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { DocumentState } from "../types";
 import type { SolutionReview, SystemGroup } from "../types";
 import { useSolutionReview } from "../context/SolutionReviewContext";
-import { SolutionReviewCard } from "./SolutionReviewCard";
-import { SolutionReviewDetail } from "./SolutionReviewDetail";
-// import { CreateSolutionReviewModal } from "./CreateSolutionReviewModal";
-import { CreateSolutionReviewPage } from "./CreateSolutionReview";
-import { SystemCard } from "./SystemCard";
-import { SystemDetail } from "./SystemDetail";
+import { SolutionReviewCard, SolutionReviewDetail  } from "./SolutionReviewDetail";
+import { SystemCard, SystemDetail } from "./SystemDetail";
 import { Button, Input } from "./ui";
 
 export const Dashboard: React.FC = () => {

@@ -62,7 +62,8 @@ export const UpdateSolutionReviewPage: React.FC = () => {
     technologyComponents,
     integrationFlows,
     enterpriseTools,
-    processCompliances
+    processCompliances,
+    systemCode
   } = useUpdateSolutionReview(id);
 
   // Create the existingData object from the hook's state
@@ -74,7 +75,8 @@ export const UpdateSolutionReviewPage: React.FC = () => {
     technologyComponents,
     integrationFlows,
     enterpriseTools,
-    processCompliances
+    processCompliances, 
+    systemCode
   };
   console.log(existingData);
 

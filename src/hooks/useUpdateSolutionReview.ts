@@ -28,10 +28,11 @@ export const useUpdateSolutionReview = (reviewId: string) => {
   const [systemComponents, setSystemComponent] = useState<SystemComponent[] | null>(null);
   const [technologyComponents, setTechnologyComponent] = useState<TechnologyComponent[] | null>(null);
   const [processCompliances, setProcessCompliance] = useState<ProcessCompliance[] | null>(null);
+  const [systemCode, setSystemCode] = useState<string>("");
 
   // Load existing review data
   const loadReviewData = async () => {
-    // if (!reviewId) return;
+    if (!reviewId) return;
     console.log('in hook');
     
     setIsLoading(true);
@@ -40,7 +41,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
       // const reviewData = await getSolutionReviewById(reviewId);
       
       // For now, use mock data
-      const reviewData = await mockApiService.getSolutionReviewById('1'); // Import or define mock data
+      const reviewData = await mockApiService.getSystemSolutionReviews(systemCode); // Import or define mock data
       console.log('review data ', reviewData);
       if (reviewData) {
         setSolutionOverview(reviewData.solutionOverview);
@@ -51,6 +52,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
         setIntegrationFlow(reviewData.integrationFlows);
         setEnterpriseTools(reviewData.enterpriseTools);
         setProcessCompliance(reviewData.processCompliances);
+        setSystemCode(reviewData.systemCode);
       }
     } catch (error) {``
       console.error("Error loading review data:", error);
@@ -157,6 +159,8 @@ export const useUpdateSolutionReview = (reviewId: string) => {
     setTechnologyComponent,
     processCompliances,
     setProcessCompliance,
+    systemCode,
+    setSystemCode,
     saveSection,
     updateReview,
     loadReviewData,

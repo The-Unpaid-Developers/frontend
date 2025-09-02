@@ -202,7 +202,7 @@ export const STATE_TRANSITIONS: Record<
   ],
 };
 
-export const getStateColor = (state: DocumentState): string => {
+export const getStateColor = (state: string): string => {
   switch (state) {
     case DocumentState.DRAFT:
       return "bg-gray-100 text-gray-800 border-gray-300";

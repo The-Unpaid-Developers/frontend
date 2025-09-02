@@ -4,7 +4,7 @@ import { DocumentState, getStateColor } from "../../types";
 interface BadgeProps {
   children: React.ReactNode;
   variant?: "default" | "state";
-  state?: DocumentState;
+  state?: string;
   className?: string;
 }
 

@@ -1,6 +1,6 @@
 import React from "react";
-import type { SolutionReview } from "../types";
-import { DocumentState, STATE_TRANSITIONS } from "../types";
+import type { SolutionReview } from "../../types";
+import { DocumentState, STATE_TRANSITIONS } from "../../types";
 import {
   Card,
   CardHeader,
@@ -9,8 +9,8 @@ import {
   CardFooter,
   Badge,
   Button,
-} from "./ui";
-import { useSolutionReview } from "../context/SolutionReviewContext";
+} from "../ui";
+import { useSolutionReview } from "../../context/SolutionReviewContext";
 
 interface SolutionReviewCardProps {
   review: SolutionReview;
