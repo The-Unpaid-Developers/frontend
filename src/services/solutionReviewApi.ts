@@ -12,7 +12,7 @@ export const saveSolutionReviewDraft = async (data: any, systemCode: string) => 
   return response.data;
 };
 
-export const getSolutionReview = async (id: string) => {
+export const getSolutionReviewById = async (id: string) => {
   const response = await axios.get(`${API_BASE_URL}/solution-review/${id}`);
   return response.data;
 };

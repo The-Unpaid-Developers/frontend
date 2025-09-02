@@ -1,64 +1,7 @@
-// import React, { useState } from 'react';
-// import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
-// import { Button, Input } from '../../ui';
-
-// const SystemComponentStep: React.FC = () => {
-//   const { systemComponentData, saveSystemComponent } = useCreateSolutionReview();
-//   const [systemComponent, setSystemComponent] = useState(systemComponentData || '');
-
-//   const handleSave = async () => {
-//     await saveSystemComponent(systemComponent);
-//   };
 import React, { useState, useEffect } from 'react';
 import { Button, Input, DropDown } from '../../ui';
-import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
-// type StepProps = {
-//   onSave: (data: any) => Promise<void> | void;
-//   isSaving?: boolean;
-//   initialData?: any;
-// };
-
-// const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving = false, initialData }) => {
-//   const { systemComponent, setSystemComponent } = useCreateSolutionReview();
-//   const [inputValue, setInputValue] = useState(systemComponent || '');
-
-//   const [error, setError] = useState<string | null>(null);
-//   // const handleSave = () => {
-//   //   setSystemComponent(inputValue);
-//   //   // Call the API to save the business capabilities
-//   //   // Example: saveSystemComponent(inputValue);
-//   // };
-//   const handleSave = async () => {
-//     console.log('hi');
-//     setError(null);
-//     const payload = { systemComponent /* add other fields here */ };
-//     try {
-//       await onSave(payload); // calls CreateSolutionReviewPage.handleSave
-//     } catch (e) {
-//       setError(e instanceof Error ? e.message : "Save failed");
-//     }
-//   };
-
-//   return (
-//     <div className="p-6 bg-white rounded-lg shadow-md">
-//       <h2 className="text-xl font-semibold mb-4">System Component</h2>
-//       <Input
-//         placeholder="Enter system component details..."
-//         value={inputValue}
-//         onChange={(e) => setInputValue(e.target.value)}
-//         className="w-full mb-4"
-//       />
-//       <Button onClick={handleSave} className="mt-2">
-//         Save
-//       </Button>
-//     </div>
-//   );
-// };
-
-// export default SystemComponentStep;
-
-import type { SystemComponent } from '../../../types/createSolutionReview';
+import type { SystemComponent } from '../../../types/solutionReview';
 import {
   COMPONENT_STATUS_OPTIONS,
   COMPONENT_ROLE_OPTIONS,
@@ -71,35 +14,72 @@ import {
   BACKUP_SITE_OPTIONS,
   DATA_ENCRYPTION_AT_REST_OPTIONS,
   SSL_TYPE_OPTIONS,
-  FRAMEWORK_OPTIONS
+  FRAMEWORK_OPTIONS,
+  LANGUAGE_OPTIONS
 } from './DropDownListValues';
 
 const empty: SystemComponent = {
-  name:'', status:'', role:'', hostedOn:'', hostingRegion:'', solutionType:'',
-  languageFramework:'', isOwnedByUs:false, isCICDUsed:false, customizationLevel:'',
-  upgradeStrategy:'', upgradeFrequency:'', isSubscription:false, isInternetFacing:false,
-  availabilityRequirement:'', latencyRequirement:0, throughputRequirement:0,
-  scalabilityMethod:'', backupSite:'', authenticationMethod:'', authorizationModel:'',
+  name: '',
+  status: '',
+  role: '',
+  hostedOn: '',
+  hostingRegion: '',
+  solutionType: '',
+  languageFramework: {'language': {'name': '', 'version': ''}, 'framework': {'name': '', 'version': ''}},
+  isOwnedByUs: false,
+  isCICDUsed: false,
+  customizationLevel: '',
+  upgradeStrategy: '',
+  upgradeFrequency: '',
+  isSubscription: false,
+  isInternetFacing: false,
+  availabilityRequirement: '',
+  latencyRequirement: 0,
+  throughputRequirement: 0,
+  scalabilityMethod: '',
+  backupSite: '',
+  securityDetails: {
+    authenticationMethod:'', authorizationModel:'',
   isAuditLoggingEnabled:false, sensitiveDataElements:'', dataEncryptionAtRest:'',
   encryptionAlgorithmForDataAtRest:'', hasIpWhitelisting:false, ssl:'',
   payloadEncryptionAlgorithm:'', digitalCertificate:'', keyStore:'',
   vulnerabilityAssessmentFrequency:'', penetrationTestingFrequency:''
+  }
 };
 
 const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialData }) => {
-  const initialList: SystemComponent[] | null | undefined = initialData?.systemComponent;
+  const initialList: SystemComponent[] | null | undefined = initialData.systemComponents;
   const [list,setList]=useState<SystemComponent[]>(() => initialList ?? []);
   const [row,setRow]=useState<SystemComponent>(empty);
 
   useEffect(() => {
-      // setList(initialList);
-      if (initialList && initialList !== list) {
-        setList(initialList);
-      }
-    }, [initialList]);
+        if (initialData.systemComponents) {
+          setList(initialData.systemComponents);
+        }
+      }, [initialData.systemComponents]);
 
   const update = (k: keyof SystemComponent, v:any) =>
     setRow(r=>({...r,[k]:v}));
+
+  const updateSecurityDetails = (k: keyof SystemComponent['securityDetails'], v:any) =>
+    setRow(r=>({...r,securityDetails:{...r.securityDetails,[k]:v}}));
+
+  const updateLanguageFramework = (
+    section: 'language' | 'framework',
+    key: 'name' | 'version',
+    value: string
+  ) => {
+    setRow(r => ({
+      ...r,
+      languageFramework: {
+        ...r.languageFramework,
+        [section]: {
+          ...r.languageFramework[section],
+            [key]: value
+        }
+      }
+    }));
+  };
 
   const add=()=>{
     if(!row.name) return;
@@ -168,13 +148,37 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
           onChange={e=>update('solutionType', e.target.value)}
           options={SOLUTION_TYPE_OPTIONS}
         />
-        <DropDown
+        {/* <DropDown
           label="Framework"
-          value={row.languageFramework}
+          value={row.languageFramework.framework}
           placeholder="Select Framework"
           onChange={e=>update('languageFramework', e.target.value)}
           options={FRAMEWORK_OPTIONS}
-        />
+        /> */}
+        <DropDown
+        label="Language"
+        value={row.languageFramework.language.name}
+        placeholder="Select Language"
+        onChange={e=>updateLanguageFramework('language','name', e.target.value)}
+        options={LANGUAGE_OPTIONS}
+      />
+      <Input
+        placeholder="Lang Version"
+        value={row.languageFramework.language.version}
+        onChange={e=>updateLanguageFramework('language','version', e.target.value)}
+      />
+      <DropDown
+        label="Framework"
+        value={row.languageFramework.framework.name}
+        placeholder="Select Framework"
+        onChange={e=>updateLanguageFramework('framework','name', e.target.value)}
+        options={FRAMEWORK_OPTIONS}
+      />
+      <Input
+        placeholder="Framework Version"
+        value={row.languageFramework.framework.version}
+        onChange={e=>updateLanguageFramework('framework','version', e.target.value)}
+      />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={row.isOwnedByUs} onChange={e=>update('isOwnedByUs',e.target.checked)} /> Owned By Us
         </label>
@@ -225,35 +229,35 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
           onChange={e=>update('backupSite', e.target.value)}
           options={BACKUP_SITE_OPTIONS}
         />
-        <Input placeholder="Auth Method" value={row.authenticationMethod} onChange={e=>update('authenticationMethod',e.target.value)} />
-        <Input placeholder="Authorization Model" value={row.authorizationModel} onChange={e=>update('authorizationModel',e.target.value)} />
+        <Input placeholder="Auth Method" value={row.securityDetails.authenticationMethod} onChange={e=>updateSecurityDetails('authenticationMethod',e.target.value)} />
+        <Input placeholder="Authorization Model" value={row.securityDetails.authorizationModel} onChange={e=>updateSecurityDetails('authorizationModel',e.target.value)} />
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={row.isAuditLoggingEnabled} onChange={e=>update('isAuditLoggingEnabled',e.target.checked)} /> Audit Logging
+          <input type="checkbox" checked={row.securityDetails.isAuditLoggingEnabled} onChange={e=>updateSecurityDetails('isAuditLoggingEnabled',e.target.checked)} /> Audit Logging
         </label>
-        <Input placeholder="Sensitive Data" value={row.sensitiveDataElements} onChange={e=>update('sensitiveDataElements',e.target.value)} />
+        <Input placeholder="Sensitive Data" value={row.securityDetails.sensitiveDataElements} onChange={e=>updateSecurityDetails('sensitiveDataElements',e.target.value)} />
         <DropDown
           label="Data Encryption At Rest"
-          value={row.dataEncryptionAtRest}
+          value={row.securityDetails.dataEncryptionAtRest}
           placeholder="Select Encryption"
-          onChange={e=>update('dataEncryptionAtRest', e.target.value)}
+          onChange={e=>updateSecurityDetails('dataEncryptionAtRest', e.target.value)}
           options={DATA_ENCRYPTION_AT_REST_OPTIONS}
         />
-        <Input placeholder="Encryption Algorithm" value={row.encryptionAlgorithmForDataAtRest} onChange={e=>update('encryptionAlgorithmForDataAtRest',e.target.value)} />
+        <Input placeholder="Encryption Algorithm" value={row.securityDetails.encryptionAlgorithmForDataAtRest} onChange={e=>updateSecurityDetails('encryptionAlgorithmForDataAtRest',e.target.value)} />
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={row.hasIpWhitelisting} onChange={e=>update('hasIpWhitelisting',e.target.checked)} /> IP Whitelisting
+          <input type="checkbox" checked={row.securityDetails.hasIpWhitelisting} onChange={e=>updateSecurityDetails('hasIpWhitelisting',e.target.checked)} /> IP Whitelisting
         </label>
         <DropDown
           label="SSL Type"
-          value={row.ssl}
+          value={row.securityDetails.ssl}
           placeholder="Select SSL Type"
-          onChange={e=>update('ssl', e.target.value)}
+          onChange={e=>updateSecurityDetails('ssl', e.target.value)}
           options={SSL_TYPE_OPTIONS}
         />
-        <Input placeholder="Payload Encryption Alg" value={row.payloadEncryptionAlgorithm} onChange={e=>update('payloadEncryptionAlgorithm',e.target.value)} />
-        <Input placeholder="Digital Certificate" value={row.digitalCertificate} onChange={e=>update('digitalCertificate',e.target.value)} />
-        <Input placeholder="Key Store" value={row.keyStore} onChange={e=>update('keyStore',e.target.value)} />
-        <Input placeholder="Vulnerability Assess Freq" value={row.vulnerabilityAssessmentFrequency} onChange={e=>update('vulnerabilityAssessmentFrequency',e.target.value)} />
-        <Input placeholder="Pen Test Frequency" value={row.penetrationTestingFrequency} onChange={e=>update('penetrationTestingFrequency',e.target.value)} />
+        <Input placeholder="Payload Encryption Alg" value={row.securityDetails.payloadEncryptionAlgorithm} onChange={e=>updateSecurityDetails('payloadEncryptionAlgorithm',e.target.value)} />
+        <Input placeholder="Digital Certificate" value={row.securityDetails.digitalCertificate} onChange={e=>updateSecurityDetails('digitalCertificate',e.target.value)} />
+        <Input placeholder="Key Store" value={row.securityDetails.keyStore} onChange={e=>updateSecurityDetails('keyStore',e.target.value)} />
+        <Input placeholder="Vulnerability Assess Freq" value={row.securityDetails.vulnerabilityAssessmentFrequency} onChange={e=>updateSecurityDetails('vulnerabilityAssessmentFrequency',e.target.value)} />
+        <Input placeholder="Pen Test Frequency" value={row.securityDetails.penetrationTestingFrequency} onChange={e=>updateSecurityDetails('penetrationTestingFrequency',e.target.value)} />
       </div>
       {/* <div className="flex gap-2">
         <Button type="button" onClick={add}>Add</Button>
@@ -281,7 +285,8 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
                 <th className="p-2 text-left">Hosted On</th>
                 <th className="p-2 text-left">Region</th>
                 <th className="p-2 text-left">Type</th>
-                <th className="p-2 text-left">Lang/Framework</th>
+                <th className="p-2 text-left">Language</th>
+                <th className="p-2 text-left">Framework</th>
                 <th className="p-2 text-left">Owned?</th>
                 <th className="p-2 text-left">CI/CD</th>
                 <th className="p-2 text-left">Customization</th>
@@ -319,7 +324,8 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
                   <td className="p-2">{c.hostedOn}</td>
                   <td className="p-2">{c.hostingRegion}</td>
                   <td className="p-2">{c.solutionType}</td>
-                  <td className="p-2">{c.languageFramework}</td>
+                  <td className="p-2">{c.languageFramework.language.name + ' - ' + c.languageFramework.language.version}</td>
+                  <td className="p-2">{c.languageFramework.framework.name + ' - ' + c.languageFramework.framework.version}</td>
                   <td className="p-2">{c.isOwnedByUs?'Yes':'No'}</td>
                   <td className="p-2">{c.isCICDUsed?'Yes':'No'}</td>
                   <td className="p-2">{c.customizationLevel}</td>
@@ -332,19 +338,19 @@ const SystemComponentStep: React.FC<StepProps> = ({ onSave, isSaving=false, init
                   <td className="p-2">{c.throughputRequirement}</td>
                   <td className="p-2">{c.scalabilityMethod}</td>
                   <td className="p-2">{c.backupSite}</td>
-                  <td className="p-2">{c.authenticationMethod}</td>
-                  <td className="p-2">{c.authorizationModel}</td>
-                  <td className="p-2">{c.isAuditLoggingEnabled?'Yes':'No'}</td>
-                  <td className="p-2">{c.sensitiveDataElements}</td>
-                  <td className="p-2">{c.dataEncryptionAtRest}</td>
-                  <td className="p-2">{c.encryptionAlgorithmForDataAtRest}</td>
-                  <td className="p-2">{c.hasIpWhitelisting?'Yes':'No'}</td>
-                  <td className="p-2">{c.ssl}</td>
-                  <td className="p-2">{c.payloadEncryptionAlgorithm}</td>
-                  <td className="p-2">{c.digitalCertificate}</td>
-                  <td className="p-2">{c.keyStore}</td>
-                  <td className="p-2">{c.vulnerabilityAssessmentFrequency}</td>
-                  <td className="p-2">{c.penetrationTestingFrequency}</td>
+                  <td className="p-2">{c.securityDetails.authenticationMethod}</td>
+                  <td className="p-2">{c.securityDetails.authorizationModel}</td>
+                  <td className="p-2">{c.securityDetails.isAuditLoggingEnabled?'Yes':'No'}</td>
+                  <td className="p-2">{c.securityDetails.sensitiveDataElements}</td>
+                  <td className="p-2">{c.securityDetails.dataEncryptionAtRest}</td>
+                  <td className="p-2">{c.securityDetails.encryptionAlgorithmForDataAtRest}</td>
+                  <td className="p-2">{c.securityDetails.hasIpWhitelisting?'Yes':'No'}</td>
+                  <td className="p-2">{c.securityDetails.ssl}</td>
+                  <td className="p-2">{c.securityDetails.payloadEncryptionAlgorithm}</td>
+                  <td className="p-2">{c.securityDetails.digitalCertificate}</td>
+                  <td className="p-2">{c.securityDetails.keyStore}</td>
+                  <td className="p-2">{c.securityDetails.vulnerabilityAssessmentFrequency}</td>
+                  <td className="p-2">{c.securityDetails.penetrationTestingFrequency}</td>
                   <td className="p-2">
                     <div className="flex gap-1 flex-wrap">
                       <Button onClick={()=>edit(i)}>Edit</Button>

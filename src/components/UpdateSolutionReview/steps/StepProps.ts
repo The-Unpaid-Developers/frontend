@@ -5,6 +5,6 @@
 // };
 export interface StepProps {
   onSave: (data: any) => Promise<void> | void;
-  initialData?: any;
+  initialData: any;
   isSaving?: boolean;
 }

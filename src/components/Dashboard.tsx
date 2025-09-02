@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { DocumentState } from "../types";
 import type { SolutionReview, SystemGroup } from "../types";
 import { useSolutionReview } from "../context/SolutionReviewContext";
@@ -12,6 +13,7 @@ import { Button, Input } from "./ui";
 
 export const Dashboard: React.FC = () => {
   const { state, actions } = useSolutionReview();
+  const navigate = useNavigate();
   const [selectedReview, setSelectedReview] = useState<SolutionReview | null>(
     null
   );
@@ -19,7 +21,7 @@ export const Dashboard: React.FC = () => {
     null
   );
   // const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [showCreatePage, setShowCreatePage] = useState(false);
+  // const [showCreatePage, setShowCreatePage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter, setStateFilter] = useState<DocumentState | "ALL">("ALL");
 
@@ -69,17 +71,17 @@ export const Dashboard: React.FC = () => {
     }, {} as Record<DocumentState, number>);
   }, [state.reviews, state.systems, state.viewMode]);
 
-  if (showCreatePage) {
-  return (
-    <CreateSolutionReviewPage
-      onClose={() => setShowCreatePage(false)}
-      onSuccess={() => {
-        setShowCreatePage(false);
-        // Optionally refresh data or show success message
-      }}
-    />
-  );
-}
+//   if (showCreatePage) {
+//   return (
+//     <CreateSolutionReviewPage
+//       onClose={() => setShowCreatePage(false)}
+//       onSuccess={() => {
+//         setShowCreatePage(false);
+//         // Optionally refresh data or show success message
+//       }}
+//     />
+//   );
+// }
 
   if (selectedReview) {
     return (
@@ -141,7 +143,7 @@ export const Dashboard: React.FC = () => {
               </p>
             </div>
             {/* <Button onClick={() => setIsCreateModalOpen(true)}> */}
-            <Button onClick={() => setShowCreatePage(true)}>
+            <Button onClick={() => navigate('/create-solution-review')}>
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -300,7 +302,7 @@ export const Dashboard: React.FC = () => {
                   </p>
                   {!searchTerm && (
                     // <Button onClick={() => setIsCreateModalOpen(true)}>
-                    <Button onClick={() => setShowCreatePage(true)}>
+                    <Button onClick={() => navigate('/create-solution-review')}>
                       Create Your First Solution Review
                     </Button>
                   )}
@@ -342,7 +344,7 @@ export const Dashboard: React.FC = () => {
                 </p>
                 {!searchTerm && stateFilter === "ALL" && (
                   // <Button onClick={() => setIsCreateModalOpen(true)}>
-                  <Button onClick={() => setShowCreatePage(true)}>
+                  <Button onClick={() => navigate('/create-solution-review')}>
                     Create Your First Solution Review
                   </Button>
                 )}

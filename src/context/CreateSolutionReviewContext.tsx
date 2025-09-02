@@ -1,18 +1,18 @@
 import React, { createContext, useContext, useState } from 'react';
-import type { CreateSolutionReviewData } from '../types/createSolutionReview';
+import type { UpdateSolutionReviewData } from '../types/solutionReview';
 
 interface CreateSolutionReviewContextType {
   currentStep: number;
   setCurrentStep: (step: number) => void;
-  reviewData: CreateSolutionReviewData;
-  updateReviewData: (section: keyof CreateSolutionReviewData, data: any) => void;
+  reviewData: UpdateSolutionReviewData;
+  updateReviewData: (section: keyof UpdateSolutionReviewData, data: any) => void;
 }
 
 const CreateSolutionReviewContext = createContext<CreateSolutionReviewContextType | undefined>(undefined);
 
 export const CreateSolutionReviewProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [reviewData, setReviewData] = useState<CreateSolutionReviewData>({
+  const [reviewData, setReviewData] = useState<UpdateSolutionReviewData>({
     businessCapabilities: {},
     dataAsset: {},
     enterpriseTools: {},
@@ -22,7 +22,7 @@ export const CreateSolutionReviewProvider: React.FC<{ children: React.ReactNode 
     technologyComponent: {},
   });
 
-  const updateReviewData = (section: keyof CreateSolutionReviewData, data: any) => {
+  const updateReviewData = (section: keyof UpdateSolutionReviewData, data: any) => {
     setReviewData((prevData) => ({
       ...prevData,
       [section]: data,

@@ -1,210 +1,91 @@
 import React, { useState } from 'react';
-import { ProgressBar } from './ProgressBar';
-import { NavigationButtons } from './NavigationButtons';
-// import { BusinessCapabilitiesStep } from './steps/BusinessCapabilitiesStep';
-// import { DataAssetStep } from './steps/DataAssetStep';
-// import { EnterpriseToolsStep } from './steps/EnterpriseToolsStep';
-// import { IntegrationFlowStep } from './steps/IntegrationFlowStep';
-// import { SolutionOverviewStep } from './steps/SolutionOverviewStep';
-// import { SystemComponentStep } from './steps/SystemComponentStep';
-// import { TechnologyComponentStep } from './steps/TechnologyComponentStep';
-import BusinessCapabilitiesStep from './steps/BusinessCapabilitiesStep';
-import DataAssetStep from './steps/DataAssetStep';
-import EnterpriseToolsStep from './steps/EnterpriseToolsStep';
-import IntegrationFlowStep from './steps/IntegrationFlowStep';
-import SolutionOverviewStep from './steps/SolutionOverviewStep';
-import SystemComponentStep from './steps/SystemComponentStep';
-import TechnologyComponentStep from './steps/TechnologyComponentStep';
-import ProcessComplianceStep from './steps/ProcessComplianceStep';
-import { useCreateSolutionReview } from '../../hooks/useCreateSolutionReview';
-import useStepNavigation from '../../hooks/useStepNavigation';
-import type { CreateSolutionReviewData } from '../../types/createSolutionReview';
-import { Modal, Button } from '../ui';
-import { submitSolutionReviewDraft } from '../../services/solutionReviewApi';
+import { useNavigate } from 'react-router-dom';
+import { Button, Input } from '../ui';
+import type { SolutionOverview } from '../../types/solutionReview';
+import { useCreateSolutionOverview } from '../../hooks/useCreateSolutionOverview';
 
-const steps = [
-  SolutionOverviewStep,
-  BusinessCapabilitiesStep,
-  DataAssetStep,
-  SystemComponentStep,
-  TechnologyComponentStep,
-  IntegrationFlowStep,
-  EnterpriseToolsStep,
-  ProcessComplianceStep,
-];
-
-const stepMeta = [
-    { key: 'solutionOverview', label: 'Solution Overview' },
-    { key: 'businessCapabilities', label: 'Business Capabilities' },
-    { key: 'dataAsset', label: 'Data and Assets' },
-    { key: 'systemComponent', label: 'System Components' },
-    { key: 'technologyComponent', label: 'Technology Components' },
-    { key: 'integrationFlow', label: 'Integration Flow' },
-    { key: 'enterpriseTools', label: 'Enterprise Tools' },
-    { key: 'processCompliance', label: 'Process Compliance' },
-  ];
-
-const emptyData: CreateSolutionReviewData = {
-  solutionOverview: null,
-  businessCapabilities: null,
-  dataAsset: null,
-  systemComponent: null,
-  technologyComponent: null,
-  integrationFlow: null,
-  enterpriseTools: null,
-  processCompliance: null,
+const empty: SolutionOverview = { solutionDetails: {
+  solutionName: '',
+  projectName: '',
+  systemCode: '',
+  solutionArchitectName: '',
+  deliveryProjectManagerName: '',
+  itBusinessPartner: ''
+},
+  reviewType: '',
+  businessUnit: '',
+  businessDriver: '',
+  valueOutcomes: '',
+  applicationUsers: [],
+  concerns: []
 };
 
+// type Props = {
+//   onCreated: (created: SolutionOverview) => void;
+//   isCreating?: boolean;
+// };
+
 export const CreateSolutionReviewPage: React.FC = () => {
-  // const [currentStep, setCurrentStep] = useState(0);
-  // const { saveSection } = useCreateSolutionReview();
-  // const { nextStep, prevStep } = useStepNavigation(currentStep, setCurrentStep, steps.length);
-  const { currentStep, nextStep, prevStep, goToStep } = useStepNavigation(steps.length);
-  const [createData, setCreateData] = useState<CreateSolutionReviewData>(emptyData);
-  const [showReview, setShowReview] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const [data,setData] = useState<SolutionOverview>(empty);
+  const [appUser,setAppUser]=useState('');
+  const { create, isCreating, error } = useCreateSolutionOverview();
 
-  const {
-    saveSection,
-  } = useCreateSolutionReview();
 
-  const StepComponent = steps[currentStep];
+  const update = (k: keyof SolutionOverview, v:any)=>
+    setData(d=>({...d,[k]:v}));
 
-  // const handleSave = async (data: any) => {
-  //   await saveSection(currentStep, data);
-  //   nextStep();
-  // };
-  const handleSave = (data: any) => {
-    // setIsSaving(true);
-    try {
-      const sectionKey = stepMeta[currentStep].key as keyof CreateSolutionReviewData;
-      // persist in lifted state
-      setCreateData(prev => ({ ...prev, [sectionKey]: data }));
-      const systemCode = 'TEST'; // TODO: replace with actual system code from context or props
-      saveSection(sectionKey, data, systemCode);
-    } catch (err) {
-      console.error("Save failed", err);
-      // show toast / error UI here if you have one
-    } finally {
-      // setIsSaving(false);
-    }
+  const addUser=()=>{
+    if(!appUser.trim()) return;
+    update('applicationUsers',[...data.applicationUsers, appUser.trim()]);
+    setAppUser('');
   };
+  const removeUser=(u:string)=>
+    update('applicationUsers', data.applicationUsers.filter(x=>x!==u));
 
-  // optional: handle final submit (replace console.log with actual submit)
-  const handleSubmit = async () => {
-
-    // TODO: replace with actual final submit logic (e.g. gather create context data and call API)
-    console.log("Submit clicked - implement final submission here");
-    setShowReview(true); // open review modal instead of immediate submit
-
-  };
-
-  const sectionLabels: Record<keyof CreateSolutionReviewData,string> = {
-    solutionOverview: 'Solution Overview',
-    businessCapabilities: 'Business Capabilities',
-    dataAsset: 'Data & Assets',
-    systemComponent: 'System Components',
-    technologyComponent: 'Technology Components',
-    integrationFlow: 'Integration Flow',
-    enterpriseTools: 'Enterprise Tools',
-    processCompliance: 'Process Compliance'
-  };
-
-  const missingSections = Object.entries(createData)
-    .filter(([_, v]) => v == null)
-    .map(([k]) => sectionLabels[k as keyof CreateSolutionReviewData]);
-
-  const hasMissing = missingSections.length > 0;
-
-  const confirmSubmit = async () => {
-    if (hasMissing) return;
-    try {
-      setIsSubmitting(true);
-      // TODO: ensure you have a real draft id. If saveSection returns id, capture it there.
-      // if (!draftId) {
-      //   console.warn('No draftId available, cannot call submitSolutionReviewDraft yet.');
-      //   // Optionally first create combined draft via saveSolutionReview(createData)
-      //   // const { id } = await saveSolutionReview(createData);
-      //   // setDraftId(id);
-      //   // await submitSolutionReviewDraft(id);
-      //   setIsSubmitting(false);
-      //   return;
-      // }
-      await submitSolutionReviewDraft('draftId');
-      setShowReview(false);
-      // Optionally navigate away or show success toast
-    } catch (e) {
-      console.error('Submit failed', e);
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleCreate = async () => {
+    const created = await create(data, data.solutionDetails.systemCode);
+    const id = (created as any).id || data.solutionDetails.systemCode;
+    navigate(`/update-solution-review/${id}`);
   };
 
   return (
-    <div className="p-6">
-      
-      <h1 className="text-2xl font-bold mb-4">Create Solution Review</h1>
-      {/* <ProgressBar currentStep={currentStep} totalSteps={steps.length} /> */}
-      <ProgressBar currentStep={currentStep} steps={stepMeta} onStepClick={goToStep} />
-      <div className="mt-4">
-        <StepComponent onSave={handleSave} initialData={createData}/>
+    <div className="space-y-4">
+      <h1 className="text-2xl font-bold">New Solution Review</h1>
+      <div className="grid md:grid-cols-2 gap-4">
+        <Input placeholder="Solution Name" value={data.solutionDetails.solutionName} onChange={e=>update('solutionDetails', {...data.solutionDetails, solutionName: e.target.value})} />
+        <Input placeholder="Project Name" value={data.solutionDetails.projectName} onChange={e=>update('solutionDetails', {...data.solutionDetails, projectName: e.target.value})} />
+        <Input placeholder="System Code" value={data.solutionDetails.systemCode} onChange={e=>update('solutionDetails', {...data.solutionDetails, systemCode: e.target.value})} />
+        <Input placeholder="Solution Architect" value={data.solutionDetails.solutionArchitectName} onChange={e=>update('solutionDetails', {...data.solutionDetails, solutionArchitectName: e.target.value})} />
+        <Input placeholder="Delivery PM" value={data.solutionDetails.deliveryProjectManagerName} onChange={e=>update('solutionDetails', {...data.solutionDetails, deliveryProjectManagerName: e.target.value})} />
+        <Input placeholder="IT Business Partner" value={data.solutionDetails.itBusinessPartner} onChange={e=>update('solutionDetails', {...data.solutionDetails, itBusinessPartner: e.target.value})} />
+        <Input placeholder="Review Type" value={data.reviewType} onChange={e=>update('reviewType',e.target.value)} />
+        <Input placeholder="Business Unit" value={data.businessUnit} onChange={e=>update('businessUnit',e.target.value)} />
+        <Input placeholder="Business Driver" value={data.businessDriver} onChange={e=>update('businessDriver',e.target.value)} />
+        <Input placeholder="Value Outcomes" value={data.valueOutcomes} onChange={e=>update('valueOutcomes',e.target.value)} />
       </div>
-      <NavigationButtons
-        currentStep={currentStep}
-        totalSteps={steps.length}
-        nextStep={nextStep}
-        prevStep={prevStep}
-        onSubmit={currentStep === steps.length - 1 ? handleSubmit : undefined}
-      />
-    {showReview && (
-        <Modal isOpen={showReview} onClose={()=>!isSubmitting && setShowReview(false)} title="Review Solution Review">
-          <div className="max-h-[60vh] overflow-y-auto space-y-4 text-sm">
-            { (Object.keys(createData) as (keyof CreateSolutionReviewData)[]).map(key => {
-              const value = createData[key];
-              return (
-                <div key={key} className="border rounded p-3">
-                  <h3 className="font-semibold mb-2">{sectionLabels[key]}</h3>
-                  {value == null ? (
-                    <div className="text-red-600">Not completed</div>
-                  ) : (
-                    <pre className="bg-gray-50 p-2 rounded overflow-x-auto text-xs">
-{JSON.stringify(value, null, 2)}
-                    </pre>
-                  )}
-                  {value == null && (
-                    <Button
-                      variant="secondary"
-                      className="mt-2"
-                      onClick={() => {
-                        const idx = stepMeta.findIndex(s => s.key === key);
-                        setShowReview(false);
-                        goToStep(idx);
-                      }}
-                    >
-                      Go to section
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
 
-          {hasMissing && (
-            <div className="mt-4 text-red-600 text-sm">
-              Complete all sections before submitting. Missing: {missingSections.join(', ')}
-            </div>
-          )}
+      <div>
+        <label className="text-sm font-medium">Application Users</label>
+        <div className="flex gap-2 mt-1">
+          <Input value={appUser} onChange={e=>setAppUser(e.target.value)} placeholder="Add user..." />
+          <Button type="button" onClick={addUser}>Add</Button>
+        </div>
+        {data.applicationUsers.length>0 && (
+          <ul className="mt-2 text-sm space-y-1">
+            {data.applicationUsers.map(u=>(
+              <li key={u} className="flex justify-between bg-gray-50 px-2 py-1 rounded">
+                <span>{u}</span>
+                <button type="button" onClick={()=>removeUser(u)} className="text-red-600 text-xs">x</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-            <div className="mt-6 flex justify-end gap-2">
-              <Button variant="secondary" disabled={isSubmitting} onClick={()=>setShowReview(false)}>
-                Cancel
-              </Button>
-              <Button disabled={hasMissing || isSubmitting} onClick={confirmSubmit}>
-                {isSubmitting ? 'Submitting...' : 'Confirm Submit'}
-              </Button>
-            </div>
-        </Modal>
-      )}
+      <Button disabled={isCreating} onClick={handleCreate}>
+        {isCreating ? 'Creating...' : 'Create'}
+      </Button>
     </div>
   );
 };

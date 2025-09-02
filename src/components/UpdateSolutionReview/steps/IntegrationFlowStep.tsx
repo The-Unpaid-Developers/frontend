@@ -16,7 +16,6 @@
 //   };
 import React, { useState, useEffect } from 'react';
 import { Button, DropDown, Input } from '../../ui';
-import { useCreateSolutionReview } from '../../../hooks/useCreateSolutionReview';
 import type { StepProps } from './StepProps';
 // type StepProps = {
 //   onSave: (data: any) => Promise<void> | void;
@@ -63,7 +62,7 @@ import type { StepProps } from './StepProps';
 
 // export default IntegrationFlowStep;
 
-import type { IntegrationFlow } from '../../../types/createSolutionReview';
+import type { IntegrationFlow } from '../../../types/solutionReview';
 import { EXTERNAL_SYSTEM_ROLE_OPTIONS, INTEGRATION_METHOD_OPTIONS } from './DropDownListValues';
 
 const empty: IntegrationFlow = {
@@ -72,15 +71,15 @@ const empty: IntegrationFlow = {
 };
 
 const IntegrationFlowStep: React.FC<StepProps> = ({ onSave, isSaving=false, initialData }) => {
-  const initialList: IntegrationFlow[] | null | undefined = initialData?.integrationFlow;
+  const initialList: IntegrationFlow[] | null | undefined = initialData.integrationFlows;
   const [list,setList]=useState<IntegrationFlow[]>(() => initialList ?? []);
   const [row,setRow]=useState<IntegrationFlow>(empty);
   useEffect(() => {
-      // setList(initialList);
-      if (initialList && initialList !== list) {
-        setList(initialList);
-      }
-    }, [initialList]);
+        if (initialData.integrationFlows) {
+          setList(initialData.integrationFlows);
+        }
+      }, [initialData.integrationFlows]);
+      
   const update=(k:keyof IntegrationFlow,v:string)=>setRow(r=>({...r,[k]:v}));
   const add=()=>{ if(!row.componentName) return; setList(l=>[...l,row]); setRow(empty); };
   const save=async()=>{ await onSave(list); };

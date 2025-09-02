@@ -1,4 +1,1 @@
-export { CreateSolutionReviewPage } from './CreateSolutionReviewPage';
-export { ProgressBar } from './ProgressBar';
-export { NavigationButtons } from './NavigationButtons';
-export * from './steps';
+export { CreateSolutionReviewPage as CreateSolutionReviewPage } from './CreateSolutionReviewPage';
