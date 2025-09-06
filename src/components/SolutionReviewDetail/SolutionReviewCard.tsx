@@ -28,6 +28,7 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
   };
 
   const formatDate = (dateString: string) => {
+    return;
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -81,7 +82,7 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
             <div className="flex justify-between">
               <span className="text-gray-500">Est. Cost:</span>
               <span className="font-medium">
-                ${review.solutionOverview.estimatedCost.toLocaleString()}
+                {/* ${review.solutionOverview.estimatedCost.toLocaleString()} */}
               </span>
             </div>
           </div>

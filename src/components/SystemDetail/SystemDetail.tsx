@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../ui";
 import { useSolutionReview } from "../../context/SolutionReviewContext";
 
 interface SystemDetailProps {
-  system: SystemGroup;
+  system: SolutionReview[];
   onClose: () => void;
   onViewReview: (review: SolutionReview) => void;
 }
@@ -47,6 +47,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
 
     return changes;
   };
+  console.log(system);
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -55,16 +56,16 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
         <div>
           <div className="flex items-center space-x-3 mb-2">
             <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-              {system.category}
+              {/* {system.category} */}
             </Badge>
             <span className="text-sm text-gray-500">
-              {system.totalReviews} versions • Latest v{system.latestVersion}
+              {/* {system.totalReviews} versions • Latest v{system.latestVersion} */}
             </span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {system.systemName}
+            {/* {system.systemName} */}
           </h1>
-          <p className="text-gray-600 mt-1">{system.description}</p>
+          {/* <p className="text-gray-600 mt-1">{system.description}</p> */}
         </div>
         <Button variant="ghost" onClick={onClose}>
           <svg
@@ -84,7 +85,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
       </div>
 
       {/* Current Version Summary */}
-      {system.currentReview && (
+      {/* {system.currentReview && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -105,7 +106,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Version History */}
       <Card>
@@ -114,11 +115,12 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {system.reviews.map((review, index) => {
-              const previousReview = system.reviews[index + 1];
+            {system.map((review, index) => {
+              // const previousReview = system.reviews[index + 1];
+              // const changes = getVersionChanges(review, previousReview);
+              const previousReview = system[index + 1];
               const changes = getVersionChanges(review, previousReview);
-              const availableTransitions =
-                STATE_TRANSITIONS[review.documentState] || [];
+              const availableTransitions = STATE_TRANSITIONS[review.documentState] || [];
 
               return (
                 <div
@@ -136,11 +138,11 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                       <Badge variant="state" state={review.documentState}>
                         {review.documentState}
                       </Badge>
-                      {review.version === system.latestVersion && (
+                      {/* {review.version === system.latestVersion && (
                         <Badge className="bg-green-100 text-green-800 border-green-300">
                           Latest
                         </Badge>
-                      )}
+                      )} */}
                       {review.documentState === "CURRENT" && (
                         <Badge className="bg-blue-100 text-blue-800 border-blue-300">
                           Current

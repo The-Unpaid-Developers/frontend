@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from 'react-router-dom';
-import type { DocumentState, SystemGroup } from "../../types/solutionReview";
+import type { DocumentState, SolutionReview } from "../../types/solutionReview";
 import {
   Card,
   CardHeader,
@@ -12,8 +12,8 @@ import {
 } from "../ui";
 
 interface SystemCardProps {
-  system: SystemGroup;
-  onViewSystem: (system: SystemGroup) => void;
+  system: SolutionReview & { reviews: SolutionReview[]; systemId: string; systemName: string; category: string; description: string; latestVersion: string; totalReviews: number; currentReview?: SolutionReview };
+  onViewSystem: (system: SystemCardProps["system"]) => void;
 }
 
 export const SystemCard: React.FC<SystemCardProps> = ({

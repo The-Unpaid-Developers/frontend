@@ -17,16 +17,16 @@ export const SystemDetailPage: React.FC = () => {
 
   useEffect(() => {
     console.log('in eff');
-      const fetchData = async () => {
-        try {
-          await loadSystemSolutionReviews(systemCode || "");
-        } catch (error) {
-          console.error("Error loading review data:", error);
-        }
-      };
-  
-      fetchData();
-    }, []);
+    const fetchData = async () => {
+      try {
+        await loadSystemSolutionReviews(systemCode || "");
+      } catch (error) {
+        console.error("Error loading review data:", error);
+      }
+    };
+
+    fetchData();
+  }, [systemCode]);
 
   if (!solutionReviews) {
     return (

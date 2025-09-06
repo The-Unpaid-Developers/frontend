@@ -1,88 +1,83 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DocumentState } from "../types";
-import type { SolutionReview } from "../types";
-import { SolutionReviewCard, SolutionReviewDetail } from "./SolutionReviewDetail";
+import type { SolutionReview, SystemGroup } from "../types";
+import { useSolutionReview } from "../context/SolutionReviewContext";
+import { SolutionReviewCard, SolutionReviewDetail  } from "./SolutionReviewDetail";
 import { SystemCard, SystemDetail } from "./SystemDetail";
 import { Button, Input } from "./ui";
-import { mockApiService } from "../services/mockApiUpdated";
 
 export const Dashboard: React.FC = () => {
+  const { state, actions } = useSolutionReview();
   const navigate = useNavigate();
-  const [reviews, setReviews] = useState<SolutionReview[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"systems" | "reviews">("systems");
-  const [selectedReview, setSelectedReview] = useState<SolutionReview | null>(null);
-  const [selectedSystemReviews, setSelectedSystemReviews] = useState<SolutionReview[] | null>(null);
+  const [selectedReview, setSelectedReview] = useState<SolutionReview | null>(
+    null
+  );
+  const [selectedSystem, setSelectedSystem] = useState<SystemGroup | null>(
+    null
+  );
+  // const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // const [showCreatePage, setShowCreatePage] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter, setStateFilter] = useState<DocumentState | "ALL">("ALL");
 
-  // Fetch all reviews from mock API on mount
-  useEffect(() => {
-    setLoading(true);
-    setError(null);
-    mockApiService.getAllSolutionReviews()
-      .then(data => setReviews(data))
-      .catch(e => setError(e.message || "Failed to load reviews"))
-      .finally(() => setLoading(false));
-  }, []);
-
-  // Filtered reviews (flat list)
   const filteredReviews = useMemo(() => {
-    return reviews.filter((review) => {
+    return state.reviews.filter((review) => {
       const matchesSearch =
         !searchTerm ||
-        review.solutionOverview?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.systemName?.toLowerCase().includes(searchTerm.toLowerCase());
+        review.solutionOverview?.title
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        review.solutionOverview?.description
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        review.solutionOverview?.category
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        review.systemName.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesState =
         stateFilter === "ALL" || review.documentState === stateFilter;
 
       return matchesSearch && matchesState;
     });
-  }, [reviews, searchTerm, stateFilter]);
+  }, [state.reviews, searchTerm, stateFilter]);
 
-  // Group reviews by systemCode
-  const systems = useMemo(() => {
-    const map = new Map<string, SolutionReview[]>();
-    reviews.forEach((review) => {
-      if (!map.has(review.systemCode)) {
-        map.set(review.systemCode, []);
-      }
-      map.get(review.systemCode)!.push(review);
-    });
-    // Sort each system's reviews by createdAt descending (latest first)
-    map.forEach((arr) => arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-    return Array.from(map.values());
-  }, [reviews]);
-
-  // Filtered systems (list of review arrays, each array is all reviews for a system)
   const filteredSystems = useMemo(() => {
-    return systems.filter((reviews) => {
-      const latest = reviews[0];
+    return state.systems.filter((system) => {
       const matchesSearch =
         !searchTerm ||
-        latest.systemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        latest.solutionOverview?.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        latest.solutionOverview?.category?.toLowerCase().includes(searchTerm.toLowerCase());
+        system.systemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        system.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        system.category.toLowerCase().includes(searchTerm.toLowerCase());
+
       return matchesSearch;
     });
-  }, [systems, searchTerm]);
+  }, [state.systems, searchTerm]);
 
   const stateCounts = useMemo(() => {
     const dataSource =
-      viewMode === "systems"
-        ? systems.flatMap((arr) => arr)
-        : reviews;
+      state.viewMode === "systems"
+        ? state.systems.flatMap((system) => system.reviews)
+        : state.reviews;
 
     return dataSource.reduce((acc, review) => {
       acc[review.documentState] = (acc[review.documentState] || 0) + 1;
       return acc;
     }, {} as Record<DocumentState, number>);
-  }, [reviews, systems, viewMode]);
+  }, [state.reviews, state.systems, state.viewMode]);
+
+//   if (showCreatePage) {
+//   return (
+//     <CreateSolutionReviewPage
+//       onClose={() => setShowCreatePage(false)}
+//       onSuccess={() => {
+//         setShowCreatePage(false);
+//         // Optionally refresh data or show success message
+//       }}
+//     />
+//   );
+// }
 
   if (selectedReview) {
     return (
@@ -93,14 +88,11 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  if (selectedSystemReviews) {
-    // Use the latest review for system details
-    const latestReview = selectedSystemReviews[0];
+  if (selectedSystem) {
     return (
       <SystemDetail
-        system={latestReview}
-        allReviews={selectedSystemReviews}
-        onClose={() => setSelectedSystemReviews(null)}
+        system={selectedSystem}
+        onClose={() => setSelectedSystem(null)}
         onViewReview={setSelectedReview}
       />
     );
@@ -119,9 +111,9 @@ export const Dashboard: React.FC = () => {
                 </h1>
                 <div className="flex bg-gray-100 rounded-lg p-1">
                   <button
-                    onClick={() => setViewMode("systems")}
+                    onClick={() => actions.setViewMode("systems")}
                     className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === "systems"
+                      state.viewMode === "systems"
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
@@ -129,9 +121,9 @@ export const Dashboard: React.FC = () => {
                     Systems View
                   </button>
                   <button
-                    onClick={() => setViewMode("reviews")}
+                    onClick={() => actions.setViewMode("reviews")}
                     className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === "reviews"
+                      state.viewMode === "reviews"
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
@@ -141,11 +133,12 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               <p className="text-gray-600">
-                {viewMode === "systems"
+                {state.viewMode === "systems"
                   ? "Manage systems and their solution review versions"
                   : "Manage individual solution architecture reviews"}
               </p>
             </div>
+            {/* <Button onClick={() => setIsCreateModalOpen(true)}> */}
             <Button onClick={() => navigate('/create-solution-review')}>
               <svg
                 className="w-4 h-4 mr-2"
@@ -171,12 +164,12 @@ export const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
             <div className="text-2xl font-bold text-gray-900">
-              {viewMode === "systems"
-                ? systems.length
-                : reviews.length}
+              {state.viewMode === "systems"
+                ? state.systems.length
+                : state.reviews.length}
             </div>
             <div className="text-sm text-gray-600">
-              {viewMode === "systems" ? "Total Systems" : "Total Reviews"}
+              {state.viewMode === "systems" ? "Total Systems" : "Total Reviews"}
             </div>
           </div>
           {Object.values(DocumentState).map((docState) => (
@@ -198,7 +191,7 @@ export const Dashboard: React.FC = () => {
             <div className="flex-1">
               <Input
                 placeholder={
-                  viewMode === "systems"
+                  state.viewMode === "systems"
                     ? "Search systems by name, description, or category..."
                     : "Search reviews by title, description, category, or system..."
                 }
@@ -217,12 +210,12 @@ export const Dashboard: React.FC = () => {
                 }`}
               >
                 All (
-                {viewMode === "systems"
-                  ? systems.length
-                  : reviews.length}
+                {state.viewMode === "systems"
+                  ? state.systems.length
+                  : state.reviews.length}
                 )
               </button>
-              {viewMode === "reviews" &&
+              {state.viewMode === "reviews" &&
                 Object.values(DocumentState).map((docState) => (
                   <button
                     key={docState}
@@ -241,7 +234,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Loading State */}
-        {loading && (
+        {state.loading && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
             <span className="ml-3 text-gray-600">
@@ -251,7 +244,7 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Error State */}
-        {error && (
+        {state.error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex">
               <svg
@@ -269,16 +262,16 @@ export const Dashboard: React.FC = () => {
               </svg>
               <div>
                 <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
+                <p className="text-sm text-red-700 mt-1">{state.error}</p>
               </div>
             </div>
           </div>
         )}
 
         {/* Content Grid */}
-        {!loading && !error && (
+        {!state.loading && !state.error && (
           <>
-            {/* {viewMode === "systems" ? (
+            {state.viewMode === "systems" ? (
               // Systems View
               filteredSystems.length === 0 ? (
                 <div className="text-center py-12">
@@ -304,6 +297,7 @@ export const Dashboard: React.FC = () => {
                       : "Get started by creating your first solution review."}
                   </p>
                   {!searchTerm && (
+                    // <Button onClick={() => setIsCreateModalOpen(true)}>
                     <Button onClick={() => navigate('/create-solution-review')}>
                       Create Your First Solution Review
                     </Button>
@@ -311,12 +305,11 @@ export const Dashboard: React.FC = () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredSystems.map((reviews) => (
+                  {filteredSystems.map((system) => (
                     <SystemCard
-                      key={reviews[0].systemCode}
-                      system={reviews[0]} // Pass latest review as system
-                      allReviews={reviews}
-                      onViewSystem={() => setSelectedSystemReviews(reviews)}
+                      key={system.systemId}
+                      system={system}
+                      onViewSystem={setSelectedSystem}
                     />
                   ))}
                 </div>
@@ -346,6 +339,7 @@ export const Dashboard: React.FC = () => {
                     : "Get started by creating your first solution review."}
                 </p>
                 {!searchTerm && stateFilter === "ALL" && (
+                  // <Button onClick={() => setIsCreateModalOpen(true)}>
                   <Button onClick={() => navigate('/create-solution-review')}>
                     Create Your First Solution Review
                   </Button>
@@ -365,98 +359,12 @@ export const Dashboard: React.FC = () => {
           </>
         )}
       </div>
-    </div>
-  );
-}; */}
-{/* Systems View commented out */}
-            {/*
-            {viewMode === "systems" ? (
-              filteredSystems.length === 0 ? (
-                <div className="text-center py-12">
-                  <svg
-                    className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No systems found
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    {searchTerm
-                      ? "Try adjusting your search criteria."
-                      : "Get started by creating your first solution review."}
-                  </p>
-                  {!searchTerm && (
-                    <Button onClick={() => navigate('/create-solution-review')}>
-                      Create Your First Solution Review
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredSystems.map((reviews) => (
-                    <SystemCard
-                      key={reviews[0].systemCode}
-                      system={reviews[0]} // Pass latest review as system
-                      allReviews={reviews}
-                      onViewSystem={() => setSelectedSystemReviews(reviews)}
-                    />
-                  ))}
-                </div>
-              )
-            ) : */}
-            {/* Only show Reviews View */}
-            {filteredReviews.length === 0 ? (
-              <div className="text-center py-12">
-                <svg
-                  className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No solution reviews found
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {searchTerm || stateFilter !== "ALL"
-                    ? "Try adjusting your search or filter criteria."
-                    : "Get started by creating your first solution review."}
-                </p>
-                {!searchTerm && stateFilter === "ALL" && (
-                  <Button onClick={() => navigate('/create-solution-review')}>
-                    Create Your First Solution Review
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredReviews.map((review) => (
-                  <SolutionReviewCard
-                    key={review.id}
-                    review={review}
-                    onView={setSelectedReview}
-                  />
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+
+      {/* Create Modal */}
+      {/* <CreateSolutionReviewModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      /> */}
     </div>
   );
 };
