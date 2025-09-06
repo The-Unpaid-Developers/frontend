@@ -33,10 +33,26 @@ export const useViewSolutionReview = () => {
     }
   };
 
+  const loadSolutionReviewById = async (reviewId:string) => {
+    setIsLoading(true);
+    try {
+      const responseData = await mockApiService.getSolutionReviewById(reviewId);
+      console.log('review data ', responseData);
+      if (responseData) {
+        setSolutionReviews([responseData]);
+      }
+    } catch (error) {
+      console.error("Error loading review data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     solutionReviews,
     setSolutionReviews,
     loadSystemSolutionReviews,
+    loadSolutionReviewById,
     isLoading
   };
 };

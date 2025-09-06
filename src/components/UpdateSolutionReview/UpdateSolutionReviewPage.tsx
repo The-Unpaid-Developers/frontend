@@ -78,7 +78,7 @@ export const UpdateSolutionReviewPage: React.FC = () => {
     processCompliances, 
     systemCode
   };
-  console.log(existingData);
+  console.log('existing data', existingData);
 
   const StepComponent = steps[currentStep];
 
@@ -166,10 +166,29 @@ export const UpdateSolutionReviewPage: React.FC = () => {
 
   return (
     <div className="p-6">
-
-      <h1 className="text-2xl font-bold mb-4">Update Solution Review</h1>
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold">Update Solution Review</h1>
+      </div>
+      <div className="fixed top-4 right-4 z-50">
+        <Button variant="ghost" onClick={() => navigate(-1)} aria-label="Close">
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </Button>
+      </div>
       {/* <ProgressBar currentStep={currentStep} totalSteps={steps.length} /> */}
       <ProgressBar currentStep={currentStep} steps={stepMeta} onStepClick={goToStep} />
+      
       <div className="mt-4">
         <StepComponent onSave={handleSave} initialData={existingData} />
       </div>

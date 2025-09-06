@@ -41,7 +41,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
       // const reviewData = await getSolutionReviewById(reviewId);
       
       // For now, use mock data
-      const reviewData = await mockApiService.getSystemSolutionReviews(systemCode); // Import or define mock data
+      const reviewData = await mockApiService.getSolutionReviewById(reviewId); // Import or define mock data
       console.log('review data ', reviewData);
       if (reviewData) {
         setSolutionOverview(reviewData.solutionOverview);

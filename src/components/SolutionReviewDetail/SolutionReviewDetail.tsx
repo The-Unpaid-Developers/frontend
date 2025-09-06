@@ -31,6 +31,8 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
     });
   };
 
+  console.log('review in detail', review);
+
   const availableTransitions = STATE_TRANSITIONS[review.documentState] || [];
 
   return (

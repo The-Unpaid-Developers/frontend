@@ -50,8 +50,28 @@ export const CreateSolutionReviewPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">New Solution Review</h1>
+    <div className="p-6">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold">New Solution Review</h1>
+      </div>
+      <div className="fixed top-4 right-4 z-50">
+        <Button variant="ghost" onClick={() => navigate(-1)} aria-label="Close">
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </Button>
+      </div>
+      
       <div className="grid md:grid-cols-2 gap-4">
         <Input placeholder="Solution Name" value={data.solutionDetails.solutionName} onChange={e=>update('solutionDetails', {...data.solutionDetails, solutionName: e.target.value})} />
         <Input placeholder="Project Name" value={data.solutionDetails.projectName} onChange={e=>update('solutionDetails', {...data.solutionDetails, projectName: e.target.value})} />

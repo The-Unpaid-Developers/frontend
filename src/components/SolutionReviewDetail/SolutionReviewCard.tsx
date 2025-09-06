@@ -11,6 +11,7 @@ import {
   Button,
 } from "../ui";
 import { useSolutionReview } from "../../context/SolutionReviewContext";
+import { useNavigate } from 'react-router-dom';
 
 interface SolutionReviewCardProps {
   review: SolutionReview;
@@ -22,19 +23,21 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
   onView,
 }) => {
   const { actions } = useSolutionReview();
+  const navigate = useNavigate();
 
   const handleStateTransition = async (newState: DocumentState) => {
     await actions.transitionState(review.id, newState);
   };
 
   const formatDate = (dateString: string) => {
-    return;
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
   };
+
+  console.log('review in card', review);
 
   const availableTransitions = STATE_TRANSITIONS[review.documentState] || [];
 
@@ -45,16 +48,16 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
           <Badge variant="state" state={review.documentState}>
             {review.documentState}
           </Badge>
-          <span className="text-sm text-gray-500">v{review.version}</span>
+          <span className="text-sm text-gray-500">{review.systemCode}</span>
         </div>
         <CardTitle>
-          {review.solutionOverview?.title || "Untitled Solution Review"}
+          {review.solutionOverview.solutionDetails.solutionName || "Untitled Solution Review"}
         </CardTitle>
       </CardHeader>
 
       <CardContent className="flex-1">
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {review.solutionOverview?.description || "No description available"}
+          {review.solutionOverview.solutionDetails.projectName || "No description available"}
         </p>
 
         {review.solutionOverview && (
@@ -62,12 +65,12 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
             <div className="flex justify-between">
               <span className="text-gray-500">Category:</span>
               <span className="font-medium">
-                {review.solutionOverview.category}
+                {review.solutionOverview.businessUnit || "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Priority:</span>
-              <Badge
+              <span className="text-gray-500">Approval Status:</span>
+              {/* <Badge
                 className={
                   review.solutionOverview.priority === "High"
                     ? "bg-red-100 text-red-800 border-red-300"
@@ -77,13 +80,8 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
                 }
               >
                 {review.solutionOverview.priority}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Est. Cost:</span>
-              <span className="font-medium">
-                {/* ${review.solutionOverview.estimatedCost.toLocaleString()} */}
-              </span>
+              </Badge> */}
+              {review.solutionOverview.approvalStatus || "N/A"}
             </div>
           </div>
         )}
@@ -104,7 +102,8 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
           <Button
             variant="secondary"
             size="sm"
-            onClick={() => onView(review)}
+            // onClick={() => onView(review)}
+            onClick={() => navigate('/view-solution-review/' + review.id)}
             className="w-full"
           >
             View Details
