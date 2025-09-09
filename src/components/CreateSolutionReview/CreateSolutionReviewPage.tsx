@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Input } from '../ui';
+import { Button, Input, DropDown } from '../ui';
 import type { SolutionOverview } from '../../types/solutionReview';
 import { useCreateSolutionOverview } from '../../hooks/useCreateSolutionOverview';
+import {
+  APPLICATION_USER_OPTIONS,
+  REVIEW_TYPE_OPTIONS,
+  BUSINESS_UNIT_OPTIONS,
+  BUSINESS_DRIVER_OPTIONS,
+} from '../UpdateSolutionReview/steps/DropDownListValues';
 
 const empty: SolutionOverview = { solutionDetails: {
   solutionName: '',
@@ -15,7 +21,7 @@ const empty: SolutionOverview = { solutionDetails: {
   reviewType: '',
   businessUnit: '',
   businessDriver: '',
-  valueOutcomes: '',
+  valueOutcome: '',
   applicationUsers: [],
   concerns: []
 };
@@ -30,7 +36,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
   const [data,setData] = useState<SolutionOverview>(empty);
   const [appUser,setAppUser]=useState('');
   const { create, isCreating, error } = useCreateSolutionOverview();
-
+  const [systemCode, setSystemCode] = useState('');
 
   const update = (k: keyof SolutionOverview, v:any)=>
     setData(d=>({...d,[k]:v}));
@@ -44,8 +50,11 @@ export const CreateSolutionReviewPage: React.FC = () => {
     update('applicationUsers', data.applicationUsers.filter(x=>x!==u));
 
   const handleCreate = async () => {
-    const created = await create(data, data.solutionDetails.systemCode);
-    const id = (created as any).id || data.solutionDetails.systemCode;
+    data.solutionDetails.solutionReviewCode = "";
+    data.createdBy = localStorage.getItem("username") || "unknown";
+    data.modifiedBy = localStorage.getItem("username") || "unknown";
+    const created = await create(data, systemCode);
+    const id = (created as any).id || systemCode;
     navigate(`/update-solution-review/${id}`);
   };
 
@@ -75,20 +84,39 @@ export const CreateSolutionReviewPage: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-4">
         <Input placeholder="Solution Name" value={data.solutionDetails.solutionName} onChange={e=>update('solutionDetails', {...data.solutionDetails, solutionName: e.target.value})} />
         <Input placeholder="Project Name" value={data.solutionDetails.projectName} onChange={e=>update('solutionDetails', {...data.solutionDetails, projectName: e.target.value})} />
-        <Input placeholder="System Code" value={data.solutionDetails.systemCode} onChange={e=>update('solutionDetails', {...data.solutionDetails, systemCode: e.target.value})} />
+        <Input placeholder="System Code" value={systemCode} onChange={e=>setSystemCode(e.target.value)} />
         <Input placeholder="Solution Architect" value={data.solutionDetails.solutionArchitectName} onChange={e=>update('solutionDetails', {...data.solutionDetails, solutionArchitectName: e.target.value})} />
         <Input placeholder="Delivery PM" value={data.solutionDetails.deliveryProjectManagerName} onChange={e=>update('solutionDetails', {...data.solutionDetails, deliveryProjectManagerName: e.target.value})} />
         <Input placeholder="IT Business Partner" value={data.solutionDetails.itBusinessPartner} onChange={e=>update('solutionDetails', {...data.solutionDetails, itBusinessPartner: e.target.value})} />
-        <Input placeholder="Review Type" value={data.reviewType} onChange={e=>update('reviewType',e.target.value)} />
-        <Input placeholder="Business Unit" value={data.businessUnit} onChange={e=>update('businessUnit',e.target.value)} />
-        <Input placeholder="Business Driver" value={data.businessDriver} onChange={e=>update('businessDriver',e.target.value)} />
-        <Input placeholder="Value Outcomes" value={data.valueOutcomes} onChange={e=>update('valueOutcomes',e.target.value)} />
+        <DropDown
+          placeholder="Review Type"
+          value={data.reviewType}
+          onChange={e => update('reviewType', e.target.value)}
+          options={REVIEW_TYPE_OPTIONS}
+        />
+        <DropDown
+          placeholder="Business Unit"
+          value={data.businessUnit}
+          onChange={e => update('businessUnit', e.target.value)}
+          options={BUSINESS_UNIT_OPTIONS}
+        />
+        <DropDown
+          placeholder="Business Driver"
+          value={data.businessDriver}
+          onChange={e => update('businessDriver', e.target.value)}
+          options={BUSINESS_DRIVER_OPTIONS}
+        /><Input placeholder="Value Outcomes" value={data.valueOutcome} onChange={e=>update('valueOutcome',e.target.value)} />
       </div>
 
       <div>
         <label className="text-sm font-medium">Application Users</label>
         <div className="flex gap-2 mt-1">
-          <Input value={appUser} onChange={e=>setAppUser(e.target.value)} placeholder="Add user..." />
+          <DropDown
+            placeholder="Select Application User"
+            value={appUser}
+            onChange={e => setAppUser(e.target.value)}
+            options={APPLICATION_USER_OPTIONS}
+          />
           <Button type="button" onClick={addUser}>Add</Button>
         </div>
         {data.applicationUsers.length>0 && (

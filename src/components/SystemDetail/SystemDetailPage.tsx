@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSolutionReview } from '../../context/SolutionReviewContext';
+// import { useSolutionReview } from '../../context/SolutionReviewContext';
 import { SystemDetail } from './SystemDetail';
-import { mockApiService } from '../../services/mockApiUpdated';
+// import { mockApiService } from '../../services/mockApiUpdated';
+
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';
 
 export const SystemDetailPage: React.FC = () => {
   const { systemCode } = useParams<{ systemCode: string }>();
   const navigate = useNavigate();
-  const { state } = useSolutionReview();
+  // const { state } = useSolutionReview();
   console.log(systemCode);
 
   const { solutionReviews, loadSystemSolutionReviews } = useViewSolutionReview();

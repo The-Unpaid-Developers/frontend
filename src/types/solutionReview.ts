@@ -16,16 +16,18 @@ export interface Concern {
 }
 
 export interface SolutionOverview {
+  id: string;
   solutionDetails?: SolutionDetails;
   reviewType?: string | null; // dropdown list
   businessUnit?: string | null; // dropdown list
   businessDriver?: string | null; // dropdown list
-  valueOutcomes?: string | null; 
+  valueOutcome?: string | null; 
   applicationUsers?: string[]; // multi select 
   concerns?: Concern[];
 }
 
 export interface BusinessCapability {
+  id: string;
   l1Capability?: string | null; // dropdown list
   l2Capability?: string | null; // dropdown list
   l3Capability?: string | null; // dropdown list
@@ -37,7 +39,7 @@ export interface DataAsset {
   solutionOverviewId?: string | null;
   dataDomain?: string | null; // dropdown list
   dataClassification?: string | null; // dropdown of PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED
-  dataOwnership?: string | null; // dropdown list??
+  dataOwnedBy?: string | null; // dropdown list??
   dataEntities?: string[]; // dropdown list multi select
   masteredIn?: string | null; // dropdown list of the systems 
 }
@@ -49,7 +51,7 @@ export interface Tool {
 
 export interface EnterpriseTool {
   tool?: Tool;
-  onboardingStatus?: string | null; // dropdown list
+  onboarded?: string | null; // dropdown list
   integrationDetails?: string | null; // dropdown list
   issues?: string | null; 
 }
@@ -132,6 +134,8 @@ export interface ProcessCompliance {
 
 // Main form data interface
 export interface UpdateSolutionReviewData {
+  id: string;
+  documentState: string;
   systemCode: string;
   solutionOverview: SolutionOverview | null;
   businessCapabilities: BusinessCapability[] | null;
@@ -212,6 +216,7 @@ export type StateOperation =
 
 export interface SolutionReview {
   id: string;
+  systemCode: string;
   documentState: string;
   solutionOverview: SolutionOverview | null;
   businessCapabilities: BusinessCapability[] | null;

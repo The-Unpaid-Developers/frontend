@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import type { SolutionReview, SystemGroup } from "../../types/solutionReview";
 import { DocumentState, STATE_TRANSITIONS } from "../../types/solutionReview";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../ui";
-import { useSolutionReview } from "../../context/SolutionReviewContext";
+// import { useSolutionReview } from "../../context/SolutionReviewContext";
 
 interface SystemDetailProps {
   system: SolutionReview[];
@@ -15,17 +15,17 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
   onClose,
   onViewReview,
 }) => {
-  const { actions } = useSolutionReview();
+  // const { actions } = useSolutionReview();
   const [selectedVersion, setSelectedVersion] = useState<SolutionReview | null>(
     null
   );
 
-  const handleStateTransition = async (
-    reviewId: string,
-    newState: DocumentState
-  ) => {
-    await actions.transitionState(reviewId, newState);
-  };
+  // const handleStateTransition = async (
+  //   reviewId: string,
+  //   newState: DocumentState
+  // ) => {
+  //   await actions.transitionState(reviewId, newState);
+  // };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -243,9 +243,9 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                                 : "ghost"
                             }
                             size="sm"
-                            onClick={() =>
-                              handleStateTransition(review.id, transition.to)
-                            }
+                            // onClick={() =>
+                            //   handleStateTransition(review.id, transition.to)
+                            // }
                             title={transition.description}
                           >
                             {transition.operationName}

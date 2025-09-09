@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSolutionReview } from '../../context/SolutionReviewContext';
 import { SolutionReviewDetail } from './SolutionReviewDetail';
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';
 

@@ -2,40 +2,74 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DocumentState } from "../types";
 import type { SolutionReview } from "../types";
-import { SolutionReviewCard, SolutionReviewDetail } from "./SolutionReviewDetail";
+import {
+  SolutionReviewCard,
+  SolutionReviewDetail,
+} from "./SolutionReviewDetail";
 import { SystemCard, SystemDetail } from "./SystemDetail";
 import { Button, Input } from "./ui";
-import { mockApiService } from "../services/mockApiUpdated";
+import { useViewSolutionReview } from "../hooks/useViewSolutionReview";
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [reviews, setReviews] = useState<SolutionReview[]>([]);
-  const [loading, setLoading] = useState(true);
+  // const [reviews, setReviews] = useState<SolutionReview[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"systems" | "reviews">("systems");
-  const [selectedReview, setSelectedReview] = useState<SolutionReview | null>(null);
-  const [selectedSystemReviews, setSelectedSystemReviews] = useState<SolutionReview[] | null>(null);
+  const [selectedReview, setSelectedReview] = useState<SolutionReview | null>(
+    null
+  );
+  const [selectedSystemReviews, setSelectedSystemReviews] = useState<
+    SolutionReview[] | null
+  >(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter, setStateFilter] = useState<DocumentState | "ALL">("ALL");
+  const { isLoading, solutionReviews, loadSolutionReviews, pageMeta } =
+    useViewSolutionReview();
 
-  // Fetch all reviews from mock API on mount
+  const [pageSize, setPageSize] = useState<number>(10);
+
+  // NEW: track current page locally (sync with hook meta)
+  const currentPage = pageMeta.page;
+  const totalPages = pageMeta.totalPages;
+  const totalElements = pageMeta.totalElements;
+
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    mockApiService.getAllSolutionReviews()
-      .then(data => setReviews(data))
-      .catch(e => setError(e.message || "Failed to load reviews"))
-      .finally(() => setLoading(false));
-  }, []);
+    console.log("in eff");
+    const fetchData = async () => {
+      try {
+        await loadSolutionReviews(currentPage, pageSize);
+      } catch (error) {
+        console.error("Error loading review data:", error);
+      }
+    };
+
+    fetchData();
+
+    // if (solutionReviews) {
+    //   setReviews(solutionReviews);
+    // }
+  }, [pageSize, currentPage]);
+
+  const goToPage = (p: number) => {
+    console.log("Going to page:", p);
+    if (p < 0 || (totalPages > 0 && p >= totalPages)) return;
+    loadSolutionReviews(p, pageSize);
+  };
 
   // Filtered reviews (flat list)
   const filteredReviews = useMemo(() => {
-    return reviews.filter((review) => {
+    return solutionReviews.filter((review) => {
       const matchesSearch =
         !searchTerm ||
-        review.solutionOverview?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        review.solutionOverview?.title
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        review.solutionOverview?.description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        review.solutionOverview?.category
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         review.systemName?.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesState =
@@ -43,46 +77,53 @@ export const Dashboard: React.FC = () => {
 
       return matchesSearch && matchesState;
     });
-  }, [reviews, searchTerm, stateFilter]);
+  }, [solutionReviews, searchTerm, stateFilter]);
 
   // Group reviews by systemCode
   const systems = useMemo(() => {
     const map = new Map<string, SolutionReview[]>();
-    reviews.forEach((review) => {
+    solutionReviews.forEach((review) => {
       if (!map.has(review.systemCode)) {
         map.set(review.systemCode, []);
       }
       map.get(review.systemCode)!.push(review);
     });
     // Sort each system's reviews by createdAt descending (latest first)
-    map.forEach((arr) => arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    map.forEach((arr) =>
+      arr.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+    );
     return Array.from(map.values());
-  }, [reviews]);
+  }, [solutionReviews]);
 
   // Filtered systems (list of review arrays, each array is all reviews for a system)
   const filteredSystems = useMemo(() => {
-    return systems.filter((reviews) => {
-      const latest = reviews[0];
+    return systems.filter((solutionReviews) => {
+      const latest = solutionReviews[0];
       const matchesSearch =
         !searchTerm ||
         latest.systemName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        latest.solutionOverview?.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        latest.solutionOverview?.category?.toLowerCase().includes(searchTerm.toLowerCase());
+        latest.solutionOverview?.description
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        latest.solutionOverview?.category
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
   }, [systems, searchTerm]);
 
   const stateCounts = useMemo(() => {
     const dataSource =
-      viewMode === "systems"
-        ? systems.flatMap((arr) => arr)
-        : reviews;
+      viewMode === "systems" ? systems.flatMap((arr) => arr) : solutionReviews;
 
     return dataSource.reduce((acc, review) => {
       acc[review.documentState] = (acc[review.documentState] || 0) + 1;
       return acc;
     }, {} as Record<DocumentState, number>);
-  }, [reviews, systems, viewMode]);
+  }, [solutionReviews, systems, viewMode]);
 
   if (selectedReview) {
     return (
@@ -146,7 +187,7 @@ export const Dashboard: React.FC = () => {
                   : "Manage individual solution architecture reviews"}
               </p>
             </div>
-            <Button onClick={() => navigate('/create-solution-review')}>
+            <Button onClick={() => navigate("/create-solution-review")}>
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -166,14 +207,14 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats \*\/\}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
             <div className="text-2xl font-bold text-gray-900">
               {viewMode === "systems"
                 ? systems.length
-                : reviews.length}
+                : solutionReviews.length}
             </div>
             <div className="text-sm text-gray-600">
               {viewMode === "systems" ? "Total Systems" : "Total Reviews"}
@@ -188,6 +229,28 @@ export const Dashboard: React.FC = () => {
                 {stateCounts[docState] || 0}
               </div>
               <div className="text-sm text-gray-600">{docState}</div>
+            </div>
+          ))}
+        </div> */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats */}
+        {/* ...existing stats but replace total reviews number... */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+            <div className="text-2xl font-bold text-gray-900">
+              {totalElements}
+            </div>
+            <div className="text-sm text-gray-600">Total Reviews</div>
+          </div>
+          {Object.values(DocumentState).map((ds) => (
+            <div
+              key={ds}
+              className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
+            >
+              <div className="text-2xl font-bold text-gray-900">
+                {stateCounts[ds] || 0}
+              </div>
+              <div className="text-sm text-gray-600">{ds}</div>
             </div>
           ))}
         </div>
@@ -219,7 +282,7 @@ export const Dashboard: React.FC = () => {
                 All (
                 {viewMode === "systems"
                   ? systems.length
-                  : reviews.length}
+                  : solutionReviews.length}
                 )
               </button>
               {viewMode === "reviews" &&
@@ -240,8 +303,70 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Pagination Controls */}
+        {!isLoading && !error && totalElements > 0 && (
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="text-sm text-gray-600">
+              Showing{" "}
+              <span className="font-medium">
+                {totalElements === 0 ? 0 : currentPage * pageSize + 1}-
+                {Math.min((currentPage + 1) * pageSize, totalElements)}
+              </span>{" "}
+              of <span className="font-medium">{totalElements}</span> reviews
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                className="border rounded-md px-2 py-1 text-sm"
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                }}
+              >
+                {[5, 10, 20, 50].map((s) => (
+                  <option key={s} value={s}>
+                    {s} / page
+                  </option>
+                ))}
+              </select>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => goToPage(0)}
+                  disabled={currentPage === 0}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  «
+                </button>
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  Prev
+                </button>
+                <span className="px-2 text-sm">
+                  Page {currentPage + 1} / {totalPages || 1}
+                </span>
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={totalPages === 0 || currentPage >= totalPages - 1}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  Next
+                </button>
+                <button
+                  onClick={() => goToPage(totalPages - 1)}
+                  disabled={totalPages === 0 || currentPage >= totalPages - 1}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  »
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Loading State */}
-        {loading && (
+        {isLoading && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
             <span className="ml-3 text-gray-600">
@@ -276,7 +401,7 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Content Grid */}
-        {!loading && !error && (
+        {!isLoading && !error && (
           <>
             {/* {viewMode === "systems" ? (
               // Systems View
@@ -368,7 +493,7 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 }; */}
-{/* Systems View commented out */}
+            {/* Systems View commented out */}
             {/*
             {viewMode === "systems" ? (
               filteredSystems.length === 0 ? (
@@ -438,7 +563,7 @@ export const Dashboard: React.FC = () => {
                     : "Get started by creating your first solution review."}
                 </p>
                 {!searchTerm && stateFilter === "ALL" && (
-                  <Button onClick={() => navigate('/create-solution-review')}>
+                  <Button onClick={() => navigate("/create-solution-review")}>
                     Create Your First Solution Review
                   </Button>
                 )}

@@ -10,7 +10,7 @@ import {
   Badge,
   Button,
 } from "../ui";
-import { useSolutionReview } from "../../context/SolutionReviewContext";
+// import { useSolutionReview } from "../../context/SolutionReviewContext";
 import { useNavigate } from 'react-router-dom';
 
 interface SolutionReviewCardProps {
@@ -22,7 +22,7 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
   review,
   onView,
 }) => {
-  const { actions } = useSolutionReview();
+  // const { actions } = useSolutionReview();
   const navigate = useNavigate();
 
   const handleStateTransition = async (newState: DocumentState) => {

@@ -533,4 +533,13 @@ export const mockApiService = {
     // await delay(150);
     return [...mockSolutionReview.filter(review => review.systemCode===systemCode)];
   },
-};
+
+  async login(username: string, role: string): Promise<{ token: string }> {
+    // Simulate small delay
+    // await delay(200, 0.1); // 10% failure rate for testing
+    // set user session or token
+    localStorage.setItem("userToken", role);
+    localStorage.setItem("username", username);
+    return { token: role };
+  },
+}
