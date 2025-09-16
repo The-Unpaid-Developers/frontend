@@ -58,14 +58,9 @@ export const CreateSolutionReviewPage: React.FC = () => {
       data.modifiedBy = localStorage.getItem("username") || "unknown";
       
       const created = await createNewSR(data, systemCode);
-      const id = (created as any).id || systemCode;
       
       showSuccess("Solution review created successfully!");
-      
-      // Navigate after a short delay to let user see the success message
-      setTimeout(() => {
-        navigate(`/update-solution-review/${id}`);
-      }, 1000);
+      navigate(`/update-solution-review/${created.id}`);
       
     } catch (error) {
       console.error("Failed to create solution review:", error);

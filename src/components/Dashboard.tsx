@@ -12,7 +12,6 @@ import { useToast } from "../context/ToastContext";
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"systems" | "reviews">("systems");
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter, setStateFilter] = useState<DocumentState | "ALL">("ALL");
@@ -38,47 +37,45 @@ export const Dashboard: React.FC = () => {
       } catch (e) {
         console.log('in catch');
         console.error("Error loading review data:", e);
-        // setError((e as any)?.message || "Failed to load data");
         showError("Failed to load data: " + e.message);
-        // setError("Failed to load data");
       }
     };
     run();
-    console.log(filteredReviews);
+    // console.log(filteredReviews);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageSize, currentPage, viewMode]);
 
-  const goToPage = (p: number) => {
+  const goToPage = async (p: number) => {
     if (p < 0 || (totalPages > 0 && p >= totalPages)) return;
     if (viewMode === "systems") {
-      loadSystems(p, pageSize);
+      await loadSystems(p, pageSize);
     } else {
-      loadSolutionReviews(p, pageSize);
+      await loadSolutionReviews(p, pageSize);
     }
   };
 
   // Optional client-side filtering (backend should already filter)
-  const filteredReviews = useMemo(() => {
-    return solutionReviews.filter((review) => {
-      const matchesSearch =
-        !searchTerm ||
-        review.solutionOverview?.solutionDetails?.solutionName
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.solutionDetails?.projectName
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.businessUnit
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        review.systemCode?.toLowerCase().includes(searchTerm.toLowerCase());
+  // const filteredReviews = useMemo(() => {
+  //   return solutionReviews.filter((review) => {
+  //     const matchesSearch =
+  //       !searchTerm ||
+  //       review.solutionOverview?.solutionDetails?.solutionName
+  //         ?.toLowerCase()
+  //         .includes(searchTerm.toLowerCase()) ||
+  //       review.solutionOverview?.solutionDetails?.projectName
+  //         ?.toLowerCase()
+  //         .includes(searchTerm.toLowerCase()) ||
+  //       review.solutionOverview?.businessUnit
+  //         ?.toLowerCase()
+  //         .includes(searchTerm.toLowerCase()) ||
+  //       review.systemCode?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesState =
-        stateFilter === "ALL" || review.documentState === stateFilter;
+  //     const matchesState =
+  //       stateFilter === "ALL" || review.documentState === stateFilter;
 
-      return matchesSearch && matchesState;
-    });
-  }, [solutionReviews, searchTerm, stateFilter]);
+  //     return matchesSearch && matchesState;
+  //   });
+  // }, [solutionReviews, searchTerm, stateFilter]);
 
   const stateCounts = useMemo(() => {
     return solutionReviews.reduce((acc, review) => {
@@ -222,7 +219,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        {!isLoading && !error && totalElements > 0 && (
+        {!isLoading && totalElements > 0 && (
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div className="text-sm text-gray-600">
               Showing{" "}
@@ -291,35 +288,10 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Error */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex">
-              <svg
-                className="w-5 h-5 text-red-400 mr-2 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div>
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <p className="text-sm text-red-700 mt-1">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Content: always SolutionReview cards */}
-        {!isLoading && !error && (
+        {!isLoading && (
           <>
-            {filteredReviews.length === 0 ? (
+            {solutionReviews.length === 0 ? (
               <div className="text-center py-12">
                 <svg
                   className="w-12 h-12 text-gray-400 mx-auto mb-4"
@@ -350,7 +322,7 @@ export const Dashboard: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredReviews.map((review) => (
+                {solutionReviews.map((review) => (
                   <SolutionReviewCard
                     key={review.id}
                     review={review}

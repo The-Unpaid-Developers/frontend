@@ -51,7 +51,7 @@ export const UpdateSolutionReviewPage: React.FC = () => {
   // const [createData, setCreateData] = useState<UpdateSolutionReviewData>(emptyData);
   const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast, showSuccess, showError, hideToast } = useToast();
+  const {showSuccess, showError, hideToast } = useToast();
 
   const {
     saveSection,
@@ -283,12 +283,6 @@ export const UpdateSolutionReviewPage: React.FC = () => {
           </div>
         </Modal>
       )}
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        onClose={hideToast}
-      />
     </div>
   );
 };

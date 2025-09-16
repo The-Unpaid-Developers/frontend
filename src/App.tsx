@@ -1,5 +1,4 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
-// import { SolutionReviewProvider } from "./context/SolutionReviewContext";
 import { Dashboard } from "./components/Dashboard";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { CreateSolutionReviewPage } from "./components/CreateSolutionReview/CreateSolutionReviewPage";
