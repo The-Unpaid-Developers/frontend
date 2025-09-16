@@ -14,6 +14,7 @@ import { useUpdateSolutionReview } from "../../hooks/useUpdateSolutionReview";
 import useStepNavigation from "../../hooks/useStepNavigation";
 import type { UpdateSolutionReviewData } from "../../types/solutionReview";
 import { Modal, Button } from "../ui";
+import { useToast } from "../../context/ToastContext";
 
 const steps = [
   SolutionOverviewStep,
@@ -50,6 +51,7 @@ export const UpdateSolutionReviewPage: React.FC = () => {
   // const [createData, setCreateData] = useState<UpdateSolutionReviewData>(emptyData);
   const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast, showSuccess, showError, hideToast } = useToast();
 
   const {
     saveSection,
@@ -111,7 +113,7 @@ export const UpdateSolutionReviewPage: React.FC = () => {
     fetchData();
   }, [currentStep]);
 
-  const handleSave = (data: any) => {
+  const handleSave = async (data: any) => {
     // setIsSaving(true);
     try {
       const sectionKey = stepMeta[currentStep]
@@ -119,10 +121,11 @@ export const UpdateSolutionReviewPage: React.FC = () => {
       // persist in lifted state
       // setCreateData(prev => ({ ...prev, [sectionKey]: data }));
       // data.id = id; // ensure id is set for update
-      saveSection(sectionKey, data);
+      await saveSection(sectionKey, data);
+      showSuccess(`${stepMeta[currentStep].label} saved successfully!`);
     } catch (err) {
       console.error("Save failed", err);
-      // show toast / error UI here if you have one
+      showError(`Failed to save ${stepMeta[currentStep].label}. Please try again.` + err.message);
     } finally {
       // setIsSaving(false);
     }
@@ -198,7 +201,9 @@ export const UpdateSolutionReviewPage: React.FC = () => {
       />
 
       <div className="mt-4">
-        <StepComponent onSave={handleSave} initialData={existingData} />
+        <StepComponent onSave={handleSave} initialData={existingData}
+          showSuccess={showSuccess}
+          showError={showError} />
       </div>
       <NavigationButtons
         currentStep={currentStep}
@@ -223,12 +228,12 @@ export const UpdateSolutionReviewPage: React.FC = () => {
                 <div key={key} className="border rounded p-3">
                   <h3 className="font-semibold mb-2">{sectionLabels[key]}
                     {isArray && (
-                    <span className="ml-2 text-xs font-medium text-gray-500">
-                      ({value.length})
-                    </span>
-                  )}
+                      <span className="ml-2 text-xs font-medium text-gray-500">
+                        ({value.length})
+                      </span>
+                    )}
                   </h3>
-                  
+
                   {value == null ? (
                     <div className="text-red-600">Not completed</div>
                   ) : (
@@ -278,6 +283,12 @@ export const UpdateSolutionReviewPage: React.FC = () => {
           </div>
         </Modal>
       )}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
     </div>
   );
 };

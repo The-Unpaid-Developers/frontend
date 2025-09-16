@@ -67,9 +67,11 @@ export const useUpdateSolutionReview = (reviewId: string) => {
         setProcessCompliance(reviewData.processCompliances);
         setSystemCode(reviewData.systemCode);
       }
-    } catch (error) {
-      console.error("Error loading review data:", error);
-    } finally {
+    } 
+    // catch (error) {
+    //   console.error("Error loading review data:", error);
+    // } 
+    finally {
       setIsLoading(false);
     }
   };

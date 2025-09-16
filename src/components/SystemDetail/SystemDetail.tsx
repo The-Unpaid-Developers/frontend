@@ -2,15 +2,20 @@ import React, { useState } from "react";
 import type { SolutionReview, SystemGroup } from "../../types/solutionReview";
 import { DocumentState, STATE_TRANSITIONS } from "../../types/solutionReview";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../ui";
+import { useNavigate } from "react-router-dom";
+import { useCreateSolutionOverview } from "../../hooks/useCreateSolutionOverview";
 // import { useSolutionReview } from "../../context/SolutionReviewContext";
+import { useToast } from "../../context/ToastContext";
 
 interface SystemDetailProps {
+  systemCode: string;
   system: SolutionReview[];
   onClose: () => void;
   onViewReview: (review: SolutionReview) => void;
 }
 
 export const SystemDetail: React.FC<SystemDetailProps> = ({
+  systemCode,
   system,
   onClose,
   onViewReview,
@@ -19,13 +24,27 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
   const [selectedVersion, setSelectedVersion] = useState<SolutionReview | null>(
     null
   );
-
+  const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
+  
   // const handleStateTransition = async (
   //   reviewId: string,
   //   newState: DocumentState
   // ) => {
   //   await actions.transitionState(reviewId, newState);
   // };
+  const { createSRFromExisting } = useCreateSolutionOverview();
+  const createNewDraft = async () => {
+      try {
+      // call hook to create new draft from existing sr
+      const response = await createSRFromExisting(systemCode);
+      showSuccess("New draft created successfully!");
+      navigate(`/update-solution-review/${response.id}`);
+    } catch (error) {
+      console.error("Failed to create new draft:", error);
+      showError("Failed to create new draft: " + error.message);
+    }
+    };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -55,15 +74,15 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center space-x-3 mb-2">
-            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-              {/* {system.category} */}
-            </Badge>
+            {/* <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+              {system.category}
+            </Badge> */}
             <span className="text-sm text-gray-500">
               {/* {system.totalReviews} versions • Latest v{system.latestVersion} */}
             </span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {/* {system.systemName} */}
+            {systemCode}
           </h1>
           {/* <p className="text-gray-600 mt-1">{system.description}</p> */}
         </div>
@@ -133,7 +152,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center space-x-3">
                       <span className="font-semibold text-lg">
-                        v{review.version}
+                        {review.id}
                       </span>
                       <Badge variant="state" state={review.documentState}>
                         {review.documentState}
@@ -150,7 +169,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                       )}
                     </div>
                     <div className="flex space-x-2">
-                      <Button
+                      {/* <Button
                         variant="ghost"
                         size="sm"
                         onClick={() =>
@@ -162,7 +181,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                         {selectedVersion?.id === review.id
                           ? "Collapse"
                           : "Expand"}
-                      </Button>
+                      </Button> */}
                       <Button
                         variant="secondary"
                         size="sm"
@@ -251,6 +270,24 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                             {transition.operationName}
                           </Button>
                         ))}
+                        {review.documentState === "DRAFT" && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => navigate(`/update-solution-review/${review.id}`)}
+                          >
+                            Edit Draft
+                          </Button>
+                        )}
+                        {review.documentState === "CURRENT" && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={createNewDraft}
+                          >
+                            Create New Draft
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}

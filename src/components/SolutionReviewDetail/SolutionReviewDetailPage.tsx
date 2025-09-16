@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SolutionReviewDetail } from './SolutionReviewDetail';
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';
+import { useToast } from "../../context/ToastContext";
 
 export const SolutionReviewDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
   // const { state } = useSolutionReview();
 
   // // Reviews may exist both in state.reviews and nested under systems
@@ -34,8 +36,10 @@ export const SolutionReviewDetailPage: React.FC = () => {
       try {
         console.log('loading review id', id);
         await loadSolutionReviewById(id);
+        showSuccess("");
       } catch (error) {
         console.error("Error loading review data:", error);
+        showError("Error loading review data", error.message);
       }
     };
 

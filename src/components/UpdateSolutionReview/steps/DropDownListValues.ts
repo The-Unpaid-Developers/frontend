@@ -113,7 +113,7 @@ const FREQUENCY_VALUES = [
   "WEEKLY",
   "MONTHLY",
   "QUARTERLY",
-  "BI_ANNUALY",
+  "BI_ANNUALLY",
   "ANNUALLY",
 ] as const; // Frequency.java (adjust)
 export const FREQUENCY = makeMap(FREQUENCY_VALUES);

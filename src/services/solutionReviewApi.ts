@@ -18,12 +18,18 @@ export const getSolutionReviewById = async (id: string) => {
 };
 
 export const getAllSolutionReviews = async (page: number, size: number) => {
-  const response = await axios.get(`${API_BASE_URL}/solution-review/all?page=${page}&size=${size}`);
+  const response = await axios.get(`${API_BASE_URL}/solution-review/paging?page=${page}&size=${size}`);
+  return response.data;
+};
+
+export const getAllSystems = async (page: number, size: number) => {
+  const response = await axios.get(`${API_BASE_URL}/solution-review/system-view?page=${page}&size=${size}`);
+  // const response = await axios.get(`${API_BASE_URL}/solution-review/paging?page=${page}&size=${size}`);
   return response.data;
 };
 
 export const getSystemSolutionReviews = async (systemCode: string) => {
-  const response = await axios.get(`${API_BASE_URL}/solution-review/${systemCode}`);
+  const response = await axios.get(`${API_BASE_URL}/solution-review/system?systemCode=${systemCode}`);
   return response.data;
 };
 
@@ -31,3 +37,8 @@ export const updateSolutionReviewState = async (data: any) => {
   const response = await axios.post(`${API_BASE_URL}/lifecycle/transition`, data);
   return response.data;
 };
+
+export const createSRFromExistingAPI = async (systemCode: string) => {
+  const response = await axios.post(`${API_BASE_URL}/solution-review/existing/${systemCode}`);
+  return response.data;
+}

@@ -197,6 +197,12 @@ const DocumentState = {
   OUTDATED: "OUTDATED",
 } as const;
 
+const DocumentStateFilter = {
+  DRAFT: "DRAFT",
+  SUBMITTED: "SUBMITTED",
+  CURRENT: "CURRENT",
+} as const;
+export type DocumentStateFilter = (typeof DocumentStateFilter)[keyof typeof DocumentStateFilter];
 
 export type DocumentState = (typeof DocumentState)[keyof typeof DocumentState];
 
@@ -212,7 +218,7 @@ const StateOperation = {
 export type StateOperation =
   (typeof StateOperation)[keyof typeof StateOperation];
 
-  export { DocumentState, StateOperation };
+  export { DocumentState, StateOperation, DocumentStateFilter };
 
 export interface SolutionReview {
   id: string;

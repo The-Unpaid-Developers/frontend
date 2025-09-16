@@ -1,4 +1,4 @@
-import { DocumentState } from "../types";
+import { DocumentState } from "../types/solutionReview";
 import type {
   SolutionReview,
   UpdateSolutionReviewData

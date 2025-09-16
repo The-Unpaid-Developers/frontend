@@ -9,6 +9,7 @@ import {
   BUSINESS_UNIT_OPTIONS,
   BUSINESS_DRIVER_OPTIONS,
 } from '../UpdateSolutionReview/steps/DropDownListValues';
+import { useToast } from '../../context/ToastContext';
 
 const empty: SolutionOverview = { solutionDetails: {
   solutionName: '',
@@ -35,8 +36,9 @@ export const CreateSolutionReviewPage: React.FC = () => {
   const navigate = useNavigate();
   const [data,setData] = useState<SolutionOverview>(empty);
   const [appUser,setAppUser]=useState('');
-  const { create, isCreating, error } = useCreateSolutionOverview();
+  const { createNewSR, isCreating, error } = useCreateSolutionOverview();
   const [systemCode, setSystemCode] = useState('');
+  const { showSuccess, showError } = useToast();
 
   const update = (k: keyof SolutionOverview, v:any)=>
     setData(d=>({...d,[k]:v}));
@@ -50,12 +52,25 @@ export const CreateSolutionReviewPage: React.FC = () => {
     update('applicationUsers', data.applicationUsers.filter(x=>x!==u));
 
   const handleCreate = async () => {
-    data.solutionDetails.solutionReviewCode = "";
-    data.createdBy = localStorage.getItem("username") || "unknown";
-    data.modifiedBy = localStorage.getItem("username") || "unknown";
-    const created = await create(data, systemCode);
-    const id = (created as any).id || systemCode;
-    navigate(`/update-solution-review/${id}`);
+    try {
+      data.solutionDetails.solutionReviewCode = "";
+      data.createdBy = localStorage.getItem("username") || "unknown";
+      data.modifiedBy = localStorage.getItem("username") || "unknown";
+      
+      const created = await createNewSR(data, systemCode);
+      const id = (created as any).id || systemCode;
+      
+      showSuccess("Solution review created successfully!");
+      
+      // Navigate after a short delay to let user see the success message
+      setTimeout(() => {
+        navigate(`/update-solution-review/${id}`);
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Failed to create solution review:", error);
+      showError("Failed to create solution review. Please try again." + error.message);
+    }
   };
 
   return (

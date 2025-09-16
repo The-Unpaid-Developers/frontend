@@ -10,6 +10,7 @@ import {
   getSystemSolutionReviews,
   getSolutionReviewById,
   getAllSolutionReviews,
+  getAllSystems,
 } from "../services/solutionReviewApi";
 
 interface PageMeta {
@@ -54,10 +55,13 @@ export const useViewSolutionReview = () => {
           totalElements: responseData.content.length,
         });
       }
-    } catch (error) {
+    } 
+    catch (error) {
       setError(error.message);
       console.error("Error loading review data:", error);
-    } finally {
+      throw error;
+    } 
+    finally {
       console.log("finally", solutionReviews);
       setIsLoading(false);
     }
@@ -76,10 +80,13 @@ export const useViewSolutionReview = () => {
       if (responseData) {
         setSolutionReviews(responseData);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       setError(error.message);
       console.error("Error loading review data:", error);
-    } finally {
+      throw error;
+    } 
+    finally {
       setIsLoading(false);
     }
   };
@@ -92,10 +99,48 @@ export const useViewSolutionReview = () => {
       if (responseData) {
         setSolutionReviews([responseData]);
       }
-    } catch (error) {
+    } 
+    catch (error) {
       setError(error.message);
       console.error("Error loading review data:", error);
-    } finally {
+      throw error;
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadSystems = async (page: number, size: number) => {
+    setIsLoading(true);
+    try {
+      const responseData = await getAllSystems(page, size);
+      if (responseData && Array.isArray(responseData.content)) {
+        setSolutionReviews(responseData.content);
+        setPageMeta({
+          page: responseData.number ?? page,
+          size: responseData.size ?? size,
+          totalPages: responseData.totalPages ?? 0,
+          totalElements:
+            responseData.totalElements ?? responseData.content.length,
+        });
+      } else {
+        // fallback (non-paged list)
+        setSolutionReviews(responseData.content ?? []);
+        setPageMeta({
+          page: 0,
+          size: responseData.content.length,
+          totalPages: 1,
+          totalElements: responseData.content.length,
+        });
+      }
+    } 
+    catch (error) {
+      setError(error.message);
+      console.error("Error loading review data:", error);
+      throw error;
+    }
+    finally {
+      console.log("finally", solutionReviews);
       setIsLoading(false);
     }
   };
@@ -106,6 +151,7 @@ export const useViewSolutionReview = () => {
     loadSystemSolutionReviews,
     loadSolutionReviewById,
     loadSolutionReviews,
+    loadSystems,
     pageMeta,
     isLoading,
     error,

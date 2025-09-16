@@ -5,6 +5,7 @@ import { SystemDetail } from './SystemDetail';
 // import { mockApiService } from '../../services/mockApiUpdated';
 
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';
+import { useToast } from "../../context/ToastContext";
 
 export const SystemDetailPage: React.FC = () => {
   const { systemCode } = useParams<{ systemCode: string }>();
@@ -16,13 +17,16 @@ export const SystemDetailPage: React.FC = () => {
   // loadSystemSolutionReviews(systemCode || "");
   console.log(solutionReviews);
 
+  const { showSuccess, showError } = useToast();
+
   useEffect(() => {
     console.log('in eff');
     const fetchData = async () => {
       try {
-        await loadSystemSolutionReviews(systemCode || "");
+        await loadSystemSolutionReviews(systemCode);
       } catch (error) {
         console.error("Error loading review data:", error);
+        showError("Failed to load data: " + error.message);
       }
     };
 
@@ -45,6 +49,7 @@ export const SystemDetailPage: React.FC = () => {
 
   return (
     <SystemDetail
+      systemCode={systemCode}
       system={solutionReviews}
       onClose={() => navigate(-1)}
       onViewReview={r => navigate(`/view-solution-review/${r.id}`)}

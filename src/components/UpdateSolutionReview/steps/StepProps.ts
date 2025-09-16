@@ -1,3 +1,5 @@
+import { ErrorType } from "../../types/errors";
+
 // export type StepProps<T = any> = {
 //   onSave: (data: T) => Promise<void> | void;
 //   isSaving?: boolean;
@@ -5,6 +7,8 @@
 // };
 export interface StepProps {
   onSave: (data: any) => Promise<void> | void;
-  initialData: any;
   isSaving?: boolean;
+  initialData: any;
+  showSuccess?: (message: string) => void;
+  showError?: (message: string) => void;
 }
