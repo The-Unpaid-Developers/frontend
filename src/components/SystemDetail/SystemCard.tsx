@@ -1,6 +1,6 @@
 import React from "react";
-import type { SystemGroup } from "../types";
-import { DocumentState } from "../types";
+import { useNavigate } from 'react-router-dom';
+import type { DocumentState, SolutionReview } from "../../types/solutionReview";
 import {
   Card,
   CardHeader,
@@ -9,17 +9,18 @@ import {
   CardFooter,
   Badge,
   Button,
-} from "./ui";
+} from "../ui";
 
 interface SystemCardProps {
-  system: SystemGroup;
-  onViewSystem: (system: SystemGroup) => void;
+  system: SolutionReview & { reviews: SolutionReview[]; systemId: string; systemName: string; category: string; description: string; latestVersion: string; totalReviews: number; currentReview?: SolutionReview };
+  onViewSystem: (system: SystemCardProps["system"]) => void;
 }
 
 export const SystemCard: React.FC<SystemCardProps> = ({
   system,
   onViewSystem,
 }) => {
+  const navigate = useNavigate();
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -36,7 +37,7 @@ export const SystemCard: React.FC<SystemCardProps> = ({
     const counts = system.reviews.reduce((acc, review) => {
       acc[review.documentState] = (acc[review.documentState] || 0) + 1;
       return acc;
-    }, {} as Record<DocumentState, number>);
+    }, {} as Record<string, number>);
     return counts;
   };
 
@@ -76,36 +77,9 @@ export const SystemCard: React.FC<SystemCardProps> = ({
                 Latest Version
               </h4>
               <p className="text-sm text-gray-600">
-                {latestReview.solutionOverview?.title}
+                {latestReview.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
               </p>
             </div>
-
-            {latestReview.solutionOverview && (
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="text-gray-500">Priority:</span>
-                  <Badge
-                    className={`ml-1 ${
-                      latestReview.solutionOverview.priority === "High"
-                        ? "bg-red-100 text-red-800 border-red-300"
-                        : latestReview.solutionOverview.priority === "Medium"
-                        ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                        : "bg-green-100 text-green-800 border-green-300"
-                    }`}
-                  >
-                    {latestReview.solutionOverview.priority}
-                  </Badge>
-                </div>
-                <div>
-                  <span className="text-gray-500">Est. Cost:</span>
-                  <span className="font-medium ml-1">
-                    $
-                    {latestReview.solutionOverview.estimatedCost.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            )}
-
             <div>
               <h4 className="font-medium text-gray-900 mb-2 text-sm">
                 Version States
@@ -140,7 +114,8 @@ export const SystemCard: React.FC<SystemCardProps> = ({
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => onViewSystem(system)}
+          // onClick={() => onViewSystem(system)}
+          onClick={() => navigate('/view-system-detail/' + system.systemId)}
           className="w-full"
         >
           View All Versions ({system.totalReviews})

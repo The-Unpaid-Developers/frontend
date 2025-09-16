@@ -9,6 +9,8 @@ const ErrorType = {
   NOT_FOUND_ERROR: "NOT_FOUND_ERROR",
   SERVER_ERROR: "SERVER_ERROR",
   UNKNOWN_ERROR: "UNKNOWN_ERROR",
+  SUCCESS: 'SUCCESS',
+  INFO: 'INFO',
 } as const;
 
 export type ErrorType = (typeof ErrorType)[keyof typeof ErrorType];

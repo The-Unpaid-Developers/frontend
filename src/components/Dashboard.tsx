@@ -1,90 +1,97 @@
-import React, { useState, useMemo } from "react";
-import { DocumentState } from "../types";
-import type { SolutionReview, SystemGroup } from "../types";
-import { useSolutionReview } from "../context/SolutionReviewContext";
-import { SolutionReviewCard } from "./SolutionReviewCard";
-import { SolutionReviewDetail } from "./SolutionReviewDetail";
-import { CreateSolutionReviewModal } from "./CreateSolutionReviewModal";
-import { SystemCard } from "./SystemCard";
-import { SystemDetail } from "./SystemDetail";
+import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { DocumentState, DocumentStateFilter } from "../types/solutionReview";
+import type { SolutionReview } from "../types/solutionReview";
+import {
+  SolutionReviewCard,
+  SolutionReviewDetail,
+} from "./SolutionReviewDetail";
 import { Button, Input } from "./ui";
+import { useViewSolutionReview } from "../hooks/useViewSolutionReview";
+import { useToast } from "../context/ToastContext";
 
 export const Dashboard: React.FC = () => {
-  const { state, actions } = useSolutionReview();
-  const [selectedReview, setSelectedReview] = useState<SolutionReview | null>(
-    null
-  );
-  const [selectedSystem, setSelectedSystem] = useState<SystemGroup | null>(
-    null
-  );
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const [viewMode, setViewMode] = useState<"systems" | "reviews">("systems");
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter, setStateFilter] = useState<DocumentState | "ALL">("ALL");
+  const { isLoading, solutionReviews, loadSolutionReviews, pageMeta, loadSystems } =
+    useViewSolutionReview();
 
-  const filteredReviews = useMemo(() => {
-    return state.reviews.filter((review) => {
-      const matchesSearch =
-        !searchTerm ||
-        review.solutionOverview?.title
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.description
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        review.solutionOverview?.category
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        review.systemName.toLowerCase().includes(searchTerm.toLowerCase());
+  const [pageSize, setPageSize] = useState<number>(10);
 
-      const matchesState =
-        stateFilter === "ALL" || review.documentState === stateFilter;
+  const currentPage = pageMeta.page;
+  const totalPages = pageMeta.totalPages;
+  const totalElements = pageMeta.totalElements;
 
-      return matchesSearch && matchesState;
-    });
-  }, [state.reviews, searchTerm, stateFilter]);
+  const { showSuccess, showError } = useToast();
 
-  const filteredSystems = useMemo(() => {
-    return state.systems.filter((system) => {
-      const matchesSearch =
-        !searchTerm ||
-        system.systemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        system.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        system.category.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (viewMode === "systems") {
+          await loadSystems(currentPage, pageSize);
+        } else {
+          await loadSolutionReviews(currentPage, pageSize);
+        }
+      } catch (e) {
+        console.log('in catch');
+        console.error("Error loading review data:", e);
+        showError("Failed to load data: " + e.message);
+      }
+    };
+    run();
+    // console.log(filteredReviews);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageSize, currentPage, viewMode]);
 
-      return matchesSearch;
-    });
-  }, [state.systems, searchTerm]);
+  const goToPage = async (p: number) => {
+    if (p < 0 || (totalPages > 0 && p >= totalPages)) return;
+    if (viewMode === "systems") {
+      await loadSystems(p, pageSize);
+    } else {
+      await loadSolutionReviews(p, pageSize);
+    }
+  };
+
+  // Optional client-side filtering (backend should already filter)
+  // const filteredReviews = useMemo(() => {
+  //   return solutionReviews.filter((review) => {
+  //     const matchesSearch =
+  //       !searchTerm ||
+  //       review.solutionOverview?.solutionDetails?.solutionName
+  //         ?.toLowerCase()
+  //         .includes(searchTerm.toLowerCase()) ||
+  //       review.solutionOverview?.solutionDetails?.projectName
+  //         ?.toLowerCase()
+  //         .includes(searchTerm.toLowerCase()) ||
+  //       review.solutionOverview?.businessUnit
+  //         ?.toLowerCase()
+  //         .includes(searchTerm.toLowerCase()) ||
+  //       review.systemCode?.toLowerCase().includes(searchTerm.toLowerCase());
+
+  //     const matchesState =
+  //       stateFilter === "ALL" || review.documentState === stateFilter;
+
+  //     return matchesSearch && matchesState;
+  //   });
+  // }, [solutionReviews, searchTerm, stateFilter]);
 
   const stateCounts = useMemo(() => {
-    const dataSource =
-      state.viewMode === "systems"
-        ? state.systems.flatMap((system) => system.reviews)
-        : state.reviews;
-
-    return dataSource.reduce((acc, review) => {
+    return solutionReviews.reduce((acc, review) => {
       acc[review.documentState] = (acc[review.documentState] || 0) + 1;
       return acc;
     }, {} as Record<DocumentState, number>);
-  }, [state.reviews, state.systems, state.viewMode]);
+  }, [solutionReviews]);
 
-  if (selectedReview) {
-    return (
-      <SolutionReviewDetail
-        review={selectedReview}
-        onClose={() => setSelectedReview(null)}
-      />
-    );
-  }
-
-  if (selectedSystem) {
-    return (
-      <SystemDetail
-        system={selectedSystem}
-        onClose={() => setSelectedSystem(null)}
-        onViewReview={setSelectedReview}
-      />
-    );
-  }
+  const onViewCard = (r: SolutionReview) => {
+    if (viewMode === "systems") {
+      // Navigate to system details page (adjust route if different)
+      navigate(`/view-system-detail/${encodeURIComponent(r.systemCode)}`);
+    } else {
+      navigate(`/view-solution-review/${encodeURIComponent(r.id)}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -97,11 +104,11 @@ export const Dashboard: React.FC = () => {
                 <h1 className="text-2xl font-bold text-gray-900">
                   Solution Review Dashboard
                 </h1>
-                <div className="flex bg-gray-100 rounded-lg p-1">
+                <div className="flex bg-gray-200 rounded-lg p-1">
                   <button
-                    onClick={() => actions.setViewMode("systems")}
+                    onClick={() => setViewMode("systems")}
                     className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      state.viewMode === "systems"
+                      viewMode === "systems"
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
@@ -109,9 +116,9 @@ export const Dashboard: React.FC = () => {
                     Systems View
                   </button>
                   <button
-                    onClick={() => actions.setViewMode("reviews")}
+                    onClick={() => setViewMode("reviews")}
                     className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      state.viewMode === "reviews"
+                      viewMode === "reviews"
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
@@ -121,12 +128,12 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               <p className="text-gray-600">
-                {state.viewMode === "systems"
-                  ? "Manage systems and their solution review versions"
-                  : "Manage individual solution architecture reviews"}
+                {viewMode === "systems"
+                  ? "System-level view; click to open system details"
+                  : "Individual solution architecture reviews"}
               </p>
             </div>
-            <Button onClick={() => setIsCreateModalOpen(true)}>
+            <Button onClick={() => navigate("/create-solution-review")}>
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -151,23 +158,19 @@ export const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
             <div className="text-2xl font-bold text-gray-900">
-              {state.viewMode === "systems"
-                ? state.systems.length
-                : state.reviews.length}
+              {totalElements}
             </div>
-            <div className="text-sm text-gray-600">
-              {state.viewMode === "systems" ? "Total Systems" : "Total Reviews"}
-            </div>
+            <div className="text-sm text-gray-600">Total Reviews</div>
           </div>
-          {Object.values(DocumentState).map((docState) => (
+          {Object.values(DocumentState).map((ds) => (
             <div
-              key={docState}
+              key={ds}
               className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
             >
               <div className="text-2xl font-bold text-gray-900">
-                {stateCounts[docState] || 0}
+                {stateCounts[ds] || 0}
               </div>
-              <div className="text-sm text-gray-600">{docState}</div>
+              <div className="text-sm text-gray-600">{ds}</div>
             </div>
           ))}
         </div>
@@ -178,9 +181,9 @@ export const Dashboard: React.FC = () => {
             <div className="flex-1">
               <Input
                 placeholder={
-                  state.viewMode === "systems"
-                    ? "Search systems by name, description, or category..."
-                    : "Search reviews by title, description, category, or system..."
+                  viewMode === "systems"
+                    ? "Search systems by solution name, project, or business unit..."
+                    : "Search reviews by solution name, project, business unit, or system code..."
                 }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -196,32 +199,87 @@ export const Dashboard: React.FC = () => {
                     : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
                 }`}
               >
-                All (
-                {state.viewMode === "systems"
-                  ? state.systems.length
-                  : state.reviews.length}
-                )
+                All ({solutionReviews.length})
               </button>
-              {state.viewMode === "reviews" &&
-                Object.values(DocumentState).map((docState) => (
-                  <button
-                    key={docState}
-                    onClick={() => setStateFilter(docState)}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                      stateFilter === docState
-                        ? "bg-primary-100 text-primary-700 border border-primary-300"
-                        : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
-                    }`}
-                  >
-                    {docState} ({stateCounts[docState] || 0})
-                  </button>
-                ))}
+              {Object.values(DocumentStateFilter).map((docState) => (
+                <button
+                  key={docState}
+                  onClick={() => setStateFilter(docState)}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    stateFilter === docState
+                      ? "bg-primary-100 text-primary-700 border border-primary-300"
+                      : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
+                  }`}
+                >
+                  {docState} ({stateCounts[docState] || 0})
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Loading State */}
-        {state.loading && (
+        {/* Pagination */}
+        {!isLoading && totalElements > 0 && (
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="text-sm text-gray-600">
+              Showing{" "}
+              <span className="font-medium">
+                {totalElements === 0 ? 0 : currentPage * pageSize + 1}-
+                {Math.min((currentPage + 1) * pageSize, totalElements)}
+              </span>{" "}
+              of <span className="font-medium">{totalElements}</span> reviews
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                className="border rounded-md px-2 py-1 text-sm"
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+              >
+                {[5, 10, 20, 50].map((s) => (
+                  <option key={s} value={s}>
+                    {s} / page
+                  </option>
+                ))}
+              </select>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => goToPage(0)}
+                  disabled={currentPage === 0}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  «
+                </button>
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 0}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  Prev
+                </button>
+                <span className="px-2 text-sm">
+                  Page {currentPage + 1} / {totalPages || 1}
+                </span>
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={totalPages === 0 || currentPage >= totalPages - 1}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  Next
+                </button>
+                <button
+                  onClick={() => goToPage(totalPages - 1)}
+                  disabled={totalPages === 0 || currentPage >= totalPages - 1}
+                  className="px-2 py-1 text-sm border rounded disabled:opacity-40"
+                >
+                  »
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading */}
+        {isLoading && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
             <span className="ml-3 text-gray-600">
@@ -230,78 +288,10 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Error State */}
-        {state.error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex">
-              <svg
-                className="w-5 h-5 text-red-400 mr-2 mt-0.5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div>
-                <h3 className="text-sm font-medium text-red-800">Error</h3>
-                <p className="text-sm text-red-700 mt-1">{state.error}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Content Grid */}
-        {!state.loading && !state.error && (
+        {/* Content: always SolutionReview cards */}
+        {!isLoading && (
           <>
-            {state.viewMode === "systems" ? (
-              // Systems View
-              filteredSystems.length === 0 ? (
-                <div className="text-center py-12">
-                  <svg
-                    className="w-12 h-12 text-gray-400 mx-auto mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    No systems found
-                  </h3>
-                  <p className="text-gray-600 mb-4">
-                    {searchTerm
-                      ? "Try adjusting your search criteria."
-                      : "Get started by creating your first solution review."}
-                  </p>
-                  {!searchTerm && (
-                    <Button onClick={() => setIsCreateModalOpen(true)}>
-                      Create Your First Solution Review
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredSystems.map((system) => (
-                    <SystemCard
-                      key={system.systemId}
-                      system={system}
-                      onViewSystem={setSelectedSystem}
-                    />
-                  ))}
-                </div>
-              )
-            ) : // Reviews View
-            filteredReviews.length === 0 ? (
+            {solutionReviews.length === 0 ? (
               <div className="text-center py-12">
                 <svg
                   className="w-12 h-12 text-gray-400 mx-auto mb-4"
@@ -325,18 +315,19 @@ export const Dashboard: React.FC = () => {
                     : "Get started by creating your first solution review."}
                 </p>
                 {!searchTerm && stateFilter === "ALL" && (
-                  <Button onClick={() => setIsCreateModalOpen(true)}>
+                  <Button onClick={() => navigate("/create-solution-review")}>
                     Create Your First Solution Review
                   </Button>
                 )}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredReviews.map((review) => (
+                {solutionReviews.map((review) => (
                   <SolutionReviewCard
                     key={review.id}
                     review={review}
-                    onView={setSelectedReview}
+                    onView={onViewCard}
+                    viewLabel={viewMode === "systems" ? "View System" : "View Details"}
                   />
                 ))}
               </div>
@@ -344,12 +335,6 @@ export const Dashboard: React.FC = () => {
           </>
         )}
       </div>
-
-      {/* Create Modal */}
-      <CreateSolutionReviewModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-      />
     </div>
   );
 };

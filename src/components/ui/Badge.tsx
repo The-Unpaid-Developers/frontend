@@ -1,10 +1,10 @@
 import React from "react";
-import { DocumentState, getStateColor } from "../../types";
+import { DocumentState, getStateColor } from "../../types/solutionReview";
 
 interface BadgeProps {
   children: React.ReactNode;
   variant?: "default" | "state";
-  state?: DocumentState;
+  state?: string;
   className?: string;
 }
 

@@ -1,6 +1,6 @@
 import React from "react";
-import type { SolutionReview } from "../types";
-import { DocumentState, STATE_TRANSITIONS } from "../types";
+import type { SolutionReview } from "../../types/solutionReview";
+import { DocumentState, STATE_TRANSITIONS } from "../../types/solutionReview";
 import {
   Card,
   CardHeader,
@@ -9,24 +9,21 @@ import {
   CardFooter,
   Badge,
   Button,
-} from "./ui";
-import { useSolutionReview } from "../context/SolutionReviewContext";
+} from "../ui";
 
 interface SolutionReviewCardProps {
   review: SolutionReview;
   onView: (review: SolutionReview) => void;
+  onTransition?: (review: SolutionReview, to: DocumentState) => void; // optional
+  viewLabel?: string; // optional button text override
 }
 
 export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
   review,
   onView,
+  onTransition,
+  viewLabel = "View Details",
 }) => {
-  const { actions } = useSolutionReview();
-
-  const handleStateTransition = async (newState: DocumentState) => {
-    await actions.transitionState(review.id, newState);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -44,16 +41,18 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
           <Badge variant="state" state={review.documentState}>
             {review.documentState}
           </Badge>
-          <span className="text-sm text-gray-500">v{review.version}</span>
+          <span className="text-sm text-gray-500">{review.systemCode}</span>
         </div>
         <CardTitle>
-          {review.solutionOverview?.title || "Untitled Solution Review"}
+          {review.solutionOverview.solutionDetails.solutionName ||
+            "Untitled Solution Review"}
         </CardTitle>
       </CardHeader>
 
       <CardContent className="flex-1">
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {review.solutionOverview?.description || "No description available"}
+          {review.solutionOverview.solutionDetails.projectName ||
+            "No description available"}
         </p>
 
         {review.solutionOverview && (
@@ -61,28 +60,12 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
             <div className="flex justify-between">
               <span className="text-gray-500">Category:</span>
               <span className="font-medium">
-                {review.solutionOverview.category}
+                {review.solutionOverview.businessUnit || "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Priority:</span>
-              <Badge
-                className={
-                  review.solutionOverview.priority === "High"
-                    ? "bg-red-100 text-red-800 border-red-300"
-                    : review.solutionOverview.priority === "Medium"
-                    ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                    : "bg-green-100 text-green-800 border-green-300"
-                }
-              >
-                {review.solutionOverview.priority}
-              </Badge>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-500">Est. Cost:</span>
-              <span className="font-medium">
-                ${review.solutionOverview.estimatedCost.toLocaleString()}
-              </span>
+              <span className="text-gray-500">Approval Status:</span>
+              {review.solutionOverview.approvalStatus || "N/A"}
             </div>
           </div>
         )}
@@ -106,21 +89,19 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
             onClick={() => onView(review)}
             className="w-full"
           >
-            View Details
+            {viewLabel}
           </Button>
 
-          {availableTransitions.length > 0 && (
+          {onTransition && availableTransitions.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {availableTransitions.map((transition) => (
                 <Button
                   key={transition.operation}
                   variant={
-                    transition.to === DocumentState.CURRENT
-                      ? "primary"
-                      : "ghost"
+                    transition.to === DocumentState.CURRENT ? "primary" : "ghost"
                   }
                   size="sm"
-                  onClick={() => handleStateTransition(transition.to)}
+                  onClick={() => onTransition(review, transition.to)}
                   className="text-xs"
                   title={transition.description}
                 >

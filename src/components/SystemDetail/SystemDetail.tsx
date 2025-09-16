@@ -1,31 +1,50 @@
 import React, { useState } from "react";
-import type { SystemGroup, SolutionReview } from "../types";
-import { DocumentState, STATE_TRANSITIONS } from "../types";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "./ui";
-import { useSolutionReview } from "../context/SolutionReviewContext";
+import type { SolutionReview, SystemGroup } from "../../types/solutionReview";
+import { DocumentState, STATE_TRANSITIONS } from "../../types/solutionReview";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../ui";
+import { useNavigate } from "react-router-dom";
+import { useCreateSolutionOverview } from "../../hooks/useCreateSolutionOverview";
+// import { useSolutionReview } from "../../context/SolutionReviewContext";
+import { useToast } from "../../context/ToastContext";
 
 interface SystemDetailProps {
-  system: SystemGroup;
+  systemCode: string;
+  system: SolutionReview[];
   onClose: () => void;
   onViewReview: (review: SolutionReview) => void;
 }
 
 export const SystemDetail: React.FC<SystemDetailProps> = ({
+  systemCode,
   system,
   onClose,
   onViewReview,
 }) => {
-  const { actions } = useSolutionReview();
+  // const { actions } = useSolutionReview();
   const [selectedVersion, setSelectedVersion] = useState<SolutionReview | null>(
     null
   );
-
-  const handleStateTransition = async (
-    reviewId: string,
-    newState: DocumentState
-  ) => {
-    await actions.transitionState(reviewId, newState);
-  };
+  const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
+  
+  // const handleStateTransition = async (
+  //   reviewId: string,
+  //   newState: DocumentState
+  // ) => {
+  //   await actions.transitionState(reviewId, newState);
+  // };
+  const { createSRFromExisting } = useCreateSolutionOverview();
+  const createNewDraft = async () => {
+      try {
+      // call hook to create new draft from existing sr
+      const response = await createSRFromExisting(systemCode);
+      showSuccess("New draft created successfully!");
+      navigate(`/update-solution-review/${response.id}`);
+    } catch (error) {
+      console.error("Failed to create new draft:", error);
+      showError("Failed to create new draft: " + error.message);
+    }
+    };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -45,31 +64,9 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
 
     const changes: string[] = [];
 
-    if (
-      currentVersion.solutionOverview?.estimatedCost !==
-      previousVersion.solutionOverview?.estimatedCost
-    ) {
-      const costDiff =
-        (currentVersion.solutionOverview?.estimatedCost || 0) -
-        (previousVersion.solutionOverview?.estimatedCost || 0);
-      changes.push(
-        `Cost ${costDiff > 0 ? "increased" : "decreased"} by $${Math.abs(
-          costDiff
-        ).toLocaleString()}`
-      );
-    }
-
-    if (
-      currentVersion.solutionOverview?.estimatedDuration !==
-      previousVersion.solutionOverview?.estimatedDuration
-    ) {
-      changes.push(
-        `Duration changed to ${currentVersion.solutionOverview?.estimatedDuration}`
-      );
-    }
-
     return changes;
   };
+  console.log(system);
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -77,17 +74,17 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center space-x-3 mb-2">
-            <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+            {/* <Badge className="bg-blue-100 text-blue-800 border-blue-300">
               {system.category}
-            </Badge>
+            </Badge> */}
             <span className="text-sm text-gray-500">
-              {system.totalReviews} versions • Latest v{system.latestVersion}
+              {/* {system.totalReviews} versions • Latest v{system.latestVersion} */}
             </span>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {system.systemName}
+            {systemCode}
           </h1>
-          <p className="text-gray-600 mt-1">{system.description}</p>
+          {/* <p className="text-gray-600 mt-1">{system.description}</p> */}
         </div>
         <Button variant="ghost" onClick={onClose}>
           <svg
@@ -107,7 +104,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
       </div>
 
       {/* Current Version Summary */}
-      {system.currentReview && (
+      {/* {system.currentReview && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -122,37 +119,13 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
               <div>
                 <h4 className="font-medium text-gray-900 mb-1">Title</h4>
                 <p className="text-gray-600">
-                  {system.currentReview.solutionOverview?.title}
-                </p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-1">Priority</h4>
-                <Badge
-                  className={
-                    system.currentReview.solutionOverview?.priority === "High"
-                      ? "bg-red-100 text-red-800 border-red-300"
-                      : system.currentReview.solutionOverview?.priority ===
-                        "Medium"
-                      ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                      : "bg-green-100 text-green-800 border-green-300"
-                  }
-                >
-                  {system.currentReview.solutionOverview?.priority}
-                </Badge>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-1">
-                  Estimated Cost
-                </h4>
-                <p className="text-gray-600 font-semibold">
-                  $
-                  {system.currentReview.solutionOverview?.estimatedCost.toLocaleString()}
+                  {system.currentReview.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Version History */}
       <Card>
@@ -161,42 +134,42 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {system.reviews.map((review, index) => {
-              const previousReview = system.reviews[index + 1];
+            {system.map((review, index) => {
+              // const previousReview = system.reviews[index + 1];
+              // const changes = getVersionChanges(review, previousReview);
+              const previousReview = system[index + 1];
               const changes = getVersionChanges(review, previousReview);
-              const availableTransitions =
-                STATE_TRANSITIONS[review.documentState] || [];
+              const availableTransitions = STATE_TRANSITIONS[review.documentState] || [];
 
               return (
                 <div
                   key={review.id}
-                  className={`border rounded-lg p-4 ${
-                    selectedVersion?.id === review.id
-                      ? "border-primary-300 bg-primary-50"
-                      : "border-gray-200"
-                  }`}
+                  className={`border rounded-lg p-4 ${selectedVersion?.id === review.id
+                    ? "border-primary-300 bg-primary-50"
+                    : "border-gray-200"
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center space-x-3">
                       <span className="font-semibold text-lg">
-                        v{review.version}
+                        {review.id}
                       </span>
                       <Badge variant="state" state={review.documentState}>
                         {review.documentState}
                       </Badge>
-                      {review.version === system.latestVersion && (
+                      {/* {review.version === system.latestVersion && (
                         <Badge className="bg-green-100 text-green-800 border-green-300">
                           Latest
                         </Badge>
-                      )}
-                      {review.documentState === DocumentState.CURRENT && (
+                      )} */}
+                      {review.documentState === "CURRENT" && (
                         <Badge className="bg-blue-100 text-blue-800 border-blue-300">
                           Current
                         </Badge>
                       )}
                     </div>
                     <div className="flex space-x-2">
-                      <Button
+                      {/* <Button
                         variant="ghost"
                         size="sm"
                         onClick={() =>
@@ -208,7 +181,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                         {selectedVersion?.id === review.id
                           ? "Collapse"
                           : "Expand"}
-                      </Button>
+                      </Button> */}
                       <Button
                         variant="secondary"
                         size="sm"
@@ -223,7 +196,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                     <div>
                       <h4 className="font-medium text-gray-900 mb-1">Title</h4>
                       <p className="text-sm text-gray-600">
-                        {review.solutionOverview?.title}
+                        {review.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
                       </p>
                     </div>
                     <div>
@@ -257,7 +230,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                     </div>
                   )}
 
-                  {selectedVersion?.id === review.id && (
+                  {/* {selectedVersion?.id === review.id && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
@@ -268,51 +241,11 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                             {review.solutionOverview?.description}
                           </p>
                         </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            Business Value
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {review.solutionOverview?.businessValue}
-                          </p>
-                        </div>
                       </div>
-
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-1">
-                            Priority & Cost
-                          </h4>
-                          <div className="flex items-center space-x-4 text-sm">
-                            <Badge
-                              className={
-                                review.solutionOverview?.priority === "High"
-                                  ? "bg-red-100 text-red-800 border-red-300"
-                                  : review.solutionOverview?.priority ===
-                                    "Medium"
-                                  ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                                  : "bg-green-100 text-green-800 border-green-300"
-                              }
-                            >
-                              {review.solutionOverview?.priority}
-                            </Badge>
-                            <span className="font-medium">
-                              $
-                              {review.solutionOverview?.estimatedCost.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-1">
-                            Duration
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {review.solutionOverview?.estimatedDuration}
-                          </p>
-                        </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {availableTransitions.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
@@ -324,19 +257,37 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                           <Button
                             key={transition.operation}
                             variant={
-                              transition.to === DocumentState.CURRENT
+                              transition.to === "CURRENT"
                                 ? "primary"
                                 : "ghost"
                             }
                             size="sm"
-                            onClick={() =>
-                              handleStateTransition(review.id, transition.to)
-                            }
+                            // onClick={() =>
+                            //   handleStateTransition(review.id, transition.to)
+                            // }
                             title={transition.description}
                           >
                             {transition.operationName}
                           </Button>
                         ))}
+                        {review.documentState === "DRAFT" && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => navigate(`/update-solution-review/${review.id}`)}
+                          >
+                            Edit Draft
+                          </Button>
+                        )}
+                        {review.documentState === "CURRENT" && (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={createNewDraft}
+                          >
+                            Create New Draft
+                          </Button>
+                        )}
                       </div>
                     </div>
                   )}
