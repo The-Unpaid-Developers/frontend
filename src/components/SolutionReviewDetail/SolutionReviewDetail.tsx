@@ -119,9 +119,9 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
             <Badge variant="state" state={review.documentState}>
               {review.documentState}
             </Badge>
-            {review.version && (
+            {review.id && (
               <span className="text-sm text-gray-500">
-                Version {review.version}
+                ID {review.id}
               </span>
             )}
           </div>
@@ -213,11 +213,11 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                   <div><span className="text-gray-500">IT Business Partner:</span> <span className="font-medium">{(review.solutionOverview.solutionDetails as any)?.itBusinessPartner || "—"}</span></div>
 
                   <div><span className="text-gray-500">Review Type:</span> <span className="font-medium">{review.solutionOverview.reviewType || "—"}</span></div>
-                  <div><span className="text-gray-500">Approval Status:</span> <span className="font-medium">{review.solutionOverview.approvalStatus || "—"}</span></div>
-                  <div><span className="text-gray-500">Review Status:</span> <span className="font-medium">{review.solutionOverview.reviewStatus || "—"}</span></div>
+                  {/* <div><span className="text-gray-500">Approval Status:</span> <span className="font-medium">{review.solutionOverview.approvalStatus || "—"}</span></div> */}
+                  <div><span className="text-gray-500">Review Status:</span> <span className="font-medium">{review.documentState || "—"}</span></div>
                   <div><span className="text-gray-500">Business Unit:</span> <span className="font-medium">{review.solutionOverview.businessUnit || "—"}</span></div>
                   <div><span className="text-gray-500">Business Driver:</span> <span className="font-medium">{review.solutionOverview.businessDriver || "—"}</span></div>
-                  <div className="sm:col-span-2"><span className="text-gray-500">Conditions:</span> <span className="font-medium">{review.solutionOverview.conditions || "—"}</span></div>
+                  {/* <div className="sm:col-span-2"><span className="text-gray-500">Concerns:</span> <span className="font-medium">{review.solutionOverview.concerns || "—"}</span></div> */}
                 </div>
 
                 {(review.solutionOverview.concerns?.length ?? 0) > 0 && (

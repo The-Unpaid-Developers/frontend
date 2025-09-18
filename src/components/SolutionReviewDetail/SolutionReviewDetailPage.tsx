@@ -39,7 +39,7 @@ export const SolutionReviewDetailPage: React.FC = () => {
         showSuccess("");
       } catch (error) {
         console.error("Error loading review data:", error);
-        showError("Error loading review data", error.message);
+        showError("Error loading review data: " + error.message);
       }
     };
 

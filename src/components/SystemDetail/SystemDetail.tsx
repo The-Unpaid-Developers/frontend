@@ -220,7 +220,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                   {changes && changes.length > 0 && (
                     <div className="mb-3">
                       <h4 className="font-medium text-gray-900 mb-1">
-                        Changes from v{previousReview?.version}
+                        Changes from v{previousReview?.id}
                       </h4>
                       <ul className="text-sm text-gray-600 list-disc list-inside">
                         {changes.map((change, idx) => (

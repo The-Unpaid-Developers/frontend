@@ -5,6 +5,7 @@ export interface SolutionDetails {
   solutionArchitectName?: string | null;
   deliveryProjectManagerName?: string | null;
   itBusinessPartner?: string | null;
+  solutionReviewCode?: string | null; // to remove
 }
 
 export interface Concern {
@@ -16,7 +17,7 @@ export interface Concern {
 }
 
 export interface SolutionOverview {
-  id: string;
+  id?: string;
   solutionDetails?: SolutionDetails;
   reviewType?: string | null; // dropdown list
   businessUnit?: string | null; // dropdown list
@@ -27,7 +28,7 @@ export interface SolutionOverview {
 }
 
 export interface BusinessCapability {
-  id: string;
+  id?: string;
   l1Capability?: string | null; // dropdown list
   l2Capability?: string | null; // dropdown list
   l3Capability?: string | null; // dropdown list
@@ -134,7 +135,7 @@ export interface ProcessCompliance {
 
 // Main form data interface
 export interface UpdateSolutionReviewData {
-  id: string;
+  id?: string;
   documentState: string;
   systemCode: string;
   solutionOverview: SolutionOverview | null;
@@ -186,7 +187,7 @@ export interface ValidationError {
 }
 
 export interface StepValidationResult {
-  isValid: boolean;
+  isValid?: boolean;
   errors: ValidationError[];
 }
 
@@ -221,7 +222,7 @@ export type StateOperation =
   export { DocumentState, StateOperation, DocumentStateFilter };
 
 export interface SolutionReview {
-  id: string;
+  id?: string;
   systemCode: string;
   documentState: string;
   solutionOverview: SolutionOverview | null;
@@ -317,7 +318,7 @@ export interface SolutionReview {
     }
   };
   
-  export const getStateDescription = (state: DocumentState): string => {
+  export const getStateDescription = (state: string): string => {
     switch (state) {
       case "DRAFT":
         return "Document is being edited and is not ready for review";
@@ -333,7 +334,7 @@ export interface SolutionReview {
   };
 
   export interface SystemGroup {
-    systemId: string;
+    systemid?: string;
     systemName: string;
     description: string;
     category: string;

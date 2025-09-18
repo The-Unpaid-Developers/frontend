@@ -14,7 +14,7 @@ import {
 interface SolutionReviewCardProps {
   review: SolutionReview;
   onView: (review: SolutionReview) => void;
-  onTransition?: (review: SolutionReview, to: DocumentState) => void; // optional
+  onTransition?: (review: SolutionReview, to: string) => void; // optional
   viewLabel?: string; // optional button text override
 }
 
@@ -64,8 +64,8 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Approval Status:</span>
-              {review.solutionOverview.approvalStatus || "N/A"}
+              <span className="text-gray-500">Review Status:</span>
+              {review.documentState || "N/A"}
             </div>
           </div>
         )}

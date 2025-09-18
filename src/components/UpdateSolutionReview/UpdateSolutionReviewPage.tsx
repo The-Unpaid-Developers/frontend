@@ -80,6 +80,7 @@ export const UpdateSolutionReviewPage: React.FC = () => {
     enterpriseTools,
     processCompliances,
     systemCode,
+    documentState: "DRAFT",
     id,
   };
   console.log("existing data", existingData);
@@ -138,7 +139,7 @@ export const UpdateSolutionReviewPage: React.FC = () => {
     setShowReview(true); // open review modal instead of immediate submit
   };
 
-  const sectionLabels: Record<keyof UpdateSolutionReviewData, string> = {
+  const sectionLabels = {
     solutionOverview: "Solution Overview",
     businessCapabilities: "Business Capabilities",
     dataAssets: "Data & Assets",

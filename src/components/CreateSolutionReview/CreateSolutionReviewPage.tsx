@@ -14,7 +14,6 @@ import { useToast } from '../../context/ToastContext';
 const empty: SolutionOverview = { solutionDetails: {
   solutionName: '',
   projectName: '',
-  systemCode: '',
   solutionArchitectName: '',
   deliveryProjectManagerName: '',
   itBusinessPartner: ''
@@ -54,8 +53,8 @@ export const CreateSolutionReviewPage: React.FC = () => {
   const handleCreate = async () => {
     try {
       data.solutionDetails.solutionReviewCode = "";
-      data.createdBy = localStorage.getItem("username") || "unknown";
-      data.modifiedBy = localStorage.getItem("username") || "unknown";
+      // data.createdBy = localStorage.getItem("username") || "unknown";
+      // data.modifiedBy = localStorage.getItem("username") || "unknown";
       
       const created = await createNewSR(data, systemCode);
       

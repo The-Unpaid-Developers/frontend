@@ -174,6 +174,7 @@ const DataAssetStep: React.FC<StepProps> = ({
                 <th className="p-2 text-left">Component</th>
                 <th className="p-2 text-left">Domain</th>
                 <th className="p-2 text-left">Classification</th>
+                <th className="p-2 text-left">Mastered In</th>
                 <th className="p-2 text-left">Entities</th>
               </tr>
             </thead>
@@ -183,6 +184,7 @@ const DataAssetStep: React.FC<StepProps> = ({
                   <td className="p-2">{d.componentName}</td>
                   <td className="p-2">{d.dataDomain}</td>
                   <td className="p-2">{d.dataClassification}</td>
+                  <td className="p-2">{d.masteredIn}</td>
                   <td className="p-2">{d.dataEntities.join(", ")}</td>
                   <td className="p-2">
                     <div className="flex gap-2">
