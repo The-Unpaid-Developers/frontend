@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createSolutionReview, createSRFromExistingAPI } from "../services/solutionReviewApi";
+import { createSolutionReviewAPI, createSRFromExistingAPI } from "../services/solutionReviewApi";
 import type { SolutionOverview } from "../types/solutionReview";
 
 export const useCreateSolutionOverview = () => {
@@ -10,7 +10,7 @@ export const useCreateSolutionOverview = () => {
     setIsCreating(true);
     setError(null);
     try {
-      const created = await createSolutionReview(data, systemCode);
+      const created = await createSolutionReviewAPI(data, systemCode);
       return created;
     } catch (e: any) {
       setError(e.message || "Error creating");

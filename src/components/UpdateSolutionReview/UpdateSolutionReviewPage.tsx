@@ -174,9 +174,9 @@ export const UpdateSolutionReviewPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <h1 className="text-2xl font-bold">Update Solution Review</h1>
-      </div>
+      </div> */}
       <div className="fixed top-4 right-4 z-50">
         <Button variant="ghost" onClick={() => navigate(-1)} aria-label="Close">
           <svg

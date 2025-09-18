@@ -12,9 +12,9 @@ import type {
   ProcessCompliance,
 } from "../types/solutionReview";
 import {
-  getSolutionReviewById,
-  saveSolutionReviewDraft,
-  updateSolutionReviewState,
+  getSolutionReviewByIdAPI,
+  saveSolutionReviewDraftAPI,
+  updateSolutionReviewStateAPI,
 } from "../services/solutionReviewApi";
 
 export const useUpdateSolutionReview = (reviewId: string) => {
@@ -54,7 +54,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
       // const reviewData = await getSolutionReviewById(reviewId);
 
       // For now, use mock data
-      const reviewData = await getSolutionReviewById(reviewId); // Import or define mock data
+      const reviewData = await getSolutionReviewByIdAPI(reviewId); // Import or define mock data
       console.log("review data ", reviewData);
       if (reviewData) {
         setSolutionOverview(reviewData.solutionOverview);
@@ -129,7 +129,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
       [section]: value,
     };
 
-    return await saveSolutionReviewDraft(payload as any);
+    return await saveSolutionReviewDraftAPI(payload as any);
   };
 
   // Final submission - update the entire review
@@ -141,7 +141,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
       modifiedBy: localStorage.getItem("username") || "unknown",
     };
     try {
-      const updated = await updateSolutionReviewState(payload);
+      const updated = await updateSolutionReviewStateAPI(payload);
       return updated;
     } catch (error) {
       console.error("Error updating review:", error);

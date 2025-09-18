@@ -36,7 +36,6 @@ export const SolutionReviewDetailPage: React.FC = () => {
       try {
         console.log('loading review id', id);
         await loadSolutionReviewById(id);
-        showSuccess("");
       } catch (error) {
         console.error("Error loading review data:", error);
         showError("Error loading review data: " + error.message);

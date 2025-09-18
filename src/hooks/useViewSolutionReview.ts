@@ -1,16 +1,16 @@
 // hooks/useUpdateSolutionReview.ts
 import { useState } from "react";
 import {
-  saveSolutionReviewDraft,
+  saveSolutionReviewDraftAPI,
   // getSolutionReviewById
 } from "../services/solutionReviewApi";
 import type { SolutionReview } from "../types/solutionReview";
 // import { mockApiService } from "../services/mockApiUpdated";
 import {
-  getSystemSolutionReviews,
-  getSolutionReviewById,
-  getAllSolutionReviews,
-  getAllSystems,
+  getSystemSolutionReviewsAPI,
+  getSolutionReviewByIdAPI,
+  getAllSolutionReviewsAPI,
+  getAllSystemsAPI,
 } from "../services/solutionReviewApi";
 
 interface PageMeta {
@@ -35,7 +35,7 @@ export const useViewSolutionReview = () => {
   const loadSolutionReviews = async (page: number, size: number) => {
     setIsLoading(true);
     try {
-      const responseData = await getAllSolutionReviews(page, size);
+      const responseData = await getAllSolutionReviewsAPI(page, size);
       if (responseData && Array.isArray(responseData.content)) {
         setSolutionReviews(responseData.content);
         setPageMeta({
@@ -75,7 +75,7 @@ export const useViewSolutionReview = () => {
       // const reviewData = await getSolutionReviewById(reviewId);
 
       // For now, use mock data
-      const responseData = await getSystemSolutionReviews(systemCode); // Import or define mock data
+      const responseData = await getSystemSolutionReviewsAPI(systemCode); // Import or define mock data
       console.log("review data ", responseData);
       if (responseData) {
         setSolutionReviews(responseData);
@@ -94,7 +94,7 @@ export const useViewSolutionReview = () => {
   const loadSolutionReviewById = async (reviewId: string) => {
     setIsLoading(true);
     try {
-      const responseData = await getSolutionReviewById(reviewId);
+      const responseData = await getSolutionReviewByIdAPI(reviewId);
       console.log("review data ", responseData);
       if (responseData) {
         setSolutionReviews([responseData]);
@@ -113,7 +113,7 @@ export const useViewSolutionReview = () => {
   const loadSystems = async (page: number, size: number) => {
     setIsLoading(true);
     try {
-      const responseData = await getAllSystems(page, size);
+      const responseData = await getAllSystemsAPI(page, size);
       if (responseData && Array.isArray(responseData.content)) {
         setSolutionReviews(responseData.content);
         setPageMeta({

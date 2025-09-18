@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Input, DropDown } from '../ui';
+import { Button, Input, DropDown, Card, CardHeader, CardTitle, CardContent } from '../ui';
 import type { SolutionOverview } from '../../types/solutionReview';
 import { useCreateSolutionOverview } from '../../hooks/useCreateSolutionOverview';
 import {
@@ -11,13 +11,14 @@ import {
 } from '../UpdateSolutionReview/steps/DropDownListValues';
 import { useToast } from '../../context/ToastContext';
 
-const empty: SolutionOverview = { solutionDetails: {
-  solutionName: '',
-  projectName: '',
-  solutionArchitectName: '',
-  deliveryProjectManagerName: '',
-  itBusinessPartner: ''
-},
+const empty: SolutionOverview = { 
+  solutionDetails: {
+    solutionName: '',
+    projectName: '',
+    solutionArchitectName: '',
+    deliveryProjectManagerName: '',
+    itBusinessPartner: ''
+  },
   reviewType: '',
   businessUnit: '',
   businessDriver: '',
@@ -26,123 +27,324 @@ const empty: SolutionOverview = { solutionDetails: {
   concerns: []
 };
 
-// type Props = {
-//   onCreated: (created: SolutionOverview) => void;
-//   isCreating?: boolean;
-// };
-
 export const CreateSolutionReviewPage: React.FC = () => {
   const navigate = useNavigate();
-  const [data,setData] = useState<SolutionOverview>(empty);
-  const [appUser,setAppUser]=useState('');
+  const [data, setData] = useState<SolutionOverview>(empty);
+  const [appUser, setAppUser] = useState('');
   const { createNewSR, isCreating, error } = useCreateSolutionOverview();
   const [systemCode, setSystemCode] = useState('');
   const { showSuccess, showError } = useToast();
 
-  const update = (k: keyof SolutionOverview, v:any)=>
-    setData(d=>({...d,[k]:v}));
+  const update = (k: keyof SolutionOverview, v: any) =>
+    setData(d => ({ ...d, [k]: v }));
 
-  const addUser=()=>{
-    if(!appUser.trim()) return;
-    update('applicationUsers',[...data.applicationUsers, appUser.trim()]);
+  const addUser = () => {
+    if (!appUser.trim()) return;
+    update('applicationUsers', [...data.applicationUsers, appUser.trim()]);
     setAppUser('');
   };
-  const removeUser=(u:string)=>
-    update('applicationUsers', data.applicationUsers.filter(x=>x!==u));
+
+  const removeUser = (u: string) =>
+    update('applicationUsers', data.applicationUsers.filter(x => x !== u));
 
   const handleCreate = async () => {
     try {
       data.solutionDetails.solutionReviewCode = "";
-      // data.createdBy = localStorage.getItem("username") || "unknown";
-      // data.modifiedBy = localStorage.getItem("username") || "unknown";
-      
       const created = await createNewSR(data, systemCode);
-      
       showSuccess("Solution review created successfully!");
       navigate(`/update-solution-review/${created.id}`);
-      
     } catch (error) {
       console.error("Failed to create solution review:", error);
-      showError("Failed to create solution review. Please try again." + error.message);
+      showError("Failed to create solution review. Please try again." + (error as Error).message);
     }
   };
 
+  const isFormValid = () => {
+    return (
+      data.solutionDetails.solutionName.trim() &&
+      data.solutionDetails.projectName.trim() &&
+      systemCode.trim() &&
+      data.solutionDetails.solutionArchitectName.trim() &&
+      data.reviewType &&
+      data.businessUnit &&
+      data.businessDriver
+    );
+  };
+
   return (
-    <div className="p-6">
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold">New Solution Review</h1>
-      </div>
-      <div className="fixed top-4 right-4 z-50">
-        <Button variant="ghost" onClick={() => navigate(-1)} aria-label="Close">
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </Button>
-      </div>
-      
-      <div className="grid md:grid-cols-2 gap-4">
-        <Input placeholder="Solution Name" value={data.solutionDetails.solutionName} onChange={e=>update('solutionDetails', {...data.solutionDetails, solutionName: e.target.value})} />
-        <Input placeholder="Project Name" value={data.solutionDetails.projectName} onChange={e=>update('solutionDetails', {...data.solutionDetails, projectName: e.target.value})} />
-        <Input placeholder="System Code" value={systemCode} onChange={e=>setSystemCode(e.target.value)} />
-        <Input placeholder="Solution Architect" value={data.solutionDetails.solutionArchitectName} onChange={e=>update('solutionDetails', {...data.solutionDetails, solutionArchitectName: e.target.value})} />
-        <Input placeholder="Delivery PM" value={data.solutionDetails.deliveryProjectManagerName} onChange={e=>update('solutionDetails', {...data.solutionDetails, deliveryProjectManagerName: e.target.value})} />
-        <Input placeholder="IT Business Partner" value={data.solutionDetails.itBusinessPartner} onChange={e=>update('solutionDetails', {...data.solutionDetails, itBusinessPartner: e.target.value})} />
-        <DropDown
-          placeholder="Review Type"
-          value={data.reviewType}
-          onChange={e => update('reviewType', e.target.value)}
-          options={REVIEW_TYPE_OPTIONS}
-        />
-        <DropDown
-          placeholder="Business Unit"
-          value={data.businessUnit}
-          onChange={e => update('businessUnit', e.target.value)}
-          options={BUSINESS_UNIT_OPTIONS}
-        />
-        <DropDown
-          placeholder="Business Driver"
-          value={data.businessDriver}
-          onChange={e => update('businessDriver', e.target.value)}
-          options={BUSINESS_DRIVER_OPTIONS}
-        /><Input placeholder="Value Outcomes" value={data.valueOutcome} onChange={e=>update('valueOutcome',e.target.value)} />
-      </div>
-
-      <div>
-        <label className="text-sm font-medium">Application Users</label>
-        <div className="flex gap-2 mt-1">
-          <DropDown
-            placeholder="Select Application User"
-            value={appUser}
-            onChange={e => setAppUser(e.target.value)}
-            options={APPLICATION_USER_OPTIONS}
-          />
-          <Button type="button" onClick={addUser}>Add</Button>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Create New Solution Review</h1>
+              <p className="text-gray-600 mt-1">Get started by providing basic solution details</p>
+            </div>
+            <Button variant="ghost" onClick={() => navigate(-1)} aria-label="Cancel">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cancel
+            </Button>
+          </div>
         </div>
-        {data.applicationUsers.length>0 && (
-          <ul className="mt-2 text-sm space-y-1">
-            {data.applicationUsers.map(u=>(
-              <li key={u} className="flex justify-between bg-gray-50 px-2 py-1 rounded">
-                <span>{u}</span>
-                <button type="button" onClick={()=>removeUser(u)} className="text-red-600 text-xs">x</button>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
-      <Button disabled={isCreating} onClick={handleCreate}>
-        {isCreating ? 'Creating...' : 'Create'}
-      </Button>
+      {/* Form Content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
+          {/* Solution Details Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Solution Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Solution Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    placeholder="Enter solution name" 
+                    value={data.solutionDetails.solutionName} 
+                    onChange={e => update('solutionDetails', {...data.solutionDetails, solutionName: e.target.value})} 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Project Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    placeholder="Enter project name" 
+                    value={data.solutionDetails.projectName} 
+                    onChange={e => update('solutionDetails', {...data.solutionDetails, projectName: e.target.value})} 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    System Code <span className="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    placeholder="Enter system code" 
+                    value={systemCode} 
+                    onChange={e => setSystemCode(e.target.value)} 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Solution Architect <span className="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    placeholder="Enter solution architect name" 
+                    value={data.solutionDetails.solutionArchitectName} 
+                    onChange={e => update('solutionDetails', {...data.solutionDetails, solutionArchitectName: e.target.value})} 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Delivery Project Manager
+                  </label>
+                  <Input 
+                    placeholder="Enter delivery PM name" 
+                    value={data.solutionDetails.deliveryProjectManagerName} 
+                    onChange={e => update('solutionDetails', {...data.solutionDetails, deliveryProjectManagerName: e.target.value})} 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    IT Business Partner
+                  </label>
+                  <Input 
+                    placeholder="Enter IT business partner name" 
+                    value={data.solutionDetails.itBusinessPartner} 
+                    onChange={e => update('solutionDetails', {...data.solutionDetails, itBusinessPartner: e.target.value})} 
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Business Context Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                Business Context
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Review Type <span className="text-red-500">*</span>
+                  </label>
+                  <DropDown
+                    placeholder="Select review type"
+                    value={data.reviewType}
+                    onChange={e => update('reviewType', e.target.value)}
+                    options={REVIEW_TYPE_OPTIONS}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Business Unit <span className="text-red-500">*</span>
+                  </label>
+                  <DropDown
+                    placeholder="Select business unit"
+                    value={data.businessUnit}
+                    onChange={e => update('businessUnit', e.target.value)}
+                    options={BUSINESS_UNIT_OPTIONS}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Business Driver <span className="text-red-500">*</span>
+                  </label>
+                  <DropDown
+                    placeholder="Select business driver"
+                    value={data.businessDriver}
+                    onChange={e => update('businessDriver', e.target.value)}
+                    options={BUSINESS_DRIVER_OPTIONS}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Value Outcomes
+                  </label>
+                  <Input 
+                    placeholder="Describe expected value outcomes" 
+                    value={data.valueOutcome} 
+                    onChange={e => update('valueOutcome', e.target.value)} 
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Application Users Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+                Application Users
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <DropDown
+                      placeholder="Select application user type"
+                      value={appUser}
+                      onChange={e => setAppUser(e.target.value)}
+                      options={APPLICATION_USER_OPTIONS}
+                    />
+                  </div>
+                  <Button 
+                    type="button" 
+                    onClick={addUser}
+                    disabled={!appUser.trim()}
+                    variant="secondary"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add User
+                  </Button>
+                </div>
+
+                {data.applicationUsers.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Users:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {data.applicationUsers.map(user => (
+                        <div key={user} className="flex items-center bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-sm">
+                          <span>{user}</span>
+                          <button 
+                            type="button" 
+                            onClick={() => removeUser(user)} 
+                            className="ml-2 text-primary-500 hover:text-primary-700"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Error Display */}
+          {/* {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex">
+                <svg className="w-5 h-5 text-red-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="text-sm font-medium text-red-800">Error</h3>
+                  <p className="text-sm text-red-700 mt-1">{error}</p>
+                </div>
+              </div>
+            </div>
+          )} */}
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(-1)}
+              disabled={isCreating}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreate}
+              disabled={isCreating || !isFormValid()}
+              className="min-w-[120px]"
+            >
+              {isCreating ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Create Solution Review
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

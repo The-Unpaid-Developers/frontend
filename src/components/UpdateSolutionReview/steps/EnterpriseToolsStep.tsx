@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Input, DropDown } from "../../ui";
+import { Button, Input, DropDown, Card, CardHeader, CardTitle, CardContent } from "../../ui";
 import type { StepProps } from "./StepProps";
 import type { EnterpriseTool } from "../../../types/solutionReview";
 import {
@@ -19,17 +19,11 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
   isSaving = false,
   initialData,
 }) => {
-  const initialList: EnterpriseTool[] | null | undefined =
-    initialData.enterpriseTools;
+  const initialList: EnterpriseTool[] | null | undefined = initialData.enterpriseTools;
   const [list, setList] = useState<EnterpriseTool[]>(() => initialList ?? []);
   const [row, setRow] = useState<EnterpriseTool>(empty);
-
-  // useEffect(() => {
-  //   // setList(initialList);
-  //   if (initialList && initialList !== list) {
-  //     setList(initialList);
-  //   }
-  // }, [initialList]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingTool, setEditingTool] = useState<EnterpriseTool | null>(null);
 
   useEffect(() => {
     if (initialData.enterpriseTools) {
@@ -39,130 +33,350 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
 
   const update = (k: keyof EnterpriseTool, v: string) =>
     setRow((r) => ({ ...r, [k]: v }));
-  // const add=()=>{ if(!row.toolName) return; setList(l=>[...l,row]); setRow(empty); };
 
   const updateTool = <K extends keyof EnterpriseTool["tool"]>(
     k: K,
     v: EnterpriseTool["tool"][K]
   ) => setRow((r) => ({ ...r, tool: { ...r.tool, [k]: v } }));
 
+  const addTool = () => {
+    if (!row.tool.name || !row.tool.type) return;
+    
+    setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+    setRow(empty);
+  };
+
+  const removeTool = (index: number) => {
+    setList(list.filter((_, i) => i !== index));
+  };
+
+  const startEdit = (index: number) => {
+    setEditingIndex(index);
+    setEditingTool({ ...list[index] });
+  };
+
+  const saveEdit = () => {
+    if (editingIndex !== null && editingTool) {
+      const updated = [...list];
+      updated[editingIndex] = editingTool;
+      setList(updated);
+      setEditingIndex(null);
+      setEditingTool(null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditingTool(null);
+  };
+
+  const updateEditingTool = (field: keyof EnterpriseTool, value: any) => {
+    setEditingTool(prev => prev ? { ...prev, [field]: value } : null);
+  };
+
+  const updateEditingToolDetails = <K extends keyof EnterpriseTool["tool"]>(
+    k: K,
+    v: EnterpriseTool["tool"][K]
+  ) => {
+    if (!editingTool) return;
+    setEditingTool(prev => prev ? { ...prev, tool: { ...prev.tool, [k]: v } } : null);
+  };
+
   const save = async () => {
     await onSave(list);
   };
 
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-
-  const resetForm = () => {
-    setRow(empty);
-    setEditingIndex(null);
-  };
-
-  const addOrUpdate = () => {
-    if (editingIndex != null) {
-      setList((l) => l.map((item, i) => (i === editingIndex ? row : item)));
-    } else {
-      setList((l) => [...l, row]);
-    }
-    resetForm();
-  };
-  const edit = (i: number) => {
-    setRow(list[i]);
-    setEditingIndex(i);
-  };
-
-  const del = (i: number) => {
-    setList((l) => l.filter((_, idx) => idx !== i));
-    if (editingIndex === i) resetForm();
-  };
-
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold">Enterprise Tools</h2>
-      <div className="grid md:grid-cols-3 gap-3">
-        <Input
-          placeholder="Tool Name"
-          value={row.tool.name}
-          onChange={(e) => updateTool("name", e.target.value)}
-        />
-        {/* <Input placeholder="Tool Type" value={row.toolType} onChange={e=>update('toolType',e.target.value)} />
-        <Input placeholder="Onboarding Status" value={row.onboarded} onChange={e=>update('onboarded',e.target.value)} /> */}
-        <DropDown
-          label="Tool Type"
-          placeholder="Select Tool Type"
-          value={row.tool.type}
-          onChange={(e) => updateTool("type", e.target.value)}
-          options={TOOL_TYPE_OPTIONS}
-        />
-
-        <DropDown
-          label="Onboarding Status"
-          placeholder="Select Onboarding Status"
-          value={row.onboarded}
-          onChange={(e) => update("onboarded", e.target.value)}
-          options={ONBOARDING_STATUS_OPTIONS}
-        />
-        <Input
-          placeholder="Integration Details"
-          value={row.integrationDetails}
-          onChange={(e) => update("integrationDetails", e.target.value)}
-        />
-        <Input
-          placeholder="Issues"
-          value={row.issues}
-          onChange={(e) => update("issues", e.target.value)}
-        />
-      </div>
-      {/* <div className="flex gap-2">
-        <Button onClick={add}>Add</Button>
-        <Button disabled={isSaving} onClick={save}>{isSaving?'Saving...':'Save'}</Button>
+    <div className="space-y-6">
+      {/* Header */}
+      {/* <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Enterprise Tools</h2>
+        <p className="text-gray-600">Define the enterprise tools that your solution will integrate with</p>
       </div> */}
-      <div className="flex gap-2">
-        <Button type="button" onClick={addOrUpdate}>
-          {editingIndex != null ? "Update" : "Add"}
-        </Button>
-        {editingIndex != null && (
-          <Button type="button" variant="secondary" onClick={resetForm}>
-            Cancel Edit
-          </Button>
-        )}
-        <Button type="button" disabled={isSaving} onClick={save}>
-          {isSaving ? "Saving..." : "Save"}
+
+      {/* Add New Enterprise Tool Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Add Enterprise Tool
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tool Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="Enter tool name"
+                  value={row.tool.name}
+                  onChange={(e) => updateTool("name", e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tool Type <span className="text-red-500">*</span>
+                </label>
+                <DropDown
+                  placeholder="Select tool type"
+                  value={row.tool.type}
+                  onChange={(e) => updateTool("type", e.target.value)}
+                  options={TOOL_TYPE_OPTIONS}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Onboarding Status
+                </label>
+                <DropDown
+                  placeholder="Select status"
+                  value={row.onboarded}
+                  onChange={(e) => update("onboarded", e.target.value)}
+                  options={ONBOARDING_STATUS_OPTIONS}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Integration Details
+                </label>
+                <Input
+                  placeholder="Enter integration details"
+                  value={row.integrationDetails}
+                  onChange={(e) => update("integrationDetails", e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Issues
+                </label>
+                <Input
+                  placeholder="Enter any issues"
+                  value={row.issues}
+                  onChange={(e) => update("issues", e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <Button
+                onClick={addTool}
+                disabled={!row.tool.name || !row.tool.type}
+                variant="secondary"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Tool
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Current Enterprise Tools */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Enterprise Tools ({list.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {list.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <p>No enterprise tools added yet</p>
+              <p className="text-sm">Add your first tool above</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gray-50">
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tool Name
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Tool Type
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Integration Details
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Issues
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {list.map((tool, index) => (
+                    <tr key={tool.id || index} className="hover:bg-gray-50">
+                      {editingIndex === index && editingTool ? (
+                        // Edit mode
+                        <>
+                          <td className="px-4 py-3">
+                            <Input
+                              value={editingTool.tool.name}
+                              onChange={e => updateEditingToolDetails('name', e.target.value)}
+                              placeholder="Tool name"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <DropDown
+                              value={editingTool.tool.type}
+                              onChange={e => updateEditingToolDetails('type', e.target.value)}
+                              options={TOOL_TYPE_OPTIONS}
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <DropDown
+                              value={editingTool.onboarded}
+                              onChange={e => updateEditingTool('onboarded', e.target.value)}
+                              options={ONBOARDING_STATUS_OPTIONS}
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <Input
+                              value={editingTool.integrationDetails}
+                              onChange={e => updateEditingTool('integrationDetails', e.target.value)}
+                              placeholder="Integration details"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <Input
+                              value={editingTool.issues}
+                              onChange={e => updateEditingTool('issues', e.target.value)}
+                              placeholder="Issues"
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex justify-end space-x-2">
+                              <button
+                                onClick={saveEdit}
+                                className="text-green-600 hover:text-green-900 transition-colors"
+                                title="Save"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={cancelEdit}
+                                className="text-gray-600 hover:text-gray-900 transition-colors"
+                                title="Cancel"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      ) : (
+                        // Display mode
+                        <>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            {tool.tool.name}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {tool.tool.type}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              tool.onboarded === 'Completed' ? 'bg-green-100 text-green-800' :
+                              tool.onboarded === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                              tool.onboarded === 'Not Started' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {tool.onboarded || 'N/A'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {tool.integrationDetails || '—'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {tool.issues || '—'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right">
+                            <div className="flex justify-end space-x-2">
+                              <button
+                                onClick={() => startEdit(index)}
+                                className="text-blue-600 hover:text-blue-900 transition-colors"
+                                title="Edit"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => removeTool(index)}
+                                className="text-red-600 hover:text-red-900 transition-colors"
+                                title="Delete"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </div>
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Save Button */}
+      <div className="flex justify-end pt-4">
+        <Button 
+          disabled={isSaving} 
+          onClick={save}
+          className="min-w-[120px]"
+        >
+          {isSaving ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Saving...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Save
+            </>
+          )}
         </Button>
       </div>
-      {list.length > 0 && (
-        <div className="border rounded max-h-80 overflow-auto">
-          <table className="w-full text-sm border">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-2 text-left">Tool Name</th>
-                <th className="p-2 text-left">Tool Type</th>
-                <th className="p-2 text-left">Onboarding Status</th>
-                <th className="p-2 text-left">Integration Details</th>
-                <th className="p-2 text-left">Issues</th>
-                <th className="p-2 text-left w-32">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.map((t, i) => (
-                <tr key={i} className="border-t">
-                  <td className="p-2">{t.tool.name}</td>
-                  <td className="p-2">{t.tool.type}</td>
-                  <td className="p-2">{t.onboarded}</td>
-                  <td className="p-2">{t.integrationDetails}</td>
-                  <td className="p-2">{t.issues}</td>
-                  <td className="p-2">
-                    <div className="flex gap-2">
-                      <Button onClick={() => edit(i)}>Edit</Button>
-                      <Button onClick={() => del(i)}>Del</Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 };
+
 export default EnterpriseToolsStep;

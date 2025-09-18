@@ -2,10 +2,11 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import type { SolutionReview } from "../../types/solutionReview";
 import { DocumentState, STATE_TRANSITIONS, getStateColor, getStateDescription } from "../../types/solutionReview";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Modal } from "../ui";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Modal, Input, DropDown } from "../ui";
 import { useUpdateSolutionReview } from "../../hooks/useUpdateSolutionReview";
-// import { useSolutionReview } from "../../context/SolutionReviewContext";
+import { useAdminPanel } from "../../hooks/useAdminPanel";
 import { useToast } from "../../context/ToastContext";
+import { ApprovalModal } from "../AdminPanel";
 
 interface SolutionReviewDetailProps {
   review: SolutionReview;
@@ -19,7 +20,9 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
 
   const navigate = useNavigate();
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { updateReviewState, loadReviewData } = useUpdateSolutionReview(review.id);
   const { showSuccess, showError } = useToast();
 
@@ -28,18 +31,24 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
       if (newState === "DRAFT") {
         await updateReviewState("REMOVE_SUBMISSION");
         showSuccess("Review moved back to draft successfully!");
+        navigate(0);
       } else if (newState === "CURRENT") {
-        await updateReviewState("APPROVE");
-        showSuccess("Review approved successfully!");
+        setShowApprovalModal(true);
+        return; // Don't navigate yet, wait for approval modal
       } else if (newState === "SUBMITTED") {
         setShowSubmitModal(true);
         return; // Don't show toast yet, wait for modal confirmation
       }
-      navigate(0); // Refresh the current route
     } catch (error) {
       console.error("State transition failed:", error);
-      showError("Failed to update review status. Please try again." + error.message);
+      showError("Failed to update review status. Please try again." + (error as Error).message);
     }
+  };
+
+  const handleApprovalComplete = async () => {
+    // This function will be called by ApprovalModal after concerns are added
+    await updateReviewState("APPROVE");
+    navigate(0);
   };
 
   // Build a data object similar to UpdateSolutionReviewPage for validation
@@ -90,7 +99,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
       navigate(0); // Refresh the current route
     } catch (error) {
       console.error("Submit failed:", error);
-      showError("Failed to submit review. Please try again." + error.message);
+      showError("Failed to submit review. Please try again." + (error as Error).message);
     } finally {
       setIsSubmitting(false);
     }
@@ -213,11 +222,9 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                   <div><span className="text-gray-500">IT Business Partner:</span> <span className="font-medium">{(review.solutionOverview.solutionDetails as any)?.itBusinessPartner || "—"}</span></div>
 
                   <div><span className="text-gray-500">Review Type:</span> <span className="font-medium">{review.solutionOverview.reviewType || "—"}</span></div>
-                  {/* <div><span className="text-gray-500">Approval Status:</span> <span className="font-medium">{review.solutionOverview.approvalStatus || "—"}</span></div> */}
                   <div><span className="text-gray-500">Review Status:</span> <span className="font-medium">{review.documentState || "—"}</span></div>
                   <div><span className="text-gray-500">Business Unit:</span> <span className="font-medium">{review.solutionOverview.businessUnit || "—"}</span></div>
                   <div><span className="text-gray-500">Business Driver:</span> <span className="font-medium">{review.solutionOverview.businessDriver || "—"}</span></div>
-                  {/* <div className="sm:col-span-2"><span className="text-gray-500">Concerns:</span> <span className="font-medium">{review.solutionOverview.concerns || "—"}</span></div> */}
                 </div>
 
                 {(review.solutionOverview.concerns?.length ?? 0) > 0 && (
@@ -525,7 +532,15 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
         </CardContent>
       </Card>
 
-      {/* Submit Review Modal (mirrors UpdateSolutionReviewPage) */}
+      {/* Reusable Approval Modal */}
+      <ApprovalModal
+        isOpen={showApprovalModal}
+        onClose={() => setShowApprovalModal(false)}
+        reviewId={review.id}
+        onApprovalComplete={handleApprovalComplete}
+      />
+
+      {/* Submit Review Modal (remains unchanged) */}
       <Modal
         isOpen={showSubmitModal}
         onClose={() => !isSubmitting && setShowSubmitModal(false)}
