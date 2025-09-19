@@ -60,20 +60,23 @@ export const useAdminPanel = () => {
     }
   };
 
-  const addConcernsToSR = async (reviewId: string, data: any) => {
-      // For draft saving (partial updates)
-      console.log('in addConcernsToSR', reviewId, data);
+  const addConcernsToSR = async (reviewId: string, concerns: any[], currentSolutionOverview: any) => {
+      console.log('in addConcernsToSR', reviewId, concerns, currentSolutionOverview);
+      
+      // Ensure we have a solution overview to work with
+      if (!currentSolutionOverview) {
+        throw new Error('Solution overview is required to add concerns');
+      }
+      
+      // Create updated solution overview with concerns
+      const updatedSolutionOverview = {
+        ...currentSolutionOverview,
+        concerns: concerns
+      };
+      
       const payload: Partial<UpdateSolutionReviewData> = {
         id: reviewId,
-        documentState: "SUBMITTED",
-        solutionOverview: data.solutionOverview,
-        businessCapabilities: null,
-        dataAssets: null,
-        enterpriseTools: [],
-        integrationFlows: null,
-        systemComponents: null,
-        technologyComponents: null,
-        processCompliances: null,
+        solutionOverview: updatedSolutionOverview,
       };
   
       return await addConcernsToSRAPI(payload as any);

@@ -18,6 +18,7 @@ interface ApprovalModalProps {
   onApprovalComplete: () => void;
   title?: string;
   description?: string;
+  currentSolutionOverview?: any;
 }
 
 const CONCERN_TYPE_OPTIONS = [
@@ -36,7 +37,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
   reviewId,
   onApprovalComplete,
   title = "Approve Solution Review",
-  description = "You are about to approve this solution review. You can optionally add concerns before approval."
+  description = "You are about to approve this solution review. You can optionally add concerns before approval.",
+  currentSolutionOverview
 }) => {
   const [isApproving, setIsApproving] = useState(false);
   const [concerns, setConcerns] = useState<Concern[]>([]);
@@ -75,9 +77,15 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     try {
       setIsApproving(true);
       
+      console.log('currentSolutionOverview:', currentSolutionOverview);
+      console.log('concerns.length:', concerns.length);
+      
       // First, add concerns if any
       if (concerns.length > 0) {
-        await addConcernsToSR(reviewId, concerns);
+        if (!currentSolutionOverview) {
+          throw new Error('Solution overview not available for adding concerns');
+        }
+        await addConcernsToSR(reviewId, concerns, currentSolutionOverview);
       }
       
       // Then call the completion callback (which should handle the actual approval)
@@ -98,7 +106,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       onClose();
     } catch (error) {
       console.error("Approval failed:", error);
-      showError("Failed to approve review. Please try again." + (error as Error).message);
+      showError("Failed to approve review. Please try again. " + (error as Error).message);
     } finally {
       setIsApproving(false);
     }

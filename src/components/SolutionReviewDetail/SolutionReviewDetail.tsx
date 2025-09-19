@@ -538,6 +538,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
         onClose={() => setShowApprovalModal(false)}
         reviewId={review.id}
         onApprovalComplete={handleApprovalComplete}
+        currentSolutionOverview={review.solutionOverview}
       />
 
       {/* Submit Review Modal (remains unchanged) */}
