@@ -7,6 +7,7 @@ import { useUpdateSolutionReview } from "../../hooks/useUpdateSolutionReview";
 import { useAdminPanel } from "../../hooks/useAdminPanel";
 import { useToast } from "../../context/ToastContext";
 import { ApprovalModal } from "../AdminPanel";
+import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
 
 interface SolutionReviewDetailProps {
   review: SolutionReview;
@@ -19,25 +20,37 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
 }) => {
 
   const navigate = useNavigate();
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { updateReviewState, loadReviewData } = useUpdateSolutionReview(review.id);
+  const { transitionSolutionReviewState, loadReviewData } = useUpdateSolutionReview(review.id);
   const { showSuccess, showError } = useToast();
 
-  const handleStateTransition = async (newState: string) => {
+  const handleStateTransition = async (operation: string) => {
     try {
-      if (newState === "DRAFT") {
-        await updateReviewState("REMOVE_SUBMISSION");
+      if (operation === "REMOVE_SUBMISSION") {
+        await transitionSolutionReviewState(operation);
         showSuccess("Review moved back to draft successfully!");
         navigate(0);
-      } else if (newState === "CURRENT") {
+      } else if (operation === "APPROVE") {
         setShowApprovalModal(true);
         return; // Don't navigate yet, wait for approval modal
-      } else if (newState === "SUBMITTED") {
-        setShowSubmitModal(true);
+      } else if (operation === "SUBMIT") {
+        setShowSubmissionModal(true);
         return; // Don't show toast yet, wait for modal confirmation
+      } else if (operation === "UNAPPROVE") {
+        await transitionSolutionReviewState(operation);
+        showSuccess("Review unapproved successfully!");
+        navigate(0);
+      } else if (operation === "MARK_OUTDATED") {
+        await transitionSolutionReviewState(operation);
+        showSuccess("Review marked as outdated successfully!");
+        navigate(0);
+      } else if (operation === "RESET_CURRENT") {
+        await transitionSolutionReviewState(operation);
+        showSuccess("Review reverted to current successfully!");
+        navigate(0);
       }
     } catch (error) {
       console.error("State transition failed:", error);
@@ -47,55 +60,16 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
 
   const handleApprovalComplete = async () => {
     // This function will be called by ApprovalModal after concerns are added
-    await updateReviewState("APPROVE");
+    await transitionSolutionReviewState("APPROVE");
     navigate(0);
   };
 
-  // Build a data object similar to UpdateSolutionReviewPage for validation
-  const reviewData = useMemo(() => ({
-    solutionOverview: review.solutionOverview,
-    businessCapabilities: review.businessCapabilities,
-    dataAssets: review.dataAssets,
-    systemComponents: review.systemComponents,
-    technologyComponents: review.technologyComponents,
-    integrationFlows: review.integrationFlows,
-    enterpriseTools: review.enterpriseTools,
-    processCompliances: review.processCompliances
-  }), [review]);
-
-  const sectionLabels: Record<keyof typeof reviewData, string> = {
-    solutionOverview: "Solution Overview",
-    businessCapabilities: "Business Capabilities",
-    dataAssets: "Data & Assets",
-    systemComponents: "System Components",
-    technologyComponents: "Technology Components",
-    integrationFlows: "Integration Flows",
-    enterpriseTools: "Enterprise Tools",
-    processCompliances: "Process Compliances"
-  };
-
-  const missingSections = useMemo(() =>
-    (Object.keys(reviewData) as (keyof typeof reviewData)[])
-      .filter(key => {
-        const value = reviewData[key];
-        return value == null || (Array.isArray(value) && value.length === 0);
-      })
-      .map(key => sectionLabels[key])
-    , [reviewData]);
-
-  const hasMissing = missingSections.length > 0;
-
   const confirmSubmit = async () => {
-    if (hasMissing) {
-      showError("Please complete all sections before submitting");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
-      await updateReviewState("SUBMIT");
+      await transitionSolutionReviewState("SUBMIT");
       showSuccess("Review submitted successfully!");
-      setShowSubmitModal(false);
+      setShowSubmissionModal(false);
       navigate(0); // Refresh the current route
     } catch (error) {
       console.error("Submit failed:", error);
@@ -161,7 +135,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                   key={t.operation}
                   variant={t.to === "CURRENT" ? "primary" : "secondary"}
                   size="sm"
-                  onClick={() => handleStateTransition(t.to)}
+                  onClick={() => handleStateTransition(t.operation)}
                   title={t.description}
                 >
                   {t.operationName}
@@ -542,65 +516,13 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
       />
 
       {/* Submit Review Modal (remains unchanged) */}
-      <Modal
-        isOpen={showSubmitModal}
-        onClose={() => !isSubmitting && setShowSubmitModal(false)}
-        title="Review Solution Review Before Submitting"
-      >
-        <div className="max-h-[60vh] overflow-y-auto space-y-4 text-sm">
-          {(Object.keys(reviewData) as (keyof typeof reviewData)[]).map(key => {
-            const value = reviewData[key];
-            const isArray = Array.isArray(value);
-            const isMissing = value == null || (isArray && value.length === 0);
-            return (
-              <div key={key} className="border rounded p-3">
-                <h3 className="font-semibold mb-2 flex items-center">
-                  {sectionLabels[key]}
-                  {isArray && (
-                    <span className="ml-2 text-xs font-medium text-gray-500">
-                      ({value.length})
-                    </span>
-                  )}
-                  {isMissing && (
-                    <span className="ml-2 text-xs font-medium text-red-600">
-                      Missing
-                    </span>
-                  )}
-                </h3>
-                {isMissing ? (
-                  <div className="text-red-600 text-xs">Not completed</div>
-                ) : (
-                  <pre className="bg-gray-50 p-2 rounded overflow-x-auto text-xs">
-                    {JSON.stringify(value, null, 2)}
-                  </pre>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {hasMissing && (
-          <div className="mt-4 text-red-600 text-xs">
-            Complete all sections before submitting. Missing: {missingSections.join(", ")}
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            disabled={isSubmitting}
-            onClick={() => setShowSubmitModal(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            disabled={hasMissing || isSubmitting}
-            onClick={confirmSubmit}
-          >
-            {isSubmitting ? "Submitting..." : "Confirm Submit"}
-          </Button>
-        </div>
-      </Modal>
+      <ReviewSubmissionModal
+        showReview={showSubmissionModal}
+        setShowReview={setShowSubmissionModal}
+        isSubmitting={isSubmitting}
+        reviewId={review.id}
+        confirmSubmit={confirmSubmit}
+      />
     </div>
   );
 };

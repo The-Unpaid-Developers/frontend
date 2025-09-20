@@ -255,7 +255,7 @@ export interface SolutionReview {
       {
         from: "DRAFT",
         to: "SUBMITTED",
-        operation: StateOperation.SUBMIT,
+        operation: "SUBMIT",
         operationName: "Submit for Review",
         description: "Submit document for review and approval",
       },
@@ -264,14 +264,14 @@ export interface SolutionReview {
       {
         from: "SUBMITTED",
         to: "CURRENT",
-        operation: StateOperation.APPROVE,
+        operation: "APPROVE",
         operationName: "Approve",
         description: "Approve document as current version",
       },
       {
         from: "SUBMITTED",
         to: "DRAFT",
-        operation: StateOperation.REMOVE_SUBMISSION,
+        operation: "REMOVE_SUBMISSION",
         operationName: "Return to Draft",
         description: "Return document to draft state",
       },
@@ -280,14 +280,14 @@ export interface SolutionReview {
       {
         from: "CURRENT",
         to: "OUTDATED",
-        operation: StateOperation.MARK_OUTDATED,
+        operation: "MARK_OUTDATED",
         operationName: "Mark as Outdated",
         description: "Mark document as outdated",
       },
       {
         from: "CURRENT",
         to: "SUBMITTED",
-        operation: StateOperation.UNAPPROVE,
+        operation: "UNAPPROVE",
         operationName: "Unapprove",
         description: "Remove approval and return to review",
       },
@@ -296,7 +296,7 @@ export interface SolutionReview {
       {
         from: "OUTDATED",
         to: "CURRENT",
-        operation: StateOperation.RESET_CURRENT,
+        operation: "RESET_CURRENT",
         operationName: "Reset as Current",
         description: "Reset document as current version",
       },

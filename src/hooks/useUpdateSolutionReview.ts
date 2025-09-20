@@ -14,10 +14,10 @@ import type {
 import {
   getSolutionReviewByIdAPI,
   saveSolutionReviewDraftAPI,
-  updateSolutionReviewStateAPI,
+  transitionSolutionReviewStateAPI,
 } from "../services/solutionReviewApi";
 
-export const useUpdateSolutionReview = (reviewId: string) => {
+export const useUpdateSolutionReview = (reviewId?: string) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [businessCapabilities, setBusinessCapabilities] = useState<
@@ -133,15 +133,15 @@ export const useUpdateSolutionReview = (reviewId: string) => {
   };
 
   // Final submission - update the entire review
-  const updateReviewState = async (operation: string) => {
+  const transitionSolutionReviewState = async (operation: string, reviewIdLocal?: string) => {
     setIsLoading(true);
     const payload = {
-      documentId: reviewId,
+      documentId: reviewIdLocal ?? reviewId,
       operation,
       modifiedBy: localStorage.getItem("username") || "unknown",
     };
     try {
-      const updated = await updateSolutionReviewStateAPI(payload);
+      const updated = await transitionSolutionReviewStateAPI(payload);
       return updated;
     } catch (error) {
       console.error("Error updating review:", error);
@@ -175,7 +175,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
     systemCode,
     setSystemCode,
     saveSection,
-    updateReviewState,
+    transitionSolutionReviewState,
     loadReviewData,
     isLoading,
   };

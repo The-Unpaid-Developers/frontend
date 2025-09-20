@@ -3,7 +3,7 @@ import { Dashboard } from "./components/Dashboard";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { CreateSolutionReviewPage } from "./components/CreateSolutionReview/CreateSolutionReviewPage";
 import { UpdateSolutionReviewPage } from "./components/UpdateSolutionReview/UpdateSolutionReviewPage";
-import { SystemDetailPage } from "./components/SystemDetail/SystemDetailPage";
+import { SystemDetailPage } from "./components/SolutionReviewDetail/SystemDetailPage";
 import { SolutionReviewDetailPage } from "./components/SolutionReviewDetail/SolutionReviewDetailPage"
 import { Login } from "./components/Authentication/Login";
 import { AdminPanel } from "./components/AdminPanel";

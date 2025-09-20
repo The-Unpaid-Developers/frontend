@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 // import { useSolutionReview } from '../../context/SolutionReviewContext';
-import { SystemDetail } from './SystemDetail';
+import { SystemDetail } from '../SolutionReviewDetail/SystemDetail';
 // import { mockApiService } from '../../services/mockApiUpdated';
 
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';

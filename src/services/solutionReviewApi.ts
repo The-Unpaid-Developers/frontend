@@ -33,7 +33,7 @@ export const getSystemSolutionReviewsAPI = async (systemCode: string) => {
   return response.data;
 };
 
-export const updateSolutionReviewStateAPI = async (data: any) => {
+export const transitionSolutionReviewStateAPI = async (data: any) => {
   const response = await axios.post(`${API_BASE_URL}/lifecycle/transition`, data);
   return response.data;
 };

@@ -32,8 +32,6 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
     });
   };
 
-  const availableTransitions = STATE_TRANSITIONS[review.documentState] || [];
-
   return (
     <Card hover className="h-full flex flex-col">
       <CardHeader>
@@ -92,7 +90,7 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
             {viewLabel}
           </Button>
 
-          {onTransition && availableTransitions.length > 0 && (
+          {/* {onTransition && availableTransitions.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {availableTransitions.map((transition) => (
                 <Button
@@ -109,9 +107,14 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
                 </Button>
               ))}
             </div>
-          )}
+          )} */}
         </div>
+        
       </CardFooter>
     </Card>
+    
   );
 };
+
+
+
