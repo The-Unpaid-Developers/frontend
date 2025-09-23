@@ -14,7 +14,7 @@ import {
 interface SolutionReviewCardProps {
   review: SolutionReview;
   onView: (review: SolutionReview) => void;
-  onTransition?: (review: SolutionReview, to: DocumentState) => void; // optional
+  onTransition?: (review: SolutionReview, to: string) => void; // optional
   viewLabel?: string; // optional button text override
 }
 
@@ -31,8 +31,6 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
       day: "numeric",
     });
   };
-
-  const availableTransitions = STATE_TRANSITIONS[review.documentState] || [];
 
   return (
     <Card hover className="h-full flex flex-col">
@@ -64,8 +62,8 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">Approval Status:</span>
-              {review.solutionOverview.approvalStatus || "N/A"}
+              <span className="text-gray-500">Review Status:</span>
+              {review.documentState || "N/A"}
             </div>
           </div>
         )}
@@ -92,7 +90,7 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
             {viewLabel}
           </Button>
 
-          {onTransition && availableTransitions.length > 0 && (
+          {/* {onTransition && availableTransitions.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {availableTransitions.map((transition) => (
                 <Button
@@ -109,9 +107,14 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
                 </Button>
               ))}
             </div>
-          )}
+          )} */}
         </div>
+        
       </CardFooter>
     </Card>
+    
   );
 };
+
+
+

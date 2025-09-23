@@ -5,6 +5,7 @@ export interface SolutionDetails {
   solutionArchitectName?: string | null;
   deliveryProjectManagerName?: string | null;
   itBusinessPartner?: string | null;
+  solutionReviewCode?: string | null; // to remove
 }
 
 export interface Concern {
@@ -16,7 +17,7 @@ export interface Concern {
 }
 
 export interface SolutionOverview {
-  id: string;
+  id?: string;
   solutionDetails?: SolutionDetails;
   reviewType?: string | null; // dropdown list
   businessUnit?: string | null; // dropdown list
@@ -27,7 +28,7 @@ export interface SolutionOverview {
 }
 
 export interface BusinessCapability {
-  id: string;
+  id?: string;
   l1Capability?: string | null; // dropdown list
   l2Capability?: string | null; // dropdown list
   l3Capability?: string | null; // dropdown list
@@ -134,7 +135,7 @@ export interface ProcessCompliance {
 
 // Main form data interface
 export interface UpdateSolutionReviewData {
-  id: string;
+  id?: string;
   documentState: string;
   systemCode: string;
   solutionOverview: SolutionOverview | null;
@@ -186,7 +187,7 @@ export interface ValidationError {
 }
 
 export interface StepValidationResult {
-  isValid: boolean;
+  isValid?: boolean;
   errors: ValidationError[];
 }
 
@@ -221,7 +222,7 @@ export type StateOperation =
   export { DocumentState, StateOperation, DocumentStateFilter };
 
 export interface SolutionReview {
-  id: string;
+  id?: string;
   systemCode: string;
   documentState: string;
   solutionOverview: SolutionOverview | null;
@@ -254,7 +255,7 @@ export interface SolutionReview {
       {
         from: "DRAFT",
         to: "SUBMITTED",
-        operation: StateOperation.SUBMIT,
+        operation: "SUBMIT",
         operationName: "Submit for Review",
         description: "Submit document for review and approval",
       },
@@ -263,14 +264,14 @@ export interface SolutionReview {
       {
         from: "SUBMITTED",
         to: "CURRENT",
-        operation: StateOperation.APPROVE,
+        operation: "APPROVE",
         operationName: "Approve",
         description: "Approve document as current version",
       },
       {
         from: "SUBMITTED",
         to: "DRAFT",
-        operation: StateOperation.REMOVE_SUBMISSION,
+        operation: "REMOVE_SUBMISSION",
         operationName: "Return to Draft",
         description: "Return document to draft state",
       },
@@ -279,14 +280,14 @@ export interface SolutionReview {
       {
         from: "CURRENT",
         to: "OUTDATED",
-        operation: StateOperation.MARK_OUTDATED,
+        operation: "MARK_OUTDATED",
         operationName: "Mark as Outdated",
         description: "Mark document as outdated",
       },
       {
         from: "CURRENT",
         to: "SUBMITTED",
-        operation: StateOperation.UNAPPROVE,
+        operation: "UNAPPROVE",
         operationName: "Unapprove",
         description: "Remove approval and return to review",
       },
@@ -295,7 +296,7 @@ export interface SolutionReview {
       {
         from: "OUTDATED",
         to: "CURRENT",
-        operation: StateOperation.RESET_CURRENT,
+        operation: "RESET_CURRENT",
         operationName: "Reset as Current",
         description: "Reset document as current version",
       },
@@ -317,7 +318,7 @@ export interface SolutionReview {
     }
   };
   
-  export const getStateDescription = (state: DocumentState): string => {
+  export const getStateDescription = (state: string): string => {
     switch (state) {
       case "DRAFT":
         return "Document is being edited and is not ready for review";
@@ -333,7 +334,7 @@ export interface SolutionReview {
   };
 
   export interface SystemGroup {
-    systemId: string;
+    systemid?: string;
     systemName: string;
     description: string;
     category: string;

@@ -96,11 +96,11 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
+      {/* <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <div className="flex items-center space-x-4 mb-2">
+              {/* <div className="flex items-center space-x-4 mb-2">
                 <h1 className="text-2xl font-bold text-gray-900">
                   Solution Review Dashboard
                 </h1>
@@ -126,14 +126,15 @@ export const Dashboard: React.FC = () => {
                     Reviews View
                   </button>
                 </div>
-              </div>
-              <p className="text-gray-600">
+                <p className="text-gray-600">
                 {viewMode === "systems"
                   ? "System-level view; click to open system details"
                   : "Individual solution architecture reviews"}
               </p>
+              </div> 
+              
             </div>
-            <Button onClick={() => navigate("/create-solution-review")}>
+            {/* <Button onClick={() => navigate("/create-solution-review")}>
               <svg
                 className="w-4 h-4 mr-2"
                 fill="none"
@@ -151,7 +152,7 @@ export const Dashboard: React.FC = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
@@ -219,8 +220,31 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Pagination */}
+        
         {!isLoading && totalElements > 0 && (
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div className="flex bg-gray-200 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode("systems")}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === "systems"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    Systems View
+                  </button>
+                  <button
+                    onClick={() => setViewMode("reviews")}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === "reviews"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    Reviews View
+                  </button>
+                </div>
             <div className="text-sm text-gray-600">
               Showing{" "}
               <span className="font-medium">

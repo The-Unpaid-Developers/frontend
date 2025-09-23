@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import type { SolutionReview } from "../../types/solutionReview";
 import { DocumentState, STATE_TRANSITIONS, getStateColor, getStateDescription } from "../../types/solutionReview";
-import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Modal } from "../ui";
+import { Card, CardHeader, CardTitle, CardContent, Badge, Button, Modal, Input, DropDown } from "../ui";
 import { useUpdateSolutionReview } from "../../hooks/useUpdateSolutionReview";
-// import { useSolutionReview } from "../../context/SolutionReviewContext";
+import { useAdminPanel } from "../../hooks/useAdminPanel";
 import { useToast } from "../../context/ToastContext";
+import { ApprovalModal } from "../AdminPanel";
+import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
 
 interface SolutionReviewDetailProps {
   review: SolutionReview;
@@ -18,79 +20,60 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
 }) => {
 
   const navigate = useNavigate();
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { updateReviewState, loadReviewData } = useUpdateSolutionReview(review.id);
+
+  const { transitionSolutionReviewState, loadReviewData } = useUpdateSolutionReview(review.id);
   const { showSuccess, showError } = useToast();
 
-  const handleStateTransition = async (newState: string) => {
+  const handleStateTransition = async (operation: string) => {
     try {
-      if (newState === "DRAFT") {
-        await updateReviewState("REMOVE_SUBMISSION");
+      if (operation === "REMOVE_SUBMISSION") {
+        await transitionSolutionReviewState(operation);
         showSuccess("Review moved back to draft successfully!");
-      } else if (newState === "CURRENT") {
-        await updateReviewState("APPROVE");
-        showSuccess("Review approved successfully!");
-      } else if (newState === "SUBMITTED") {
-        setShowSubmitModal(true);
+        navigate(0);
+      } else if (operation === "APPROVE") {
+        setShowApprovalModal(true);
+        return; // Don't navigate yet, wait for approval modal
+      } else if (operation === "SUBMIT") {
+        setShowSubmissionModal(true);
         return; // Don't show toast yet, wait for modal confirmation
+      } else if (operation === "UNAPPROVE") {
+        await transitionSolutionReviewState(operation);
+        showSuccess("Review unapproved successfully!");
+        navigate(0);
+      } else if (operation === "MARK_OUTDATED") {
+        await transitionSolutionReviewState(operation);
+        showSuccess("Review marked as outdated successfully!");
+        navigate(0);
+      } else if (operation === "RESET_CURRENT") {
+        await transitionSolutionReviewState(operation);
+        showSuccess("Review reverted to current successfully!");
+        navigate(0);
       }
-      navigate(0); // Refresh the current route
     } catch (error) {
       console.error("State transition failed:", error);
-      showError("Failed to update review status. Please try again." + error.message);
+      showError("Failed to update review status. Please try again." + (error as Error).message);
     }
   };
 
-  // Build a data object similar to UpdateSolutionReviewPage for validation
-  const reviewData = useMemo(() => ({
-    solutionOverview: review.solutionOverview,
-    businessCapabilities: review.businessCapabilities,
-    dataAssets: review.dataAssets,
-    systemComponents: review.systemComponents,
-    technologyComponents: review.technologyComponents,
-    integrationFlows: review.integrationFlows,
-    enterpriseTools: review.enterpriseTools,
-    processCompliances: review.processCompliances
-  }), [review]);
-
-  const sectionLabels: Record<keyof typeof reviewData, string> = {
-    solutionOverview: "Solution Overview",
-    businessCapabilities: "Business Capabilities",
-    dataAssets: "Data & Assets",
-    systemComponents: "System Components",
-    technologyComponents: "Technology Components",
-    integrationFlows: "Integration Flows",
-    enterpriseTools: "Enterprise Tools",
-    processCompliances: "Process Compliances"
+  const handleApprovalComplete = async () => {
+    // This function will be called by ApprovalModal after concerns are added
+    await transitionSolutionReviewState("APPROVE");
+    navigate(0);
   };
-
-  const missingSections = useMemo(() =>
-    (Object.keys(reviewData) as (keyof typeof reviewData)[])
-      .filter(key => {
-        const value = reviewData[key];
-        return value == null || (Array.isArray(value) && value.length === 0);
-      })
-      .map(key => sectionLabels[key])
-    , [reviewData]);
-
-  const hasMissing = missingSections.length > 0;
 
   const confirmSubmit = async () => {
-    if (hasMissing) {
-      showError("Please complete all sections before submitting");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
-      await updateReviewState("SUBMIT");
+      await transitionSolutionReviewState("SUBMIT");
       showSuccess("Review submitted successfully!");
-      setShowSubmitModal(false);
+      setShowSubmissionModal(false);
       navigate(0); // Refresh the current route
     } catch (error) {
       console.error("Submit failed:", error);
-      showError("Failed to submit review. Please try again." + error.message);
+      showError("Failed to submit review. Please try again." + (error as Error).message);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,9 +102,9 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
             <Badge variant="state" state={review.documentState}>
               {review.documentState}
             </Badge>
-            {review.version && (
+            {review.id && (
               <span className="text-sm text-gray-500">
-                Version {review.version}
+                ID {review.id}
               </span>
             )}
           </div>
@@ -152,7 +135,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                   key={t.operation}
                   variant={t.to === "CURRENT" ? "primary" : "secondary"}
                   size="sm"
-                  onClick={() => handleStateTransition(t.to)}
+                  onClick={() => handleStateTransition(t.operation)}
                   title={t.description}
                 >
                   {t.operationName}
@@ -213,11 +196,9 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                   <div><span className="text-gray-500">IT Business Partner:</span> <span className="font-medium">{(review.solutionOverview.solutionDetails as any)?.itBusinessPartner || "—"}</span></div>
 
                   <div><span className="text-gray-500">Review Type:</span> <span className="font-medium">{review.solutionOverview.reviewType || "—"}</span></div>
-                  <div><span className="text-gray-500">Approval Status:</span> <span className="font-medium">{review.solutionOverview.approvalStatus || "—"}</span></div>
-                  <div><span className="text-gray-500">Review Status:</span> <span className="font-medium">{review.solutionOverview.reviewStatus || "—"}</span></div>
+                  <div><span className="text-gray-500">Review Status:</span> <span className="font-medium">{review.documentState || "—"}</span></div>
                   <div><span className="text-gray-500">Business Unit:</span> <span className="font-medium">{review.solutionOverview.businessUnit || "—"}</span></div>
                   <div><span className="text-gray-500">Business Driver:</span> <span className="font-medium">{review.solutionOverview.businessDriver || "—"}</span></div>
-                  <div className="sm:col-span-2"><span className="text-gray-500">Conditions:</span> <span className="font-medium">{review.solutionOverview.conditions || "—"}</span></div>
                 </div>
 
                 {(review.solutionOverview.concerns?.length ?? 0) > 0 && (
@@ -525,66 +506,23 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
         </CardContent>
       </Card>
 
-      {/* Submit Review Modal (mirrors UpdateSolutionReviewPage) */}
-      <Modal
-        isOpen={showSubmitModal}
-        onClose={() => !isSubmitting && setShowSubmitModal(false)}
-        title="Review Solution Review Before Submitting"
-      >
-        <div className="max-h-[60vh] overflow-y-auto space-y-4 text-sm">
-          {(Object.keys(reviewData) as (keyof typeof reviewData)[]).map(key => {
-            const value = reviewData[key];
-            const isArray = Array.isArray(value);
-            const isMissing = value == null || (isArray && value.length === 0);
-            return (
-              <div key={key} className="border rounded p-3">
-                <h3 className="font-semibold mb-2 flex items-center">
-                  {sectionLabels[key]}
-                  {isArray && (
-                    <span className="ml-2 text-xs font-medium text-gray-500">
-                      ({value.length})
-                    </span>
-                  )}
-                  {isMissing && (
-                    <span className="ml-2 text-xs font-medium text-red-600">
-                      Missing
-                    </span>
-                  )}
-                </h3>
-                {isMissing ? (
-                  <div className="text-red-600 text-xs">Not completed</div>
-                ) : (
-                  <pre className="bg-gray-50 p-2 rounded overflow-x-auto text-xs">
-                    {JSON.stringify(value, null, 2)}
-                  </pre>
-                )}
-              </div>
-            );
-          })}
-        </div>
+      {/* Reusable Approval Modal */}
+      <ApprovalModal
+        isOpen={showApprovalModal}
+        onClose={() => setShowApprovalModal(false)}
+        reviewId={review.id}
+        onApprovalComplete={handleApprovalComplete}
+        currentSolutionOverview={review.solutionOverview}
+      />
 
-        {hasMissing && (
-          <div className="mt-4 text-red-600 text-xs">
-            Complete all sections before submitting. Missing: {missingSections.join(", ")}
-          </div>
-        )}
-
-        <div className="mt-6 flex justify-end gap-2">
-          <Button
-            variant="secondary"
-            disabled={isSubmitting}
-            onClick={() => setShowSubmitModal(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            disabled={hasMissing || isSubmitting}
-            onClick={confirmSubmit}
-          >
-            {isSubmitting ? "Submitting..." : "Confirm Submit"}
-          </Button>
-        </div>
-      </Modal>
+      {/* Submit Review Modal (remains unchanged) */}
+      <ReviewSubmissionModal
+        showReview={showSubmissionModal}
+        setShowReview={setShowSubmissionModal}
+        isSubmitting={isSubmitting}
+        reviewId={review.id}
+        confirmSubmit={confirmSubmit}
+      />
     </div>
   );
 };

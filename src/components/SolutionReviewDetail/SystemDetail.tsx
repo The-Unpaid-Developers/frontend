@@ -6,6 +6,9 @@ import { useNavigate } from "react-router-dom";
 import { useCreateSolutionOverview } from "../../hooks/useCreateSolutionOverview";
 // import { useSolutionReview } from "../../context/SolutionReviewContext";
 import { useToast } from "../../context/ToastContext";
+import { useUpdateSolutionReview } from "../../hooks/useUpdateSolutionReview";
+import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
+import { ApprovalModal } from "../AdminPanel";
 
 interface SystemDetailProps {
   systemCode: string;
@@ -20,19 +23,70 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
   onClose,
   onViewReview,
 }) => {
-  // const { actions } = useSolutionReview();
   const [selectedVersion, setSelectedVersion] = useState<SolutionReview | null>(
     null
   );
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const { transitionSolutionReviewState } = useUpdateSolutionReview();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeReviewId, setActiveReviewId] = useState<string>(''); // Track which review is being acted upon
   
-  // const handleStateTransition = async (
-  //   reviewId: string,
-  //   newState: DocumentState
-  // ) => {
-  //   await actions.transitionState(reviewId, newState);
-  // };
+  const handleStateTransition = async (operation: string, reviewId: string) => {
+    try {
+      setActiveReviewId(reviewId); 
+      if (operation === "REMOVE_SUBMISSION") {
+        await transitionSolutionReviewState(operation, reviewId);
+        showSuccess("Review moved back to draft successfully!");
+        navigate(0);
+      } else if (operation === "APPROVE") {
+        setShowApprovalModal(true);
+        return; // Don't navigate yet, wait for approval modal
+      } else if (operation === "SUBMIT") {
+        setShowSubmissionModal(true);
+        return; // Don't show toast yet, wait for modal confirmation
+      } else if (operation === "UNAPPROVE") {
+        await transitionSolutionReviewState(operation, reviewId);
+        showSuccess("Review unapproved successfully!");
+        navigate(0);
+      } else if (operation === "MARK_OUTDATED") {
+        await transitionSolutionReviewState(operation, reviewId);
+        showSuccess("Review marked as outdated successfully!");
+        navigate(0);
+      } else if (operation === "RESET_CURRENT") {
+        await transitionSolutionReviewState(operation, reviewId);
+        showSuccess("Review reverted to current successfully!");
+        navigate(0);
+      }
+    } catch (error) {
+      console.error("State transition failed:", error);
+      showError("Failed to update review status. Please try again." + (error as Error).message);
+    }
+  };
+
+  const handleApprovalComplete = async () => {
+    // This function will be called by ApprovalModal after concerns are added
+    await transitionSolutionReviewState("APPROVE", activeReviewId);
+    navigate(0);
+  };
+
+  const confirmSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      await transitionSolutionReviewState("SUBMIT", activeReviewId);
+      showSuccess("Review submitted successfully!");
+      setShowSubmissionModal(false);
+      navigate(0); // Refresh the current route
+    } catch (error) {
+      console.error("Submit failed:", error);
+      showError("Failed to submit review. Please try again." + (error as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const { createSRFromExisting } = useCreateSolutionOverview();
   const createNewDraft = async () => {
       try {
@@ -220,7 +274,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                   {changes && changes.length > 0 && (
                     <div className="mb-3">
                       <h4 className="font-medium text-gray-900 mb-1">
-                        Changes from v{previousReview?.version}
+                        Changes from v{previousReview?.id}
                       </h4>
                       <ul className="text-sm text-gray-600 list-disc list-inside">
                         {changes.map((change, idx) => (
@@ -262,9 +316,9 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                                 : "ghost"
                             }
                             size="sm"
-                            // onClick={() =>
-                            //   handleStateTransition(review.id, transition.to)
-                            // }
+                            onClick={() =>
+                              handleStateTransition(transition.operation, review.id)
+                            }
                             title={transition.description}
                           >
                             {transition.operationName}
@@ -291,12 +345,46 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                       </div>
                     </div>
                   )}
+                  {/* Reusable Approval Modal */}
+                  {/* <ApprovalModal
+                    isOpen={showApprovalModal}
+                    onClose={() => setShowApprovalModal(false)}
+                    reviewId={review.id}
+                    onApprovalComplete={handleApprovalComplete}
+                    currentSolutionOverview={review.solutionOverview}
+                  /> */}
+  
+                  {/* Submit Review Modal (remains unchanged) */}
+                  {/* <ReviewSubmissionModal
+                    showReview={showSubmissionModal}
+                    setShowReview={setShowSubmissionModal}
+                    isSubmitting={isSubmitting}
+                    reviewId={review.id}
+                    confirmSubmit={confirmSubmit}
+                  /> */}
                 </div>
               );
             })}
           </div>
         </CardContent>
       </Card>
+      {/* Reusable Approval Modal */}
+      <ApprovalModal
+        isOpen={showApprovalModal}
+        onClose={() => setShowApprovalModal(false)}
+        reviewId={activeReviewId}
+        onApprovalComplete={handleApprovalComplete}
+        currentSolutionOverview={system.find(r => r.id === activeReviewId)?.solutionOverview}
+      />
+
+      {/* Submit Review Modal */}
+      <ReviewSubmissionModal
+        showReview={showSubmissionModal}
+        setShowReview={setShowSubmissionModal}
+        isSubmitting={isSubmitting}
+        reviewId={activeReviewId}
+        confirmSubmit={confirmSubmit}
+      />
     </div>
   );
 };

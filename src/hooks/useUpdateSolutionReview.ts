@@ -12,12 +12,12 @@ import type {
   ProcessCompliance,
 } from "../types/solutionReview";
 import {
-  getSolutionReviewById,
-  saveSolutionReviewDraft,
-  updateSolutionReviewState,
+  getSolutionReviewByIdAPI,
+  saveSolutionReviewDraftAPI,
+  transitionSolutionReviewStateAPI,
 } from "../services/solutionReviewApi";
 
-export const useUpdateSolutionReview = (reviewId: string) => {
+export const useUpdateSolutionReview = (reviewId?: string) => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [businessCapabilities, setBusinessCapabilities] = useState<
@@ -54,7 +54,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
       // const reviewData = await getSolutionReviewById(reviewId);
 
       // For now, use mock data
-      const reviewData = await getSolutionReviewById(reviewId); // Import or define mock data
+      const reviewData = await getSolutionReviewByIdAPI(reviewId); // Import or define mock data
       console.log("review data ", reviewData);
       if (reviewData) {
         setSolutionOverview(reviewData.solutionOverview);
@@ -129,19 +129,19 @@ export const useUpdateSolutionReview = (reviewId: string) => {
       [section]: value,
     };
 
-    return await saveSolutionReviewDraft(payload as any);
+    return await saveSolutionReviewDraftAPI(payload as any);
   };
 
   // Final submission - update the entire review
-  const updateReviewState = async (operation: string) => {
+  const transitionSolutionReviewState = async (operation: string, reviewIdLocal?: string) => {
     setIsLoading(true);
     const payload = {
-      documentId: reviewId,
+      documentId: reviewIdLocal ?? reviewId,
       operation,
       modifiedBy: localStorage.getItem("username") || "unknown",
     };
     try {
-      const updated = await updateSolutionReviewState(payload);
+      const updated = await transitionSolutionReviewStateAPI(payload);
       return updated;
     } catch (error) {
       console.error("Error updating review:", error);
@@ -175,7 +175,7 @@ export const useUpdateSolutionReview = (reviewId: string) => {
     systemCode,
     setSystemCode,
     saveSection,
-    updateReviewState,
+    transitionSolutionReviewState,
     loadReviewData,
     isLoading,
   };
