@@ -29,7 +29,7 @@ function App() {
           {isAuthenticated && (
           <Navbar 
             userRole={userToken} 
-            username={username || undefined}
+            username={username ?? undefined}
             onLogout={handleLogout}
           />
         )}

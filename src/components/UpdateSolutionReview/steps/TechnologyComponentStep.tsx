@@ -95,46 +95,46 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Component Name <span className="text-red-500">*</span>
+                <Input
+                  placeholder="Enter component name"
+                  value={row.componentName}
+                  onChange={(e) => update("componentName", e.target.value)}
+                />
               </label>
-              <Input
-                placeholder="Enter component name"
-                value={row.componentName}
-                onChange={(e) => update("componentName", e.target.value)}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Product Name <span className="text-red-500">*</span>
+                <Input
+                  placeholder="Enter product name"
+                  value={row.productName}
+                  onChange={(e) => update("productName", e.target.value)}
+                />
               </label>
-              <Input
-                placeholder="Enter product name"
-                value={row.productName}
-                onChange={(e) => update("productName", e.target.value)}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Product Version
+                <Input
+                  placeholder="Enter product version"
+                  value={row.productVersion}
+                  onChange={(e) => update("productVersion", e.target.value)}
+                />
               </label>
-              <Input
-                placeholder="Enter product version"
-                value={row.productVersion}
-                onChange={(e) => update("productVersion", e.target.value)}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Usage <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select usage"
+                  value={row.usage}
+                  onChange={(e) => update("usage", e.target.value)}
+                  options={USAGE_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select usage"
-                value={row.usage}
-                onChange={(e) => update("usage", e.target.value)}
-                options={USAGE_OPTIONS}
-              />
             </div>
           </div>
 
@@ -196,7 +196,7 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {list.map((component, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr key={(component as any).id || `tech-${component.componentName}-${component.productName}-${index}`} className="hover:bg-gray-50">
                       {editingIndex === index && editingComponent ? (
                         // Edit mode
                         <>

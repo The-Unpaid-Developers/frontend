@@ -10,13 +10,6 @@ interface UseErrorHandlerReturn {
   showErrorToast: (message: string, type?: ErrorType) => void;
 }
 
-// interface ErrorToast {
-//   id: string;
-//   message: string;
-//   type: ErrorType;
-//   timestamp: number;
-// }
-
 /**
  * Custom hook for centralized error handling with retry capabilities
  * @param onRetry - Optional callback function to execute when retrying an action
@@ -58,7 +51,7 @@ export const useErrorHandler = (
       setError(
         new APIError(
           ErrorType.UNKNOWN_ERROR,
-          error.message || "An unexpected error occurred",
+          error.message ?? "An unexpected error occurred",
           error.stack,
           undefined,
           true

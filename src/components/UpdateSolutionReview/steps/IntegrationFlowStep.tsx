@@ -78,12 +78,6 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      {/* <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Integration Flow</h2>
-        <p className="text-gray-600">Define the integration flows between your solution components and external systems</p>
-      </div> */}
-
       {/* Add Integration Flow Form */}
       <Card>
         <CardHeader>
@@ -100,70 +94,70 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Component Name <span className="text-red-500">*</span>
-                </label>
                 <Input
                   placeholder="Enter component name"
                   value={row.componentName}
                   onChange={(e) => update("componentName", e.target.value)}
-                />
+                /></label>
+                
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Counterpart System Code <span className="text-red-500">*</span>
+                  <Input
+                    placeholder="Enter counterpart system code"
+                    value={row.counterpartSystemCode}
+                    onChange={(e) => update("counterpartSystemCode", e.target.value)}
+                  />
                 </label>
-                <Input
-                  placeholder="Enter counterpart system code"
-                  value={row.counterpartSystemCode}
-                  onChange={(e) => update("counterpartSystemCode", e.target.value)}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Counterpart System Role
+                  <DropDown
+                    placeholder="Select system role"
+                    value={row.counterpartSystemRole}
+                    onChange={(e) => update("counterpartSystemRole", e.target.value)}
+                    options={COUNTERPART_SYSTEM_ROLE_OPTIONS}
+                  />
                 </label>
-                <DropDown
-                  placeholder="Select system role"
-                  value={row.counterpartSystemRole}
-                  onChange={(e) => update("counterpartSystemRole", e.target.value)}
-                  options={COUNTERPART_SYSTEM_ROLE_OPTIONS}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Integration Method
+                  <DropDown
+                    placeholder="Select integration method"
+                    value={row.integrationMethod}
+                    onChange={(e) => update("integrationMethod", e.target.value)}
+                    options={INTEGRATION_METHOD_OPTIONS}
+                  />
                 </label>
-                <DropDown
-                  placeholder="Select integration method"
-                  value={row.integrationMethod}
-                  onChange={(e) => update("integrationMethod", e.target.value)}
-                  options={INTEGRATION_METHOD_OPTIONS}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Frequency
+                  <DropDown
+                    placeholder="Select frequency"
+                    value={row.frequency}
+                    onChange={(e) => update("frequency", e.target.value)}
+                    options={FREQUENCY_OPTIONS}
+                  />
                 </label>
-                <DropDown
-                  placeholder="Select frequency"
-                  value={row.frequency}
-                  onChange={(e) => update("frequency", e.target.value)}
-                  options={FREQUENCY_OPTIONS}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Purpose
+                  <Input
+                    placeholder="Enter integration purpose"
+                    value={row.purpose}
+                    onChange={(e) => update("purpose", e.target.value)}
+                  />
                 </label>
-                <Input
-                  placeholder="Enter integration purpose"
-                  value={row.purpose}
-                  onChange={(e) => update("purpose", e.target.value)}
-                />
               </div>
             </div>
 
@@ -327,7 +321,7 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
                               </span>
                             ) : '—'}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{flow.purpose || '—'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{flow.purpose ?? '—'}</td>
                           <td className="px-4 py-3 text-sm text-right">
                             <div className="flex justify-end space-x-2">
                               <button

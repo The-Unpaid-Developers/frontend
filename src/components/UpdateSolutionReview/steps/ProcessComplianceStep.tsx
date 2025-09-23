@@ -97,36 +97,36 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Standard / Guideline <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select standard/guideline"
+                  value={row.standardGuideline}
+                  onChange={(e) => update("standardGuideline", e.target.value)}
+                  options={STANDARD_GUIDELINE_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select standard/guideline"
-                value={row.standardGuideline}
-                onChange={(e) => update("standardGuideline", e.target.value)}
-                options={STANDARD_GUIDELINE_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Compliant <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select compliance status"
+                  value={row.compliant}
+                  onChange={(e) => update("compliant", e.target.value)}
+                  options={COMPLIANT_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select compliance status"
-                value={row.compliant}
-                onChange={(e) => update("compliant", e.target.value)}
-                options={COMPLIANT_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description
+                <Input
+                  placeholder="Enter description"
+                  value={row.description}
+                  onChange={(e) => update("description", e.target.value)}
+                />
               </label>
-              <Input
-                placeholder="Enter description"
-                value={row.description}
-                onChange={(e) => update("description", e.target.value)}
-              />
             </div>
           </div>
 
@@ -185,7 +185,7 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {list.map((compliance, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
+                    <tr key={(compliance as any).id || `compliance-${compliance.standardGuideline}-${compliance.compliant}-${index}`} className="hover:bg-gray-50">
                       {editingIndex === index && editingCompliance ? (
                         // Edit mode
                         <>
@@ -238,16 +238,11 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                         <>
                           <td className="px-4 py-3 text-sm text-gray-900">{compliance.standardGuideline}</td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              compliance.compliant === 'Yes' ? 'bg-green-100 text-green-800' :
-                              compliance.compliant === 'No' ? 'bg-red-100 text-red-800' :
-                              compliance.compliant === 'Partial' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-900`}>
                               {compliance.compliant}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{compliance.description || '—'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{compliance.description ?? '—'}</td>
                           <td className="px-4 py-3 text-sm text-right">
                             <div className="flex justify-end space-x-2">
                               <button

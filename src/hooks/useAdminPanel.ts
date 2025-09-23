@@ -27,9 +27,12 @@ export const useAdminPanel = () => {
   // Load all solution reviews
   const loadSubmittedSolutionReviews = async (page: number, size: number) => {
     setIsLoading(true);
+    setError(null); // Clear any previous errors
     try {
       const responseData = await getSRsByStateAPI('SUBMITTED', page, size);
-      if (responseData && Array.isArray(responseData.content)) {
+      if (responseData && Array.isArray(responseData.content) && 
+          typeof responseData.number !== 'undefined') {
+        // Paged response with pagination metadata
         setSolutionReviews(responseData.content);
         setPageMeta({
           page: responseData.number ?? page,
@@ -38,7 +41,7 @@ export const useAdminPanel = () => {
           totalElements:
             responseData.totalElements ?? responseData.content.length,
         });
-      } else {
+      } else if (responseData && responseData.content) {
         // fallback (non-paged list)
         setSolutionReviews(responseData.content ?? []);
         setPageMeta({
@@ -46,6 +49,15 @@ export const useAdminPanel = () => {
           size: responseData.content.length,
           totalPages: 1,
           totalElements: responseData.content.length,
+        });
+      } else {
+        // Handle undefined or invalid response
+        setSolutionReviews([]);
+        setPageMeta({
+          page: 0,
+          size: 0,
+          totalPages: 1,
+          totalElements: 0,
         });
       }
     } 

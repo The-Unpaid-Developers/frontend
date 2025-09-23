@@ -40,20 +40,16 @@ export const ReviewSubmissionModal: React.FC<ReviewSubmissionModalProps> = ({
   
   // Fetch data when modal opens and reviewId is available
   useEffect(() => {
-    if (showReview && reviewId) {
-      const fetchData = async () => {
+    const fetchData = async () => {
         try {
           await loadSolutionReviewById(reviewId);
         } catch (err) {
           console.error("Failed to load solution review:", err);
+          showError("Failed to load data: " + (err as Error).message);
         }
       };
-      try {
-        fetchData();
-      } catch (err) {
-        console.error("Failed to fetch data:", err);
-        showError("Failed to load data: " + (err as Error).message);
-      }
+    if (showReview && reviewId) {
+      fetchData();
     }
   }, [showReview, reviewId]);
 

@@ -149,7 +149,7 @@ case ErrorType.INFO:
       case ErrorType.INFO:
         return (
           <svg
-            className={`${iconClasses} text-blue-500`}
+            className={`${iconClasses} text-gray-500`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

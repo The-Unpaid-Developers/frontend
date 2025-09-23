@@ -31,7 +31,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<SolutionOverview>(empty);
   const [appUser, setAppUser] = useState('');
-  const { createNewSR, isCreating, error } = useCreateSolutionOverview();
+  const { createNewSR, isCreating } = useCreateSolutionOverview();
   const [systemCode, setSystemCode] = useState('');
   const { showSuccess, showError } = useToast();
 
@@ -109,67 +109,67 @@ export const CreateSolutionReviewPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Solution Name <span className="text-red-500">*</span>
-                  </label>
                   <Input 
                     placeholder="Enter solution name" 
                     value={data.solutionDetails.solutionName} 
                     onChange={e => update('solutionDetails', {...data.solutionDetails, solutionName: e.target.value})} 
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Project Name <span className="text-red-500">*</span>
-                  </label>
                   <Input 
                     placeholder="Enter project name" 
                     value={data.solutionDetails.projectName} 
                     onChange={e => update('solutionDetails', {...data.solutionDetails, projectName: e.target.value})} 
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     System Code <span className="text-red-500">*</span>
-                  </label>
                   <Input 
                     placeholder="Enter system code" 
                     value={systemCode} 
                     onChange={e => setSystemCode(e.target.value)} 
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Solution Architect <span className="text-red-500">*</span>
-                  </label>
                   <Input 
                     placeholder="Enter solution architect name" 
                     value={data.solutionDetails.solutionArchitectName} 
                     onChange={e => update('solutionDetails', {...data.solutionDetails, solutionArchitectName: e.target.value})} 
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Delivery Project Manager
-                  </label>
                   <Input 
                     placeholder="Enter delivery PM name" 
                     value={data.solutionDetails.deliveryProjectManagerName} 
                     onChange={e => update('solutionDetails', {...data.solutionDetails, deliveryProjectManagerName: e.target.value})} 
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     IT Business Partner
-                  </label>
                   <Input 
                     placeholder="Enter IT business partner name" 
                     value={data.solutionDetails.itBusinessPartner} 
                     onChange={e => update('solutionDetails', {...data.solutionDetails, itBusinessPartner: e.target.value})} 
-                  />
+                  /></label>
+                  
                 </div>
               </div>
             </CardContent>
@@ -190,48 +190,48 @@ export const CreateSolutionReviewPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Review Type <span className="text-red-500">*</span>
-                  </label>
                   <DropDown
                     placeholder="Select review type"
                     value={data.reviewType}
                     onChange={e => update('reviewType', e.target.value)}
                     options={REVIEW_TYPE_OPTIONS}
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Business Unit <span className="text-red-500">*</span>
-                  </label>
                   <DropDown
                     placeholder="Select business unit"
                     value={data.businessUnit}
                     onChange={e => update('businessUnit', e.target.value)}
                     options={BUSINESS_UNIT_OPTIONS}
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Business Driver <span className="text-red-500">*</span>
-                  </label>
                   <DropDown
                     placeholder="Select business driver"
                     value={data.businessDriver}
                     onChange={e => update('businessDriver', e.target.value)}
                     options={BUSINESS_DRIVER_OPTIONS}
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Value Outcomes
-                  </label>
-                  <Input 
+                 <Input 
                     placeholder="Describe expected value outcomes" 
                     value={data.valueOutcome} 
                     onChange={e => update('valueOutcome', e.target.value)} 
-                  />
+                  /> </label>
+                  
                 </div>
               </div>
             </CardContent>
@@ -295,21 +295,6 @@ export const CreateSolutionReviewPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Error Display */}
-          {/* {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex">
-                <svg className="w-5 h-5 text-red-400 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <h3 className="text-sm font-medium text-red-800">Error</h3>
-                  <p className="text-sm text-red-700 mt-1">{error}</p>
-                </div>
-              </div>
-            </div>
-          )} */}
 
           {/* Actions */}
           <div className="flex justify-end space-x-3 pt-4">

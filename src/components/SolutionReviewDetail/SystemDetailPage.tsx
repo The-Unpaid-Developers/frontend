@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// import { useSolutionReview } from '../../context/SolutionReviewContext';
 import { SystemDetail } from '../SolutionReviewDetail/SystemDetail';
-// import { mockApiService } from '../../services/mockApiUpdated';
 
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';
 import { useToast } from "../../context/ToastContext";
@@ -10,14 +8,12 @@ import { useToast } from "../../context/ToastContext";
 export const SystemDetailPage: React.FC = () => {
   const { systemCode } = useParams<{ systemCode: string }>();
   const navigate = useNavigate();
-  // const { state } = useSolutionReview();
   console.log(systemCode);
 
   const { solutionReviews, loadSystemSolutionReviews } = useViewSolutionReview();
-  // loadSystemSolutionReviews(systemCode || "");
   console.log(solutionReviews);
 
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
 
   useEffect(() => {
     console.log('in eff');

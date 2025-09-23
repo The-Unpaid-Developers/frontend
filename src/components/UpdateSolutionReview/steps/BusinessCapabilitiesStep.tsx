@@ -88,11 +88,6 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      {/* <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Business Capabilities</h2>
-        <p className="text-gray-600">Define the business capabilities that your solution will support</p>
-      </div> */}
 
       {/* Add New Capability Card */}
       <Card>
@@ -109,48 +104,48 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 L1 Capability <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select L1 capability"
+                  value={newCapability.l1Capability}
+                  onChange={e => updateNewCapability('l1Capability', e.target.value)}
+                  options={L1_CAPABILITY_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select L1 capability"
-                value={newCapability.l1Capability}
-                onChange={e => updateNewCapability('l1Capability', e.target.value)}
-                options={L1_CAPABILITY_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 L2 Capability <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select L2 capability"
+                  value={newCapability.l2Capability}
+                  onChange={e => updateNewCapability('l2Capability', e.target.value)}
+                  options={L2_CAPABILITY_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select L2 capability"
-                value={newCapability.l2Capability}
-                onChange={e => updateNewCapability('l2Capability', e.target.value)}
-                options={L2_CAPABILITY_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 L3 Capability <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select L3 capability"
+                  value={newCapability.l3Capability}
+                  onChange={e => updateNewCapability('l3Capability', e.target.value)}
+                  options={L3_CAPABILITY_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select L3 capability"
-                value={newCapability.l3Capability}
-                onChange={e => updateNewCapability('l3Capability', e.target.value)}
-                options={L3_CAPABILITY_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Remarks
+                <Input
+                  placeholder="Enter remarks"
+                  value={newCapability.remarks}
+                  onChange={e => updateNewCapability('remarks', e.target.value)}
+                />
               </label>
-              <Input
-                placeholder="Enter remarks"
-                value={newCapability.remarks}
-                onChange={e => updateNewCapability('remarks', e.target.value)}
-              />
             </div>
           </div>
 
@@ -275,7 +270,7 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
                           <td className="px-4 py-3 text-sm text-gray-900">{capability.l1Capability}</td>
                           <td className="px-4 py-3 text-sm text-gray-900">{capability.l2Capability}</td>
                           <td className="px-4 py-3 text-sm text-gray-900">{capability.l3Capability}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{capability.remarks || '—'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{capability.remarks ?? '—'}</td>
                           <td className="px-4 py-3 text-sm text-right">
                             <div className="flex justify-end space-x-2">
                               <button

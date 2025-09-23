@@ -26,7 +26,7 @@ export const Login: React.FC = () => {
       await mockApiService.login(username.trim(), role);
       navigate("/"); // adjust route if needed
     } catch (err: any) {
-      setError(err?.message || "Login failed");
+      setError(err?.message ?? "Login failed");
     } finally {
       setLoading(false);
     }
@@ -40,12 +40,13 @@ export const Login: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Name
-            </label>
-            <Input
+              <Input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your name"
             />
+            </label>
+            
           </div>
 
             <div>

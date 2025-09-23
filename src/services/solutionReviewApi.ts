@@ -24,7 +24,6 @@ export const getAllSolutionReviewsAPI = async (page: number, size: number) => {
 
 export const getAllSystemsAPI = async (page: number, size: number) => {
   const response = await axios.get(`${API_BASE_URL}/solution-review/system-view?page=${page}&size=${size}`);
-  // const response = await axios.get(`${API_BASE_URL}/solution-review/paging?page=${page}&size=${size}`);
   return response.data;
 };
 

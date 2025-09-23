@@ -35,14 +35,6 @@ export const DropDown = React.forwardRef<HTMLSelectElement, DropDownProps>(
 
     return (
       <div className="w-full">
-        {/* {label && (
-          <label
-            htmlFor={selectId}
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            {label}
-          </label>
-        )} */}
         <div className="relative">
           <select
             id={selectId}

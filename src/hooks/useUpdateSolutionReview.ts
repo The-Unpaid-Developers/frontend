@@ -138,7 +138,7 @@ export const useUpdateSolutionReview = (reviewId?: string) => {
     const payload = {
       documentId: reviewIdLocal ?? reviewId,
       operation,
-      modifiedBy: localStorage.getItem("username") || "unknown",
+      modifiedBy: localStorage.getItem("username") ?? "unknown",
     };
     try {
       const updated = await transitionSolutionReviewStateAPI(payload);

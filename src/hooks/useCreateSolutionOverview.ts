@@ -13,7 +13,7 @@ export const useCreateSolutionOverview = () => {
       const created = await createSolutionReviewAPI(data, systemCode);
       return created;
     } catch (e: any) {
-      setError(e.message || "Error creating");
+      setError(e.message ?? "Error creating");
       throw e;
     } finally {
       setIsCreating(false);
@@ -28,7 +28,7 @@ export const useCreateSolutionOverview = () => {
       const created = await createSRFromExistingAPI(systemCode);
       return created;
     } catch (e: any) {
-      setError(e.message || "Error creating");
+      setError(e.message ?? "Error creating");
       throw e;
     } finally {
       setIsCreating(false);

@@ -1,6 +1,5 @@
 import React from "react";
 import type { SolutionReview } from "../../types/solutionReview";
-import { DocumentState, STATE_TRANSITIONS } from "../../types/solutionReview";
 import {
   Card,
   CardHeader,
@@ -42,14 +41,14 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
           <span className="text-sm text-gray-500">{review.systemCode}</span>
         </div>
         <CardTitle>
-          {review.solutionOverview.solutionDetails.solutionName ||
+          {review.solutionOverview.solutionDetails.solutionName ??
             "Untitled Solution Review"}
         </CardTitle>
       </CardHeader>
 
       <CardContent className="flex-1">
         <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-          {review.solutionOverview.solutionDetails.projectName ||
+          {review.solutionOverview.solutionDetails.projectName ??
             "No description available"}
         </p>
 
@@ -58,12 +57,12 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
             <div className="flex justify-between">
               <span className="text-gray-500">Category:</span>
               <span className="font-medium">
-                {review.solutionOverview.businessUnit || "N/A"}
+                {review.solutionOverview.businessUnit ?? "N/A"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Review Status:</span>
-              {review.documentState || "N/A"}
+              {review.documentState ?? "N/A"}
             </div>
           </div>
         )}
@@ -89,25 +88,6 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
           >
             {viewLabel}
           </Button>
-
-          {/* {onTransition && availableTransitions.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {availableTransitions.map((transition) => (
-                <Button
-                  key={transition.operation}
-                  variant={
-                    transition.to === DocumentState.CURRENT ? "primary" : "ghost"
-                  }
-                  size="sm"
-                  onClick={() => onTransition(review, transition.to)}
-                  className="text-xs"
-                  title={transition.description}
-                >
-                  {transition.operationName}
-                </Button>
-              ))}
-            </div>
-          )} */}
         </div>
         
       </CardFooter>
