@@ -53,14 +53,14 @@ export class ErrorBoundary extends Component<Props, State> {
   /**
    * Reset the error boundary state
    */
-  private handleReset = () => {
+  private readonly handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
   /**
    * Reload the page as a fallback recovery method
    */
-  private handleReload = () => {
+  private readonly handleReload = () => {
     window.location.reload();
   };
 

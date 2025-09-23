@@ -1,15 +1,21 @@
 /* eslint-disable react-refresh/only-export-components */
 import React from "react";
 import type { ReactElement } from "react";
-import { render } from "@testing-library/react";
-import type { RenderOptions } from "@testing-library/react";
-import { SolutionReviewProvider } from "../context/SolutionReviewContext";
+import { render, RenderOptions } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+import { ToastProvider } from "../context/ToastContext";
 
 /**
  * Custom render function that wraps components with necessary providers
  */
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-  return <SolutionReviewProvider>{children}</SolutionReviewProvider>;
+  return (
+    <BrowserRouter>
+      <ToastProvider>
+        {children}
+      </ToastProvider>
+    </BrowserRouter>
+  );
 };
 
 /**
@@ -22,6 +28,22 @@ const customRender = (
   ui: ReactElement,
   options?: Omit<RenderOptions, "wrapper">
 ) => render(ui, { wrapper: AllTheProviders, ...options });
+
+// Test utilities for common scenarios
+export const renderWithoutRouter = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, "wrapper">
+) => {
+  const TestProviders = ({ children }: { children: React.ReactNode }) => (
+    <ToastProvider>
+      {children}
+    </ToastProvider>
+  );
+  
+  return render(ui, { wrapper: TestProviders, ...options });
+};
+
+export const renderWithRouter = customRender;
 
 export * from "@testing-library/react";
 export { customRender as render };

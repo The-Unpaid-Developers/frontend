@@ -24,7 +24,7 @@ export const Dashboard: React.FC = () => {
   const totalPages = pageMeta.totalPages;
   const totalElements = pageMeta.totalElements;
 
-  const { showSuccess, showError } = useToast();
+  const { showError } = useToast();
 
   useEffect(() => {
     const run = async () => {
@@ -53,29 +53,6 @@ export const Dashboard: React.FC = () => {
       await loadSolutionReviews(p, pageSize);
     }
   };
-
-  // Optional client-side filtering (backend should already filter)
-  // const filteredReviews = useMemo(() => {
-  //   return solutionReviews.filter((review) => {
-  //     const matchesSearch =
-  //       !searchTerm ||
-  //       review.solutionOverview?.solutionDetails?.solutionName
-  //         ?.toLowerCase()
-  //         .includes(searchTerm.toLowerCase()) ||
-  //       review.solutionOverview?.solutionDetails?.projectName
-  //         ?.toLowerCase()
-  //         .includes(searchTerm.toLowerCase()) ||
-  //       review.solutionOverview?.businessUnit
-  //         ?.toLowerCase()
-  //         .includes(searchTerm.toLowerCase()) ||
-  //       review.systemCode?.toLowerCase().includes(searchTerm.toLowerCase());
-
-  //     const matchesState =
-  //       stateFilter === "ALL" || review.documentState === stateFilter;
-
-  //     return matchesSearch && matchesState;
-  //   });
-  // }, [solutionReviews, searchTerm, stateFilter]);
 
   const stateCounts = useMemo(() => {
     return solutionReviews.reduce((acc, review) => {
@@ -156,7 +133,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        {/* <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
             <div className="text-2xl font-bold text-gray-900">
               {totalElements}
@@ -174,7 +151,7 @@ export const Dashboard: React.FC = () => {
               <div className="text-sm text-gray-600">{ds}</div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Filters */}
         <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
@@ -191,7 +168,7 @@ export const Dashboard: React.FC = () => {
                 className="w-full"
               />
             </div>
-            <div className="flex flex-wrap gap-2">
+            {/* <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setStateFilter("ALL")}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -215,7 +192,7 @@ export const Dashboard: React.FC = () => {
                   {docState} ({stateCounts[docState] || 0})
                 </button>
               ))}
-            </div>
+            </div> */}
           </div>
         </div>
 

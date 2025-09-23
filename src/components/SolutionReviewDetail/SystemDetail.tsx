@@ -4,11 +4,11 @@ import { DocumentState, STATE_TRANSITIONS } from "../../types/solutionReview";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../ui";
 import { useNavigate } from "react-router-dom";
 import { useCreateSolutionOverview } from "../../hooks/useCreateSolutionOverview";
-// import { useSolutionReview } from "../../context/SolutionReviewContext";
 import { useToast } from "../../context/ToastContext";
 import { useUpdateSolutionReview } from "../../hooks/useUpdateSolutionReview";
 import { ReviewSubmissionModal } from "./ReviewSubmissionModal";
 import { ApprovalModal } from "../AdminPanel";
+import { formatDate } from "../../utils/formatters";
 
 interface SystemDetailProps {
   systemCode: string;
@@ -47,6 +47,10 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
       } else if (operation === "SUBMIT") {
         setShowSubmissionModal(true);
         return; // Don't show toast yet, wait for modal confirmation
+      } else if (operation === "ACTIVATE") {
+        await transitionSolutionReviewState(operation, reviewId);
+        showSuccess("Review activated successfully!");
+        navigate(0);
       } else if (operation === "UNAPPROVE") {
         await transitionSolutionReviewState(operation, reviewId);
         showSuccess("Review unapproved successfully!");
@@ -99,16 +103,6 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
       showError("Failed to create new draft: " + error.message);
     }
     };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const getVersionChanges = (
     currentVersion: SolutionReview,
@@ -189,11 +183,9 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
         <CardContent>
           <div className="space-y-4">
             {system.map((review, index) => {
-              // const previousReview = system.reviews[index + 1];
-              // const changes = getVersionChanges(review, previousReview);
               const previousReview = system[index + 1];
               const changes = getVersionChanges(review, previousReview);
-              const availableTransitions = STATE_TRANSITIONS[review.documentState] || [];
+              const availableTransitions = STATE_TRANSITIONS[review.documentState] ?? [];
 
               return (
                 <div
@@ -211,11 +203,6 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                       <Badge variant="state" state={review.documentState}>
                         {review.documentState}
                       </Badge>
-                      {/* {review.version === system.latestVersion && (
-                        <Badge className="bg-green-100 text-green-800 border-green-300">
-                          Latest
-                        </Badge>
-                      )} */}
                       {review.documentState === "CURRENT" && (
                         <Badge className="bg-blue-100 text-blue-800 border-blue-300">
                           Current
@@ -223,19 +210,6 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                       )}
                     </div>
                     <div className="flex space-x-2">
-                      {/* <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          setSelectedVersion(
-                            selectedVersion?.id === review.id ? null : review
-                          )
-                        }
-                      >
-                        {selectedVersion?.id === review.id
-                          ? "Collapse"
-                          : "Expand"}
-                      </Button> */}
                       <Button
                         variant="secondary"
                         size="sm"
@@ -250,7 +224,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                     <div>
                       <h4 className="font-medium text-gray-900 mb-1">Title</h4>
                       <p className="text-sm text-gray-600">
-                        {review.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
+                        {review.solutionOverview?.solutionDetails?.solutionName ?? "Untitled Solution Review"}
                       </p>
                     </div>
                     <div>
@@ -333,7 +307,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                             Edit Draft
                           </Button>
                         )}
-                        {review.documentState === "CURRENT" && (
+                        {review.documentState === "ACTIVE" && (
                           <Button
                             variant="primary"
                             size="sm"

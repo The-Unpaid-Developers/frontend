@@ -4,6 +4,7 @@ import { useAdminPanel } from "../../hooks/useAdminPanel";
 import { useToast } from "../../context/ToastContext";
 
 interface Concern {
+  id: string;
   type: 'RISK' | 'DECISION' | 'DEVIATION';
   description: string;
   impact: string;
@@ -43,6 +44,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [isApproving, setIsApproving] = useState(false);
   const [concerns, setConcerns] = useState<Concern[]>([]);
   const [currentConcern, setCurrentConcern] = useState<Concern>({
+    id: '',
     type: 'RISK',
     description: '',
     impact: '',
@@ -59,8 +61,14 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       return;
     }
 
-    setConcerns([...concerns, currentConcern]);
+    const newConcern = {
+      ...currentConcern,
+      id: `concern-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    };
+
+    setConcerns([...concerns, newConcern]);
     setCurrentConcern({
+      id: '',
       type: 'RISK',
       description: '',
       impact: '',
@@ -69,8 +77,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     });
   };
 
-  const removeConcern = (index: number) => {
-    setConcerns(concerns.filter((_, i) => i !== index));
+  const removeConcern = (id: string) => {
+    setConcerns(concerns.filter((concern) => concern.id !== id));
   };
 
   const handleApproval = async () => {
@@ -81,12 +89,12 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       console.log('concerns.length:', concerns.length);
       
       // First, add concerns if any
-      if (concerns.length > 0) {
+      // if (concerns.length > 0) {
         if (!currentSolutionOverview) {
           throw new Error('Solution overview not available for adding concerns');
         }
         await addConcernsToSR(reviewId, concerns, currentSolutionOverview);
-      }
+      // }
       
       // Then call the completion callback (which should handle the actual approval)
       await onApprovalComplete();
@@ -96,6 +104,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       // Reset state
       setConcerns([]);
       setCurrentConcern({
+        id: '',
         type: 'RISK',
         description: '',
         impact: '',
@@ -118,6 +127,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     // Reset state when closing
     setConcerns([]);
     setCurrentConcern({
+      id: '',
       type: 'RISK',
       description: '',
       impact: '',
@@ -150,57 +160,61 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Concern Type
+                      <DropDown
+                      value={currentConcern.type}
+                      onChange={(e) => setCurrentConcern({...currentConcern, type: e.target.value as any})}
+                      options={CONCERN_TYPE_OPTIONS}
+                    />
                   </label>
-                  <DropDown
-                    value={currentConcern.type}
-                    onChange={(e) => setCurrentConcern({...currentConcern, type: e.target.value as any})}
-                    options={CONCERN_TYPE_OPTIONS}
-                  />
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Status
-                  </label>
-                  <DropDown
+                    <DropDown
                     value={currentConcern.status}
                     onChange={(e) => setCurrentConcern({...currentConcern, status: e.target.value as any})}
                     options={CONCERN_STATUS_OPTIONS}
                   />
+                  </label>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Description
-                </label>
-                <Input
+                  <Input
                   value={currentConcern.description}
                   onChange={(e) => setCurrentConcern({...currentConcern, description: e.target.value})}
                   placeholder="Describe the concern"
                 />
+                </label>
+                
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Impact
-                </label>
-                <Input
+                  <Input
                   value={currentConcern.impact}
                   onChange={(e) => setCurrentConcern({...currentConcern, impact: e.target.value})}
                   placeholder="Describe the impact"
                 />
+                </label>
+                
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Disposition
-                </label>
-                <Input
+                  <Input
                   value={currentConcern.disposition}
                   onChange={(e) => setCurrentConcern({...currentConcern, disposition: e.target.value})}
                   placeholder="Describe the disposition"
                 />
+                </label>
+                
               </div>
 
               <Button
@@ -222,8 +236,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {concerns.map((concern, index) => (
-                  <div key={index} className="border rounded p-3 bg-gray-50">
+                {concerns.map((concern) => (
+                  <div key={concern.id} className="border rounded p-3 bg-gray-50">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
@@ -241,7 +255,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => removeConcern(index)}
+                        onClick={() => removeConcern(concern.id)}
                         className="text-red-600 hover:text-red-800"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

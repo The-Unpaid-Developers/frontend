@@ -509,7 +509,7 @@ export const mockApiService = {
       }
 
       // await delay(300);
-      return mockSolutionReview.find(review => review.id === id) || null;
+      return mockSolutionReview.find(review => review.id === id) ?? null;
     } catch (error) {
       throw error instanceof APIError
         ? error
@@ -523,21 +523,14 @@ export const mockApiService = {
     }
   },
    async getAllSolutionReviews(): Promise<SolutionReview[]> {
-    // Simulate small delay
-    // await delay(150);
     return [...mockSolutionReview];
   },
 
   async getSystemSolutionReviews(systemCode: string): Promise<SolutionReview[]> {
-    // Simulate small delay
-    // await delay(150);
     return [...mockSolutionReview.filter(review => review.systemCode===systemCode)];
   },
 
   async login(username: string, role: string): Promise<{ token: string }> {
-    // Simulate small delay
-    // await delay(200, 0.1); // 10% failure rate for testing
-    // set user session or token
     localStorage.setItem("userToken", role);
     localStorage.setItem("username", username);
     return { token: role };

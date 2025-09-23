@@ -5,7 +5,7 @@ import {
   SolutionReviewCard,
   SolutionReviewDetail,
 } from "../SolutionReviewDetail";
-import { Button, Input } from "../ui";
+import { Input } from "../ui";
 import { useAdminPanel } from "../../hooks/useAdminPanel";
 
 export const AdminPanel: React.FC = () => {
@@ -173,7 +173,7 @@ export const AdminPanel: React.FC = () => {
                   Prev
                 </button>
                 <span className="px-2 text-sm">
-                  Page {currentPage + 1} / {totalPages || 1}
+                  Page {currentPage + 1} / {totalPages ?? 1}
                 </span>
                 <button
                   onClick={() => goToPage(currentPage + 1)}

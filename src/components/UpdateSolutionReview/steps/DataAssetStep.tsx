@@ -103,11 +103,6 @@ const DataAssetStep: React.FC<StepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      {/* <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Data Assets</h2>
-        <p className="text-gray-600">Define the data assets that your solution will manage and their classifications</p>
-      </div> */}
 
       {/* Add New Data Asset Form */}
       <Card>
@@ -128,57 +123,57 @@ const DataAssetStep: React.FC<StepProps> = ({
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Component Name <span className="text-red-500">*</span>
+                    <Input
+                      placeholder="Enter component name"
+                      value={row.componentName}
+                      onChange={(e) => update("componentName", e.target.value)}
+                    />
                   </label>
-                  <Input
-                    placeholder="Enter component name"
-                    value={row.componentName}
-                    onChange={(e) => update("componentName", e.target.value)}
-                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Data Domain <span className="text-red-500">*</span>
+                    <Input
+                      placeholder="Enter data domain"
+                      value={row.dataDomain}
+                      onChange={(e) => update("dataDomain", e.target.value)}
+                    />
                   </label>
-                  <Input
-                    placeholder="Enter data domain"
-                    value={row.dataDomain}
-                    onChange={(e) => update("dataDomain", e.target.value)}
-                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Data Classification <span className="text-red-500">*</span>
+                    <DropDown
+                      placeholder="Select data classification"
+                      value={row.dataClassification}
+                      onChange={(e) => update("dataClassification", e.target.value)}
+                      options={CLASSIFICATION_OPTIONS}
+                    />
                   </label>
-                  <DropDown
-                    placeholder="Select data classification"
-                    value={row.dataClassification}
-                    onChange={(e) => update("dataClassification", e.target.value)}
-                    options={CLASSIFICATION_OPTIONS}
-                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Data Owned By
+                    <Input
+                      placeholder="Enter data owner"
+                      value={row.dataOwnedBy}
+                      onChange={(e) => update("dataOwnedBy", e.target.value)}
+                    />
                   </label>
-                  <Input
-                    placeholder="Enter data owner"
-                    value={row.dataOwnedBy}
-                    onChange={(e) => update("dataOwnedBy", e.target.value)}
-                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Mastered In
+                    <Input
+                      placeholder="Enter mastered system"
+                      value={row.masteredIn}
+                      onChange={(e) => update("masteredIn", e.target.value)}
+                    />
                   </label>
-                  <Input
-                    placeholder="Enter mastered system"
-                    value={row.masteredIn}
-                    onChange={(e) => update("masteredIn", e.target.value)}
-                  />
                 </div>
               </div>
             </div>
@@ -189,12 +184,14 @@ const DataAssetStep: React.FC<StepProps> = ({
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <Input
-                      value={entity}
-                      onChange={(e) => setEntity(e.target.value)}
-                      placeholder="Enter data entity name"
-                      onKeyPress={(e) => e.key === 'Enter' && addEntity()}
-                    />
+                    <label className="block">
+                      <Input
+                        value={entity}
+                        onChange={(e) => setEntity(e.target.value)}
+                        placeholder="Enter data entity name"
+                        onKeyPress={(e) => e.key === 'Enter' && addEntity()}
+                      />
+                    </label>
                   </div>
                   <Button
                     type="button"
@@ -300,7 +297,7 @@ const DataAssetStep: React.FC<StepProps> = ({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {list.map((asset, index) => (
-                    <tr key={asset.id || index} className="hover:bg-gray-50">
+                    <tr key={(asset as any).id || `asset-${asset.componentName}-${asset.dataDomain}-${index}`} className="hover:bg-gray-50">
                       {editingIndex === index && editingAsset ? (
                         // Edit mode
                         <>
@@ -346,7 +343,6 @@ const DataAssetStep: React.FC<StepProps> = ({
                                   value={entity}
                                   onChange={(e) => setEntity(e.target.value)}
                                   placeholder="Add entity"
-                                  size="sm"
                                 />
                                 <Button
                                   size="sm"
@@ -359,7 +355,7 @@ const DataAssetStep: React.FC<StepProps> = ({
                               {editingAsset.dataEntities.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
                                   {editingAsset.dataEntities.map((e, idx) => (
-                                    <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                                    <span key={e} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
                                       {e}
                                       <button
                                         onClick={() => removeEntityFromEditingAsset(e)}
@@ -406,27 +402,22 @@ const DataAssetStep: React.FC<StepProps> = ({
                             {asset.dataDomain}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              asset.dataClassification === 'Confidential' ? 'bg-red-100 text-red-800' :
-                              asset.dataClassification === 'Internal' ? 'bg-yellow-100 text-yellow-800' :
-                              asset.dataClassification === 'Public' ? 'bg-green-100 text-green-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800`}>
                               {asset.dataClassification}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {asset.dataOwnedBy || '—'}
+                            {asset.dataOwnedBy ?? '—'}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {asset.masteredIn || '—'}
+                            {asset.masteredIn ?? '—'}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             {asset.dataEntities.length > 0 ? (
                               <div className="max-w-xs">
                                 <div className="flex flex-wrap gap-1">
                                   {asset.dataEntities.slice(0, 2).map((entity, idx) => (
-                                    <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                                    <span key={entity} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
                                       {entity}
                                     </span>
                                   ))}

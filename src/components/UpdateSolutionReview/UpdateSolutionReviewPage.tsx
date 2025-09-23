@@ -48,13 +48,12 @@ export const UpdateSolutionReviewPage: React.FC = () => {
   );
   const [showReview, setShowReview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const {showSuccess, showError, hideToast } = useToast();
+  const {showSuccess, showError } = useToast();
 
   const {
     saveSection,
     transitionSolutionReviewState,
     loadReviewData,
-    isLoading,
     solutionOverview,
     businessCapabilities,
     dataAssets,

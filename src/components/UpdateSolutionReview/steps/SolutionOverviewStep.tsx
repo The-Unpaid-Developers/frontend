@@ -95,76 +95,76 @@ const SolutionOverviewStep: React.FC<StepProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Solution Name <span className="text-red-500">*</span>
+                <Input
+                  placeholder="Enter solution name"
+                  value={data.solutionDetails.solutionName}
+                  onChange={(e) =>
+                    updateSolutionDetails("solutionName", e.target.value)
+                  }
+                />
               </label>
-              <Input
-                placeholder="Enter solution name"
-                value={data.solutionDetails.solutionName}
-                onChange={(e) =>
-                  updateSolutionDetails("solutionName", e.target.value)
-                }
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Project Name <span className="text-red-500">*</span>
+                <Input
+                  placeholder="Enter project name"
+                  value={data.solutionDetails.projectName}
+                  onChange={(e) => updateSolutionDetails("projectName", e.target.value)}
+                />
               </label>
-              <Input
-                placeholder="Enter project name"
-                value={data.solutionDetails.projectName}
-                onChange={(e) => updateSolutionDetails("projectName", e.target.value)}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 System Code
+                <Input 
+                  placeholder="System code" 
+                  value={systemCode} 
+                  disabled 
+                  className="bg-gray-50"
+                />
               </label>
-              <Input 
-                placeholder="System code" 
-                value={systemCode} 
-                disabled 
-                className="bg-gray-50"
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Solution Architect <span className="text-red-500">*</span>
+                <Input
+                  placeholder="Enter solution architect name"
+                  value={data.solutionDetails.solutionArchitectName}
+                  onChange={(e) =>
+                    updateSolutionDetails("solutionArchitectName", e.target.value)
+                  }
+                />
               </label>
-              <Input
-                placeholder="Enter solution architect name"
-                value={data.solutionDetails.solutionArchitectName}
-                onChange={(e) =>
-                  updateSolutionDetails("solutionArchitectName", e.target.value)
-                }
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Delivery Project Manager
+                <Input
+                  placeholder="Enter delivery PM name"
+                  value={data.solutionDetails.deliveryProjectManagerName}
+                  onChange={(e) =>
+                    updateSolutionDetails("deliveryProjectManagerName", e.target.value)
+                  }
+                />
               </label>
-              <Input
-                placeholder="Enter delivery PM name"
-                value={data.solutionDetails.deliveryProjectManagerName}
-                onChange={(e) =>
-                  updateSolutionDetails("deliveryProjectManagerName", e.target.value)
-                }
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 IT Business Partner
+                <Input
+                  placeholder="Enter IT business partner name"
+                  value={data.solutionDetails.itBusinessPartner}
+                  onChange={(e) =>
+                    updateSolutionDetails("itBusinessPartner", e.target.value)
+                  }
+                />
               </label>
-              <Input
-                placeholder="Enter IT business partner name"
-                value={data.solutionDetails.itBusinessPartner}
-                onChange={(e) =>
-                  updateSolutionDetails("itBusinessPartner", e.target.value)
-                }
-              />
             </div>
           </div>
         </CardContent>
@@ -185,48 +185,48 @@ const SolutionOverviewStep: React.FC<StepProps> = ({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Review Type <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select review type"
+                  value={data.reviewType}
+                  onChange={(e) => update("reviewType", e.target.value)}
+                  options={REVIEW_TYPE_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select review type"
-                value={data.reviewType}
-                onChange={(e) => update("reviewType", e.target.value)}
-                options={REVIEW_TYPE_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Business Unit <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select business unit"
+                  value={data.businessUnit}
+                  onChange={(e) => update("businessUnit", e.target.value)}
+                  options={BUSINESS_UNIT_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select business unit"
-                value={data.businessUnit}
-                onChange={(e) => update("businessUnit", e.target.value)}
-                options={BUSINESS_UNIT_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Business Driver <span className="text-red-500">*</span>
+                <DropDown
+                  placeholder="Select business driver"
+                  value={data.businessDriver}
+                  onChange={(e) => update("businessDriver", e.target.value)}
+                  options={BUSINESS_DRIVER_OPTIONS}
+                />
               </label>
-              <DropDown
-                placeholder="Select business driver"
-                value={data.businessDriver}
-                onChange={(e) => update("businessDriver", e.target.value)}
-                options={BUSINESS_DRIVER_OPTIONS}
-              />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Value Outcomes
+                <Input
+                  placeholder="Describe expected value outcomes"
+                  value={data.valueOutcome}
+                  onChange={(e) => update("valueOutcome", e.target.value)}
+                />
               </label>
-              <Input
-                placeholder="Describe expected value outcomes"
-                value={data.valueOutcome}
-                onChange={(e) => update("valueOutcome", e.target.value)}
-              />
             </div>
           </div>
         </CardContent>
@@ -246,12 +246,14 @@ const SolutionOverviewStep: React.FC<StepProps> = ({
           <div className="space-y-4">
             <div className="flex gap-2">
               <div className="flex-1">
-                <DropDown
-                  placeholder="Select application user type"
-                  value={appUser}
-                  onChange={(e) => setAppUser(e.target.value)}
-                  options={APPLICATION_USER_OPTIONS}
-                />
+                <label className="block">
+                  <DropDown
+                    placeholder="Select application user type"
+                    value={appUser}
+                    onChange={(e) => setAppUser(e.target.value)}
+                    options={APPLICATION_USER_OPTIONS}
+                  />
+                </label>
               </div>
               <Button
                 type="button"

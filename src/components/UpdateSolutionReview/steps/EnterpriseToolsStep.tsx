@@ -111,58 +111,58 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tool Name <span className="text-red-500">*</span>
+                  <Input
+                    placeholder="Enter tool name"
+                    value={row.tool.name}
+                    onChange={(e) => updateTool("name", e.target.value)}
+                  />
                 </label>
-                <Input
-                  placeholder="Enter tool name"
-                  value={row.tool.name}
-                  onChange={(e) => updateTool("name", e.target.value)}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tool Type <span className="text-red-500">*</span>
+                  <DropDown
+                    placeholder="Select tool type"
+                    value={row.tool.type}
+                    onChange={(e) => updateTool("type", e.target.value)}
+                    options={TOOL_TYPE_OPTIONS}
+                  />
                 </label>
-                <DropDown
-                  placeholder="Select tool type"
-                  value={row.tool.type}
-                  onChange={(e) => updateTool("type", e.target.value)}
-                  options={TOOL_TYPE_OPTIONS}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Onboarding Status
+                  <DropDown
+                    placeholder="Select status"
+                    value={row.onboarded}
+                    onChange={(e) => update("onboarded", e.target.value)}
+                    options={ONBOARDING_STATUS_OPTIONS}
+                  />
                 </label>
-                <DropDown
-                  placeholder="Select status"
-                  value={row.onboarded}
-                  onChange={(e) => update("onboarded", e.target.value)}
-                  options={ONBOARDING_STATUS_OPTIONS}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Integration Details
+                  <Input
+                    placeholder="Enter integration details"
+                    value={row.integrationDetails}
+                    onChange={(e) => update("integrationDetails", e.target.value)}
+                  />
                 </label>
-                <Input
-                  placeholder="Enter integration details"
-                  value={row.integrationDetails}
-                  onChange={(e) => update("integrationDetails", e.target.value)}
-                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Issues
+                  <Input
+                    placeholder="Enter any issues"
+                    value={row.issues}
+                    onChange={(e) => update("issues", e.target.value)}
+                  />
                 </label>
-                <Input
-                  placeholder="Enter any issues"
-                  value={row.issues}
-                  onChange={(e) => update("issues", e.target.value)}
-                />
               </div>
             </div>
 
@@ -302,20 +302,15 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
                             {tool.tool.type}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              tool.onboarded === 'Completed' ? 'bg-green-100 text-green-800' :
-                              tool.onboarded === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
-                              tool.onboarded === 'Not Started' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {tool.onboarded || 'N/A'}
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800`}>
+                              {tool.onboarded ?? 'N/A'}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {tool.integrationDetails || '—'}
+                            {tool.integrationDetails ?? '—'}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            {tool.issues || '—'}
+                            {tool.issues ?? '—'}
                           </td>
                           <td className="px-4 py-3 text-sm text-right">
                             <div className="flex justify-end space-x-2">

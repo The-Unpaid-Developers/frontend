@@ -194,14 +194,16 @@ export interface StepValidationResult {
 const DocumentState = {
   DRAFT: "DRAFT",
   SUBMITTED: "SUBMITTED",
-  CURRENT: "CURRENT",
+  APPROVED: "APPROVED",
+  ACTIVE: "ACTIVE",
   OUTDATED: "OUTDATED",
 } as const;
 
 const DocumentStateFilter = {
   DRAFT: "DRAFT",
   SUBMITTED: "SUBMITTED",
-  CURRENT: "CURRENT",
+  APPROVED: "APPROVED",
+  ACTIVE: "ACTIVE",
 } as const;
 export type DocumentStateFilter = (typeof DocumentStateFilter)[keyof typeof DocumentStateFilter];
 
@@ -212,6 +214,7 @@ const StateOperation = {
   REMOVE_SUBMISSION: "REMOVE_SUBMISSION",
   APPROVE: "APPROVE",
   UNAPPROVE: "UNAPPROVE",
+  ACTIVATE: "ACTIVATE",
   MARK_OUTDATED: "MARK_OUTDATED",
   RESET_CURRENT: "RESET_CURRENT",
 } as const;
@@ -276,31 +279,39 @@ export interface SolutionReview {
         description: "Return document to draft state",
       },
     ],
-    ["CURRENT"]: [
+    ["APPROVED"]: [
       {
-        from: "CURRENT",
-        to: "OUTDATED",
-        operation: "MARK_OUTDATED",
-        operationName: "Mark as Outdated",
-        description: "Mark document as outdated",
-      },
-      {
-        from: "CURRENT",
+        from: "APPROVED",
         to: "SUBMITTED",
         operation: "UNAPPROVE",
         operationName: "Unapprove",
         description: "Remove approval and return to review",
       },
-    ],
-    ["OUTDATED"]: [
       {
-        from: "OUTDATED",
-        to: "CURRENT",
-        operation: "RESET_CURRENT",
-        operationName: "Reset as Current",
-        description: "Reset document as current version",
-      },
+        from: "APPROVED",
+        to: "ACTIVE",
+        operation: "ACTIVATE",
+        operationName: "Activate",
+        description: "Mark document as active version",
+      }
     ],
+    ["ACTIVE"]: [
+      {
+        from: "ACTIVE",
+        to: "OUTDATED",
+        operation: "MARK_OUTDATED",
+        operationName: "Mark as Outdated",
+        description: "Mark document as outdated",
+      }], 
+    // ["OUTDATED"]: [
+    //   {
+    //     from: "OUTDATED",
+    //     to: "CURRENT",
+    //     operation: "RESET_CURRENT",
+    //     operationName: "Reset as Current",
+    //     description: "Reset document as current version",
+    //   },
+    // ],
   };
   
   export const getStateColor = (state: string): string => {
@@ -309,7 +320,9 @@ export interface SolutionReview {
         return "bg-gray-100 text-gray-800 border-gray-300";
       case "SUBMITTED":
         return "bg-yellow-100 text-yellow-800 border-yellow-300";
-      case "CURRENT":
+      case "APPROVED":
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+      case "ACTIVE":
         return "bg-green-100 text-green-800 border-green-300";
       case "OUTDATED":
         return "bg-red-100 text-red-800 border-red-300";

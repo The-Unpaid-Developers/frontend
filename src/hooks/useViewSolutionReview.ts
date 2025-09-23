@@ -1,11 +1,5 @@
-// hooks/useUpdateSolutionReview.ts
 import { useState } from "react";
-import {
-  saveSolutionReviewDraftAPI,
-  // getSolutionReviewById
-} from "../services/solutionReviewApi";
 import type { SolutionReview } from "../types/solutionReview";
-// import { mockApiService } from "../services/mockApiUpdated";
 import {
   getSystemSolutionReviewsAPI,
   getSolutionReviewByIdAPI,
