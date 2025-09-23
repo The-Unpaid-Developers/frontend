@@ -58,7 +58,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     showError,
     showInfo,
     hideToast,
-  }), [showToast, showSuccess, showError, showInfo, hideToast]);
+  }), [showToast, hideToast]);
 
   return (
     <ToastContext.Provider value={contextValue}>
