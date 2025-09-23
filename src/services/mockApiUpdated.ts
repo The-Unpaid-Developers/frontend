@@ -507,8 +507,6 @@ export const mockApiService = {
           false
         );
       }
-
-      // await delay(300);
       return mockSolutionReview.find(review => review.id === id) ?? null;
     } catch (error) {
       throw error instanceof APIError
