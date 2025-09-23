@@ -336,6 +336,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                   <label htmlFor="isOwnedByUs" className="text-sm font-medium text-gray-700">
+                    
                     Owned By Us
                   </label>
                 </div>
@@ -349,6 +350,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                   />
                   <label htmlFor="isCICDUsed" className="text-sm font-medium text-gray-700">
+                    
                     CI/CD Used
                   </label>
                 </div>
@@ -440,7 +442,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
                       type="number"
                       placeholder="Enter latency"
                       value={row.latencyRequirement ?? ""}
-                      onChange={(e) => update("latencyRequirement", Number(e.target.value) ?? 0)}
+                      onChange={(e) => update("latencyRequirement", (Number(e.target.value) ?? 0))}
                     />
                   </label>
                 </div>
@@ -452,7 +454,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
                       type="number"
                       placeholder="Enter throughput"
                       value={row.throughputRequirement ?? ""}
-                      onChange={(e) => update("throughputRequirement", Number(e.target.value) ?? 0)}
+                      onChange={(e) => update("throughputRequirement", (Number(e.target.value) ?? 0))}
                     />
                   </label>
                 </div>
@@ -549,49 +551,49 @@ const SystemComponentStep: React.FC<StepProps> = ({
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Data Encryption At Rest
-                  </label>
                   <DropDown
                     placeholder="Select encryption"
                     value={row.securityDetails.dataEncryptionAtRest}
                     onChange={(e) => updateSecurityDetails("dataEncryptionAtRest", e.target.value)}
                     options={DATA_ENCRYPTION_AT_REST_OPTIONS}
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     SSL Type
-                  </label>
                   <DropDown
                     placeholder="Select SSL type"
                     value={row.securityDetails.ssl}
                     onChange={(e) => updateSecurityDetails("ssl", e.target.value)}
                     options={SSL_TYPE_OPTIONS}
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Vulnerability Assessment Frequency
-                  </label>
                   <DropDown
                     placeholder="Select frequency"
                     value={row.securityDetails.vulnerabilityAssessmentFrequency}
                     onChange={(e) => updateSecurityDetails("vulnerabilityAssessmentFrequency", e.target.value)}
                     options={FREQUENCY_OPTIONS}
-                  />
+                  /></label>
+                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Penetration Testing Frequency
-                  </label>
                   <DropDown
                     placeholder="Select frequency"
                     value={row.securityDetails.penetrationTestingFrequency}
                     onChange={(e) => updateSecurityDetails("penetrationTestingFrequency", e.target.value)}
                     options={FREQUENCY_OPTIONS}
-                  />
+                  /></label>
+                  
                 </div>
               </div>
             </div>
@@ -876,7 +878,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
                           type="number"
                           placeholder="Enter latency"
                           value={editingComponent.latencyRequirement ?? ""}
-                          onChange={(e) => updateEditingComponent("latencyRequirement", Number(e.target.value) ?? 0)}
+                          onChange={(e) => updateEditingComponent("latencyRequirement", (Number(e.target.value) ?? 0))}
                         />
                       </label>
                     </div>
@@ -888,7 +890,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
                           type="number"
                           placeholder="Enter throughput"
                           value={editingComponent.throughputRequirement ?? ""}
-                          onChange={(e) => updateEditingComponent("throughputRequirement", Number(e.target.value) ?? 0)}
+                          onChange={(e) => updateEditingComponent("throughputRequirement", (Number(e.target.value) ?? 0))}
                         />
                       </label>
                     </div>

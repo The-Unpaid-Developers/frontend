@@ -23,9 +23,6 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
   onClose,
   onViewReview,
 }) => {
-  const [selectedVersion, setSelectedVersion] = useState<SolutionReview | null>(
-    null
-  );
   const navigate = useNavigate();
   const { showSuccess, showError } = useToast();
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
@@ -151,30 +148,6 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
         </Button>
       </div>
 
-      {/* Current Version Summary */}
-      {/* {system.currentReview && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Current Version (v{system.currentReview.version})</span>
-              <Badge variant="state" state={system.currentReview.documentState}>
-                {system.currentReview.documentState}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-1">Title</h4>
-                <p className="text-gray-600">
-                  {system.currentReview.solutionOverview?.solutionDetails?.solutionName || "Untitled Solution Review"}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )} */}
-
       {/* Version History */}
       <Card>
         <CardHeader>
@@ -190,10 +163,7 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
               return (
                 <div
                   key={review.id}
-                  className={`border rounded-lg p-4 ${selectedVersion?.id === review.id
-                    ? "border-primary-300 bg-primary-50"
-                    : "border-gray-200"
-                    }`}
+                  className="border rounded-lg p-4 border-gray-200"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center space-x-3">
@@ -252,29 +222,11 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                       </h4>
                       <ul className="text-sm text-gray-600 list-disc list-inside">
                         {changes.map((change, idx) => (
-                          <li key={idx}>{change}</li>
+                          <li key={`change-${change.slice(0, 20)}-${idx}`}>{change}</li>
                         ))}
                       </ul>
                     </div>
                   )}
-
-                  {/* {selectedVersion?.id === review.id && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            Description
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            {review.solutionOverview?.description}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      </div>
-                    </div>
-                  )} */}
-
                   {availableTransitions.length > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
                       <div className="flex flex-wrap gap-2">

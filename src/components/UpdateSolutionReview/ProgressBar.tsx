@@ -18,7 +18,6 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ currentStep, steps, on
       <ol className="flex items-start justify-between space-x-2 sm:space-x-4">
         {steps.map((step, idx) => {
           const isActive = idx === currentStep;
-          const isComplete = idx < currentStep;
           return (
             <li key={step.key} className="flex-1 min-w-0">
               <div className="flex items-center">

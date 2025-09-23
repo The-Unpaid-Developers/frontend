@@ -38,10 +38,9 @@ export const useAdminPanel = () => {
           page: responseData.number ?? page,
           size: responseData.size ?? size,
           totalPages: responseData.totalPages ?? 0,
-          totalElements:
-            responseData.totalElements ?? responseData.content.length,
+          totalElements: responseData.totalElements ?? responseData.content.length,
         });
-      } else if (responseData && responseData.content) {
+      } else if (responseData?.content) {
         // fallback (non-paged list)
         setSolutionReviews(responseData.content ?? []);
         setPageMeta({

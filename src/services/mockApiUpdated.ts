@@ -472,7 +472,7 @@ const delay = (ms: number, failureRate: number = 0): Promise<void> =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
       // Simulate random API failures for testing
-      if (failureRate > 0 && Math.random() < failureRate) {
+      if (failureRate > 0 && crypto.getRandomValues(new Uint32Array(1))[0] / 0xFFFFFFFF < failureRate) {
         reject(
           new APIError(
             ErrorType.SERVER_ERROR,
@@ -507,8 +507,6 @@ export const mockApiService = {
           false
         );
       }
-
-      // await delay(300);
       return mockSolutionReview.find(review => review.id === id) ?? null;
     } catch (error) {
       throw error instanceof APIError

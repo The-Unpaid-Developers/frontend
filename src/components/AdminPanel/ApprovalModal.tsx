@@ -63,7 +63,7 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
 
     const newConcern = {
       ...currentConcern,
-      id: `concern-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+      id: `concern-${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0].toString(36)}`
     };
 
     setConcerns([...concerns, newConcern]);
