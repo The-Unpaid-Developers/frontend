@@ -14,6 +14,7 @@ export interface Concern {
   impact?: string | null;
   disposition?: string | null;
   status?: string | null;
+  followUpDate: string;
 }
 
 export interface SolutionOverview {
@@ -62,6 +63,7 @@ export interface IntegrationFlow {
   counterpartSystemCode?: string | null; // dropdown list
   counterpartSystemRole?: string | null; // dropdown list
   integrationMethod?: string | null; // dropdown list
+  middleware?: string | null; // dropdown list
   frequency?: string | null; // dropdown list
   purpose?: string | null;
 }

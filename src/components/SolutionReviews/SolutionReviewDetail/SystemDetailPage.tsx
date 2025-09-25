@@ -1,0 +1,54 @@
+import React, { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { SystemDetail } from './SystemDetail';
+
+import { useViewSolutionReview } from '../../../hooks/useViewSolutionReview';
+import { useToast } from "../../../context/ToastContext";
+
+export const SystemDetailPage: React.FC = () => {
+  const { systemCode } = useParams<{ systemCode: string }>();
+  const navigate = useNavigate();
+  console.log(systemCode);
+
+  const { solutionReviews, loadSystemSolutionReviews } = useViewSolutionReview();
+  console.log(solutionReviews);
+
+  const { showError } = useToast();
+
+  useEffect(() => {
+    console.log('in eff');
+    const fetchData = async () => {
+      try {
+        await loadSystemSolutionReviews(systemCode);
+      } catch (error) {
+        console.error("Error loading review data:", error);
+        showError("Failed to load data: " + error.message);
+      }
+    };
+
+    fetchData();
+  }, [systemCode]);
+
+  if (!solutionReviews) {
+    return (
+      <div className="p-6">
+        <h1 className="text-xl font-bold mb-4">System Not Found</h1>
+        <button
+          className="text-blue-600 underline"
+          onClick={() => navigate(-1)}
+        >
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <SystemDetail
+      systemCode={systemCode}
+      system={solutionReviews}
+      onClose={() => navigate(-1)}
+      onViewReview={r => navigate(`/view-solution-review/${r.id}`)}
+    />
+  );
+};

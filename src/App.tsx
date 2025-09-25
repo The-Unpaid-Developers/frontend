@@ -1,14 +1,17 @@
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import { Dashboard } from "./components/Dashboard";
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { CreateSolutionReviewPage } from "./components/CreateSolutionReview/CreateSolutionReviewPage";
-import { UpdateSolutionReviewPage } from "./components/UpdateSolutionReview/UpdateSolutionReviewPage";
-import { SystemDetailPage } from "./components/SolutionReviewDetail/SystemDetailPage";
-import { SolutionReviewDetailPage } from "./components/SolutionReviewDetail/SolutionReviewDetailPage"
+import { CreateSolutionReviewPage } from "./components/SolutionReviews/CreateSolutionReview/CreateSolutionReviewPage";
+import { UpdateSolutionReviewPage } from "./components/SolutionReviews/UpdateSolutionReview/UpdateSolutionReviewPage";
+import { SystemDetailPage } from "./components/SolutionReviews/SolutionReviewDetail/SystemDetailPage";
+import { SolutionReviewDetailPage } from "./components/SolutionReviews/SolutionReviewDetail/SolutionReviewDetailPage"
 import { Login } from "./components/Authentication/Login";
 import { AdminPanel } from "./components/AdminPanel";
 import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/ui';
+import SpecificSystemFlowDiagram from './components/Diagrams/IntegrationFlow/old/SpecificSystemFlowDiagram';
+import SankeyVisualization from './components/Diagrams/DependenciesFlow/SpecificSystem/SankeyVisualization';
+import { OverallSystemsVisualization } from './components/Diagrams/DependenciesFlow/OverallSystems';
 
 function App() {
   const userToken = localStorage.getItem("userToken");
@@ -42,6 +45,8 @@ function App() {
               <Route path="/view-solution-review/:id" element={<SolutionReviewDetailPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/admin" element={<AdminPanel />} />
+              <Route path="/view-system-flow-diagram/:systemCode" element={<SankeyVisualization />} />
+              <Route path="/view-overall-systems-diagram" element={<OverallSystemsVisualization />} />
               {/* Add more routes as needed */}
             </Routes>
           {/* </SolutionReviewProvider> */}

@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title name="system-header"></title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .controls-container {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+      }
+      .graph-container {
+        background-color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+        overflow: hidden;
+      }
+      .highlighted {
+        stroke: #ef4444;
+        stroke-width: 3px !important;
+        stroke-opacity: 1;
+      }
+      .path-highlight-node circle {
+        stroke: #10b981;
+        stroke-width: 4px;
+      }
+      .path-highlight-link {
+        stroke: #10b981;
+        stroke-width: 4px;
+        stroke-opacity: 1;
+      }
+      .dimmed {
+        opacity: 0.1;
+      }
+      .select-input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        box-shadow: inset 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      }
+      body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #111827;
+        }
+        .container-box {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+        .node rect {
+            stroke: #374151;
+            stroke-width: 1px;
+        }
+        .node text {
+            font-size: 12px;
+            font-weight: 500;
+            pointer-events: none;
+            text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
+        }
+        .link {
+            fill-opacity: 0.5;
+            stroke-opacity: 0.3;
+            transition: fill-opacity 0.2s ease-in-out;
+        }
+        .link:hover {
+            fill-opacity: 0.7;
+        }
+        .tooltip {
+            position: absolute;
+            text-align: left;
+            padding: 8px;
+            font-size: 12px;
+            background: #1f2937;
+            color: #fff;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+    </style>
+  </head>
+  <body class="p-4 lg:p-6">
+    <div class="max-w-screen-2xl mx-auto">
+      <header class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800" name="system-header">
+          
+        </h1>
+        <p class="text-gray-600 mt-1">
+          Generated on: <span id="generated-date"></span>
+        </p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Controls Column -->
+        <div class="lg:col-span-3 controls-container p-5 self-start">
+          <h2 class="text-xl font-semibold mb-4 border-b pb-2">Filters</h2>
+
+          <div class="space-y-6">
+            <!-- General Filters -->
+            <div>
+              <div class="space-y-4">
+                <div>
+                  <label
+                    for="system-search"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Filter by System Name/Code</label
+                  >
+                  <input
+                    type="text"
+                    id="system-search"
+                    class="select-input"
+                  />
+                </div>
+                <div>
+                  <label
+                    for="system-type-filter"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >System Type</label
+                  >
+                  <select id="system-type-filter" class="select-input"></select>
+                </div>
+                <div>
+                  <label
+                    for="connection-type-filter"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Connection Type</label
+                  >
+                  <select
+                    id="connection-type-filter"
+                    class="select-input"
+                  ></select>
+                </div>
+                <div>
+                  <label
+                    for="criticality-filter"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Criticality</label
+                  >
+                  <select id="criticality-filter" class="select-input"></select>
+                </div>
+                <div hidden>
+                  <label
+                    for="frequency-filter"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Frequency</label
+                  >
+                  <select id="frequency-filter" class="select-input"></select>
+                </div>
+                <div>
+                  <label
+                    for="role-filter"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    id="role-to-system"
+                    ></label
+                  >
+                  <select id="role-filter" class="select-input"></select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="border-t pt-4 flex space-x-2">
+              <button
+                id="apply-filters-button"
+                class="w-full bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Apply Filters
+              </button>
+              <button
+                id="reset-button"
+                class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Reset All
+              </button>
+            </div>
+            <div class="mt-8 border-t pt-4">
+                    <h3 class="text-lg font-semibold mb-2">Nodes Legend (Criticality)</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #ef4444;"></div>
+                            <span class="text-sm">Major</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #f59e0b;"></div>
+                            <span class="text-sm">Standard-1</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #22c55e;"></div>
+                            <span class="text-sm">Standard-2</span>
+                        </div>
+                         <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #6b7280;"></div>
+                            <span class="text-sm">N/A or Other</span>
+                        </div>
+
+                        <h3 class="text-lg font-semibold mb-2">Links Legend (Integration Pattern)</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #1f77b4;"></div>
+                            <span class="text-sm">Web Service</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #9467bd;"></div>
+                            <span class="text-sm">API</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #2ca02c;"></div>
+                            <span class="text-sm">Batch</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #ff7f0e;"></div>
+                            <span class="text-sm">File</span>
+                        </div>
+                         <div class="flex items-center">
+                            <div class="w-4 h-4 rounded-full mr-2" style="background-color: #6b7280;"></div>
+                            <span class="text-sm">N/A or Other</span>
+                        </div>
+                    </div>
+          </div>
+          
+        </div>
+
+      </div>
+      </div>
+      <!-- Graph Column -->
+        <!-- <div class="lg:col-span-9 graph-container h-[85vh]">
+          <div id="graph-wrapper" class="w-full h-full relative">
+            SVG for D3 will be appended here
+          </div>
+        </div> -->
+        <div class="lg:col-span-9 container-box h-[85vh]" style="width: 1000px; height:1000px; overflow:scroll;">
+            <div id="graph-wrapper" class="w-full h-full relative">
+                <!-- SVG for D3 will be appended here -->
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <script type="module">
+      // --- DEFAULT DATA ---
+      const defaultData = {
+    "nodes": [
+        // Core System
+        { "id": "A", "name": "A", "type": "", "criticality": "Major", "url": "A.json" },
+        // Middleware Systems
+        { "id": "M-P", "name": "M", "type": "", "criticality": "Standard-3", "url": "M.json" },
+        { "id": "M-C", "name": "M", "type": "", "criticality": "Standard-3", "url": "M.json" },
+        { "id": "N-P", "name": "N", "type": "", "criticality": "Standard-3", "url": "N.json" },
+        { "id": "N-C", "name": "N", "type": "", "criticality": "Standard-3", "url": "N.json" },
+        { "id": "O-P", "name": "O", "type": "", "criticality": "Standard-3", "url": "O.json" },
+        { "id": "O-C", "name": "O", "type": "", "criticality": "Standard-3", "url": "O.json" },
+        // External Systems (Producers & Consumers)
+        { "id": "SYS1-P", "name": "SYS1", "type": "", "criticality": "Major", "url": "SYS1.json" },
+        { "id": "SYS1-C", "name": "SYS1", "type": "", "criticality": "Major", "url": "SYS1.json" },
+        { "id": "SYS2-P", "name": "SYS2", "type": "", "criticality": "Standard-1", "url": "SYS2.json" },
+        { "id": "SYS2-C", "name": "SYS2", "type": "", "criticality": "Standard-1", "url": "SYS2.json" },
+        { "id": "SYS3-P", "name": "SYS3", "type": "", "criticality": "Standard-2", "url": "SYS3.json" },
+        { "id": "SYS3-C", "name": "SYS3", "type": "", "criticality": "Standard-2", "url": "SYS3.json" },
+        { "id": "SYS4-P", "name": "SYS4", "type": "", "criticality": "Minor", "url": "SYS4.json" },
+        { "id": "SYS4-C", "name": "SYS4", "type": "", "criticality": "Minor", "url": "SYS4.json" },
+        { "id": "SYS5-P", "name": "SYS5", "type": "", "criticality": "Major", "url": "SYS5.json" },
+        { "id": "SYS5-C", "name": "SYS5", "type": "", "criticality": "Major", "url": "SYS5.json" },
+        { "id": "SYS6-P", "name": "SYS6", "type": "", "criticality": "Standard-1", "url": "SYS6.json" },
+        { "id": "SYS6-C", "name": "SYS6", "type": "", "criticality": "Standard-1", "url": "SYS6.json" },
+        { "id": "SYS7-P", "name": "SYS7", "type": "", "criticality": "Standard-2", "url": "SYS7.json" },
+        { "id": "SYS7-C", "name": "SYS7", "type": "", "criticality": "Standard-2", "url": "SYS7.json" },
+        { "id": "SYS8-P", "name": "SYS8", "type": "", "criticality": "Minor", "url": "SYS8.json" },
+        { "id": "SYS8-C", "name": "SYS8", "type": "", "criticality": "Minor", "url": "SYS8.json" },
+        { "id": "SYS9-P", "name": "SYS9", "type": "", "criticality": "Major", "url": "SYS9.json" },
+        { "id": "SYS9-C", "name": "SYS9", "type": "", "criticality": "Major", "url": "SYS9.json" },
+        { "id": "SYS10-P", "name": "SYS10", "type": "", "criticality": "Standard-1", "url": "SYS10.json" },
+        { "id": "SYS10-C", "name": "SYS10", "type": "", "criticality": "Standard-1", "url": "SYS10.json" },
+        { "id": "SYS11-P", "name": "SYS11", "type": "", "criticality": "Standard-2", "url": "SYS11.json" },
+        { "id": "SYS11-C", "name": "SYS11", "type": "", "criticality": "Standard-2", "url": "SYS11.json" },
+        { "id": "SYS12-P", "name": "SYS12", "type": "", "criticality": "Minor", "url": "SYS12.json" },
+        { "id": "SYS12-C", "name": "SYS12", "type": "", "criticality": "Minor", "url": "SYS12.json" },
+        { "id": "SYS13-P", "name": "SYS13", "type": "", "criticality": "Major", "url": "SYS13.json" },
+        { "id": "SYS13-C", "name": "SYS13", "type": "", "criticality": "Major", "url": "SYS13.json" },
+        { "id": "SYS14-P", "name": "SYS14", "type": "", "criticality": "Standard-1", "url": "SYS14.json" },
+        { "id": "SYS14-C", "name": "SYS14", "type": "", "criticality": "Standard-1", "url": "SYS14.json" },
+        { "id": "SYS15-P", "name": "SYS15", "type": "", "criticality": "Standard-2", "url": "SYS15.json" },
+        { "id": "SYS15-C", "name": "SYS15", "type": "", "criticality": "Standard-2", "url": "SYS15.json" },
+        { "id": "SYS16-P", "name": "SYS16", "type": "", "criticality": "Minor", "url": "SYS16.json" },
+        { "id": "SYS16-C", "name": "SYS16", "type": "", "criticality": "Minor", "url": "SYS16.json" },
+        { "id": "SYS17-P", "name": "SYS17", "type": "", "criticality": "Major", "url": "SYS17.json" },
+        { "id": "SYS17-C", "name": "SYS17", "type": "", "criticality": "Major", "url": "SYS17.json" },
+        { "id": "SYS18-P", "name": "SYS18", "type": "", "criticality": "Standard-1", "url": "SYS18.json" },
+        { "id": "SYS18-C", "name": "SYS18", "type": "", "criticality": "Standard-1", "url": "SYS18.json" },
+        { "id": "SYS19-P", "name": "SYS19", "type": "", "criticality": "Standard-2", "url": "SYS19.json" },
+        { "id": "SYS19-C", "name": "SYS19", "type": "", "criticality": "Standard-2", "url": "SYS19.json" },
+        { "id": "SYS20-P", "name": "SYS20", "type": "", "criticality": "Minor", "url": "SYS20.json" },
+        { "id": "SYS20-C", "name": "SYS20", "type": "", "criticality": "Minor", "url": "SYS20.json" },
+        { "id": "SYS21-P", "name": "SYS21", "type": "", "criticality": "Major", "url": "SYS21.json" },
+        { "id": "SYS21-C", "name": "SYS21", "type": "", "criticality": "Major", "url": "SYS21.json" },
+        { "id": "SYS22-P", "name": "SYS22", "type": "", "criticality": "Standard-1", "url": "SYS22.json" },
+        { "id": "SYS22-C", "name": "SYS22", "type": "", "criticality": "Standard-1", "url": "SYS22.json" },
+        { "id": "SYS23-P", "name": "SYS23", "type": "", "criticality": "Standard-2", "url": "SYS23.json" },
+        { "id": "SYS23-C", "name": "SYS23", "type": "", "criticality": "Standard-2", "url": "SYS23.json" },
+        { "id": "SYS24-P", "name": "SYS24", "type": "", "criticality": "Minor", "url": "SYS24.json" },
+        { "id": "SYS24-C", "name": "SYS24", "type": "", "criticality": "Minor", "url": "SYS24.json" },
+        { "id": "SYS25-P", "name": "SYS25", "type": "", "criticality": "Major", "url": "SYS25.json" },
+        { "id": "SYS25-C", "name": "SYS25", "type": "", "criticality": "Major", "url": "SYS25.json" },
+        { "id": "SYS26-P", "name": "SYS26", "type": "", "criticality": "Standard-1", "url": "SYS26.json" },
+        { "id": "SYS26-C", "name": "SYS26", "type": "", "criticality": "Standard-1", "url": "SYS26.json" },
+        { "id": "SYS27-P", "name": "SYS27", "type": "", "criticality": "Standard-2", "url": "SYS27.json" },
+        { "id": "SYS27-C", "name": "SYS27", "type": "", "criticality": "Standard-2", "url": "SYS27.json" },
+        { "id": "SYS28-P", "name": "SYS28", "type": "", "criticality": "Minor", "url": "SYS28.json" },
+        { "id": "SYS28-C", "name": "SYS28", "type": "", "criticality": "Minor", "url": "SYS28.json" },
+        { "id": "SYS29-P", "name": "SYS29", "type": "", "criticality": "Major", "url": "SYS29.json" },
+        { "id": "SYS29-C", "name": "SYS29", "type": "", "criticality": "Major", "url": "SYS29.json" },
+        { "id": "SYS30-P", "name": "SYS30", "type": "", "criticality": "Standard-1", "url": "SYS30.json" },
+        { "id": "SYS30-C", "name": "SYS30", "type": "", "criticality": "Standard-1", "url": "SYS30.json" }
+    ],
+    "links": [
+    { "source": "A",  "target": "SYS1-P",  "pattern": "API",            "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "SYS2-P",  "pattern": "File Transfer",  "frequency": "Daily",     "role": "Producer" },
+    { "source": "A",  "target": "SYS3-P",  "pattern": "API",            "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "SYS4-P",  "pattern": "Database Link",  "frequency": "Hourly",    "role": "Producer" },
+    { "source": "A",  "target": "SYS5-P",  "pattern": "File Transfer",  "frequency": "Weekly",    "role": "Producer" },
+
+    { "source": "A",  "target": "M-P",     "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "M-P",     "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "M-P",     "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "M-P",     "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "M-P",     "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "M-P",     "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "M-P",     "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer" },
+
+    { "source": "A",  "target": "N-P",     "pattern": "API Gateway",   "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "N-P",     "pattern": "API Gateway",   "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "N-P",     "pattern": "API Gateway",   "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "N-P",     "pattern": "API Gateway",   "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "N-P",     "pattern": "API Gateway",   "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "N-P",     "pattern": "API Gateway",   "frequency": "Real-time", "role": "Producer" },
+    { "source": "A",  "target": "N-P",     "pattern": "API Gateway",   "frequency": "Real-time", "role": "Producer" },
+
+    { "source": "A",  "target": "O-P",     "pattern": "ETL",            "frequency": "Daily",     "role": "Producer" },
+    { "source": "A",  "target": "O-P",     "pattern": "ETL",            "frequency": "Daily",     "role": "Producer" },
+    { "source": "A",  "target": "O-P",     "pattern": "ETL",            "frequency": "Daily",     "role": "Producer" },
+    { "source": "A",  "target": "O-P",     "pattern": "ETL",            "frequency": "Daily",     "role": "Producer" },
+    { "source": "A",  "target": "O-P",     "pattern": "ETL",            "frequency": "Daily",     "role": "Producer" },
+    { "source": "A",  "target": "O-P",     "pattern": "ETL",            "frequency": "Daily",     "role": "Producer" },
+    { "source": "A",  "target": "O-P",     "pattern": "ETL",            "frequency": "Daily",     "role": "Producer" },
+
+    { "source": "M-P", "target": "SYS6-P",  "pattern": "Message Queue","frequency": "Real-time", "role": "Producer" },
+    { "source": "M-P", "target": "SYS7-P",  "pattern": "Message Queue","frequency": "Real-time", "role": "Producer" },
+    { "source": "M-P", "target": "SYS8-P",  "pattern": "Message Queue","frequency": "Real-time", "role": "Producer" },
+    { "source": "M-P", "target": "SYS9-P",  "pattern": "Message Queue","frequency": "Real-time", "role": "Producer" },
+    { "source": "M-P", "target": "SYS10-P", "pattern": "Message Queue","frequency": "Real-time", "role": "Producer" },
+    { "source": "M-P", "target": "SYS22-P", "pattern": "Message Queue","frequency": "Real-time", "role": "Producer" },
+    { "source": "M-P", "target": "SYS27-P", "pattern": "Message Queue","frequency": "Real-time", "role": "Producer" },
+
+    { "source": "N-P", "target": "SYS11-P", "pattern": "API",           "frequency": "Real-time", "role": "Producer" },
+    { "source": "N-P", "target": "SYS12-P", "pattern": "API",           "frequency": "Real-time", "role": "Producer" },
+    { "source": "N-P", "target": "SYS13-P", "pattern": "API",           "frequency": "Real-time", "role": "Producer" },
+    { "source": "N-P", "target": "SYS14-P", "pattern": "API",           "frequency": "Real-time", "role": "Producer" },
+    { "source": "N-P", "target": "SYS15-P", "pattern": "API",           "frequency": "Real-time", "role": "Producer" },
+    { "source": "N-P", "target": "SYS23-P", "pattern": "API",           "frequency": "Real-time", "role": "Producer" },
+    { "source": "N-P", "target": "SYS28-P", "pattern": "API",           "frequency": "Real-time", "role": "Producer" },
+
+    { "source": "O-P", "target": "SYS16-P", "pattern": "File Transfer", "frequency": "Daily",     "role": "Producer" },
+    { "source": "O-P", "target": "SYS17-P", "pattern": "File Transfer", "frequency": "Daily",     "role": "Producer" },
+    { "source": "O-P", "target": "SYS18-P", "pattern": "File Transfer", "frequency": "Daily",     "role": "Producer" },
+    { "source": "O-P", "target": "SYS19-P", "pattern": "File Transfer", "frequency": "Daily",     "role": "Producer" },
+    { "source": "O-P", "target": "SYS20-P", "pattern": "File Transfer", "frequency": "Daily",     "role": "Producer" },
+    { "source": "O-P", "target": "SYS24-P", "pattern": "File Transfer", "frequency": "Daily",     "role": "Producer" },
+    { "source": "O-P", "target": "SYS29-P", "pattern": "File Transfer", "frequency": "Daily",     "role": "Producer" },
+
+    { "source": "A",  "target": "SYS21-P","pattern":"API","frequency":"Real-time","role":"Producer" },
+    { "source": "A",  "target": "SYS25-P","pattern":"Database Link","frequency":"Hourly","role":"Producer" },
+    { "source": "A",  "target": "SYS26-P","pattern":"File Transfer","frequency":"Daily","role":"Producer" },
+    { "source": "A",  "target": "SYS30-P","pattern":"API","frequency":"Real-time","role":"Producer" },
+
+    { "source": "SYS1-C",  "target": "A",   "pattern": "API",           "frequency": "Real-time", "role": "Consumer" },
+    { "source": "SYS2-C",  "target": "A",   "pattern": "File Transfer", "frequency": "Daily",     "role": "Consumer" },
+    { "source": "SYS3-C",  "target": "A",   "pattern": "API",           "frequency": "Real-time", "role": "Consumer" },
+    { "source": "SYS4-C",  "target": "A",   "pattern": "Database Link", "frequency": "Hourly",    "role": "Consumer" },
+    { "source": "SYS5-C",  "target": "A",   "pattern": "File Transfer", "frequency": "Weekly",    "role": "Consumer" },
+
+    { "source": "M-C", "target": "A",  "pattern": "Message Queue","frequency": "Real-time","role":"Consumer" },
+    { "source": "M-C", "target": "A",  "pattern": "Message Queue","frequency": "Real-time","role":"Consumer" },
+    { "source": "M-C", "target": "A",  "pattern": "Message Queue","frequency": "Real-time","role":"Consumer" },
+    { "source": "M-C", "target": "A",  "pattern": "Message Queue","frequency": "Real-time","role":"Consumer" },
+    { "source": "M-C", "target": "A",  "pattern": "Message Queue","frequency": "Real-time","role":"Consumer" },
+    { "source": "M-C", "target": "A",  "pattern": "Message Queue","frequency": "Real-time","role":"Consumer" },
+    { "source": "M-C", "target": "A",  "pattern": "Message Queue","frequency": "Real-time","role":"Consumer" },
+
+    { "source": "N-C", "target": "A",  "pattern": "API Gateway","frequency": "Real-time","role":"Consumer" },
+    { "source": "N-C", "target": "A",  "pattern": "API Gateway","frequency": "Real-time","role":"Consumer" },
+    { "source": "N-C", "target": "A",  "pattern": "API Gateway","frequency": "Real-time","role":"Consumer" },
+    { "source": "N-C", "target": "A",  "pattern": "API Gateway","frequency": "Real-time","role":"Consumer" },
+    { "source": "N-C", "target": "A",  "pattern": "API Gateway","frequency": "Real-time","role":"Consumer" },
+    { "source": "N-C", "target": "A",  "pattern": "API Gateway","frequency": "Real-time","role":"Consumer" },
+    { "source": "N-C", "target": "A",  "pattern": "API Gateway","frequency": "Real-time","role":"Consumer" },
+
+    { "source": "O-C", "target": "A",  "pattern": "ETL","frequency": "Daily","role":"Consumer" },
+    { "source": "O-C", "target": "A",  "pattern": "ETL","frequency": "Daily","role":"Consumer" },
+    { "source": "O-C", "target": "A",  "pattern": "ETL","frequency": "Daily","role":"Consumer" },
+    { "source": "O-C", "target": "A",  "pattern": "ETL","frequency": "Daily","role":"Consumer" },
+    { "source": "O-C", "target": "A",  "pattern": "ETL","frequency": "Daily","role":"Consumer" },
+    { "source": "O-C", "target": "A",  "pattern": "ETL","frequency": "Daily","role":"Consumer" },
+    { "source": "O-C", "target": "A",  "pattern": "ETL","frequency": "Daily","role":"Consumer" },
+    { "source": "SYS6-C","target":"A","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+
+    { "source": "SYS6-C","target":"M-C","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS7-C","target":"M-C","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS8-C","target":"M-C","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS9-C","target":"M-C","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS10-C","target":"M-C","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS22-C","target":"M-C","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS27-C","target":"M-C","pattern":"Message Queue","frequency":"Real-time","role":"Consumer" },
+
+    { "source": "SYS11-C","target":"N-C","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS12-C","target":"N-C","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS13-C","target":"N-C","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS14-C","target":"N-C","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS15-C","target":"N-C","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS23-C","target":"N-C","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS28-C","target":"N-C","pattern":"API","frequency":"Real-time","role":"Consumer" },
+
+    { "source": "SYS16-C","target":"O-C","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+    { "source": "SYS17-C","target":"O-C","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+    { "source": "SYS18-C","target":"O-C","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+    { "source": "SYS19-C","target":"O-C","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+    { "source": "SYS20-C","target":"O-C","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+    { "source": "SYS24-C","target":"O-C","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+    { "source": "SYS29-C","target":"O-C","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+
+    { "source": "SYS21-C","target":"A","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS25-C","target":"A","pattern":"Database Link","frequency":"Hourly","role":"Consumer" },
+    { "source": "SYS26-C","target":"A","pattern":"File Transfer","frequency":"Daily","role":"Consumer" },
+    { "source": "SYS30-C","target":"A","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS28-C","target":"A","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS11-C","target":"A","pattern":"API","frequency":"Real-time","role":"Consumer" },
+    { "source": "SYS14-C","target":"A","pattern":"API","frequency":"Real-time","role":"Consumer" }
+
+  ],
+    "metadata": {
+        "code": "A",
+        "review": "review-code",
+        "integrationMiddleware": ["M-P", "M-C", "N-P", "N-C", "O-P", "O-C"],
+        "generatedDate": "2025-07-25"
+    }
+};
+
+      // --- GLOBAL VARIABLES ---
+      let originalNodes, originalLinks;
+      let simulation, svg, g, link, node, linkLabel;
+      const tooltip = d3.select("#tooltip");
+      // const linksColorScale = d3.scaleOrdinal(d3.schemeCategory10);
+      const linksColorScale = d3.scaleOrdinal(d3.schemeCategory10)
+            .domain(["Web Service", "API", "Batch", "File"])
+            .range(["#1f77b4", "#9467bd", "#2ca02c", "#ff7f0e"])
+            .unknown("#6b7280");
+
+      const nodesColorScale = d3.scaleOrdinal()
+            .domain(["Major", "Standard-1", "Standard-2", "Standard-3"])
+            .range(["#ef4444", "#f59e0b", "#22c55e", "#0ea5e9"])
+            .unknown("#6b7280");
+
+      // --- DOM ELEMENTS ---
+      const wrapper = d3.select("#graph-wrapper");
+      const systemSearchInput = document.getElementById("system-search");
+      const systemTypeFilter = document.getElementById("system-type-filter");
+      const connectionTypeFilter = document.getElementById(
+        "connection-type-filter"
+      );
+      const criticalityFilter = document.getElementById("criticality-filter");
+      const frequencyFilter = document.getElementById("frequency-filter");
+      const roleFilter = document.getElementById("role-filter");
+      const applyFiltersButton = document.getElementById(
+        "apply-filters-button"
+      );
+      const resetButton = document.getElementById("reset-button");
+
+      const pinnedSystemId = defaultData.metadata.code;
+      const reviewCode = defaultData.metadata.review;
+      document.getElementsByName("system-header").forEach(function(ele, idx) {
+        ele.innerText = pinnedSystemId + " " + reviewCode + " Visualisation";
+        });
+
+        document.getElementById("role-to-system").innerHTML = "Role to " + pinnedSystemId;
+      const integrationMiddlewareNamelist = defaultData.metadata.integrationMiddleware;
+      const generatedDate = defaultData.metadata.generatedDate;
+      document.getElementById("generated-date").innerHTML = generatedDate;
+    
+
+      // --- INITIALIZATION ---
+      function initialize(defaultData) {
+        originalNodes = JSON.parse(JSON.stringify(defaultData.nodes));
+        originalLinks = JSON.parse(JSON.stringify(defaultData.links));
+
+        populateFilters();
+        setupEventListeners();
+        createSankey(defaultData);
+      }
+
+      function createSankey(data) {
+            console.log("Creating Sankey diagram with data:", data);
+            wrapper.selectAll("*").remove();
+
+            const { width, height } = wrapper.node().getBoundingClientRect();
+            const margin = {top: 30, right: 200, bottom: 30, left: 200};
+            const graphWidth = width - margin.left - margin.right;
+            const graphHeight = height - margin.top - margin.bottom;
+
+            svg = wrapper.append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const sankey = d3.sankey()
+                .nodeId(d => d.id)
+                .nodeWidth(20)
+                .nodePadding(25)
+                // .nodeAlign(d3.sankeyLeft)
+                .nodeAlign(d3.sankeyJustify) // Change alignment for better distribution
+                // .nodeSort((a, b) => a.y0 - b.y0) // Add sorting to stabilize layout
+                // .nodeAlign(d3.sankeyCenter)     // center columns to reduce crossings
+                // .nodeSort((a, b) => {
+                //   // 1) middleware‐connected group first
+                //   const aHas = touchesMW(a), bHas = touchesMW(b);
+                //   if (aHas && !bHas) return -1;
+                //   if (!aHas && bHas) return 1;
+
+                //   // 2) within that group sort by middleware base M,N,O
+                //   const getBase = node => {
+                //     // if the node *is* middleware, base is its prefix
+                //     if (integrationMiddlewareNamelist.includes(node.id)) {
+                //       return node.id.split('-')[0];
+                //     }
+                //     // else find the first middleware link touching it
+                //     const links = [...(node.sourceLinks || []), ...(node.targetLinks || [])];
+                //     const l = links.find(l =>
+                //       integrationMiddlewareNamelist.includes(l.source.id) ||
+                //       integrationMiddlewareNamelist.includes(l.target.id)
+                //     );
+                //     const mwId = l
+                //       ? (integrationMiddlewareNamelist.find(id => id === l.source.id || id === l.target.id))
+                //       : '';
+                //     return mwId ? mwId.split('-')[0] : '';
+                //   };
+                //   // derive alphabetical order of middleware bases dynamically
+                //   const middlewareBases = Array.from(
+                //     new Set(integrationMiddlewareNamelist.map(id => id.split('-')[0]))
+                //   ).sort();
+
+                //   const aBase = getBase(a), bBase = getBase(b);
+                //   if (aBase !== bBase) {
+                //     return middlewareBases.indexOf(aBase) - middlewareBases.indexOf(bBase);
+                //   }
+
+                //   // 3) finally alphabetical by id
+                //   return a.type.localeCompare(b.type);
+                // })
+                .nodeSort((a, b) => {
+                  // collect all links touching a node
+                  const allLinks = node => [...(node.sourceLinks||[]), ...(node.targetLinks||[])];
+
+                  // does node touch any middleware?
+                  const touchesMW = node =>
+                    integrationMiddlewareNamelist.includes(node.id) ||
+                    allLinks(node).some(l =>
+                      integrationMiddlewareNamelist.includes(l.source.id) ||
+                      integrationMiddlewareNamelist.includes(l.target.id)
+                    );
+
+                  // does node have a direct link to “A”?
+                  const directToMain = node =>
+                    allLinks(node).some(l =>
+                      (l.source.id === pinnedSystemId && l.target.id !== pinnedSystemId) ||
+                      (l.target.id === pinnedSystemId && l.source.id !== pinnedSystemId)
+                    );
+
+                  // 1) MW‐connected nodes first
+                  const aMW = touchesMW(a), bMW = touchesMW(b);
+                  if (aMW !== bMW) return aMW ? -1 : 1;
+
+                  // 2) sort by middleware base alphabetically
+                  const getBase = node => {
+                    if (integrationMiddlewareNamelist.includes(node.id)) {
+                      return node.id.split('-')[0];
+                    }
+                    const link = allLinks(node).find(l =>
+                      integrationMiddlewareNamelist.includes(l.source.id) ||
+                      integrationMiddlewareNamelist.includes(l.target.id)
+                    );
+                    const mw = link
+                      ? integrationMiddlewareNamelist.find(id => id === link.source.id || id === link.target.id)
+                      : '';
+                    return mw.split('-')[0] || '';
+                  };
+                  const bases = Array.from(
+                    new Set(integrationMiddlewareNamelist.map(id => id.split('-')[0]))
+                  ).sort();
+                  const aBase = getBase(a), bBase = getBase(b);
+                  if (aBase !== bBase) {
+                    return bases.indexOf(aBase) - bases.indexOf(bBase);
+                  }
+
+                  // 3) within same middleware base, MW‐only above MW+direct‐to‐A
+                  const aDir = directToMain(a), bDir = directToMain(b);
+                  if (aDir !== bDir) return aDir ? 1 : -1;
+
+                  // 4) fallback: alphabetical by node id
+                  return a.type.localeCompare(b.type);
+                })
+                // .iterations(32)
+                .extent([[0, 0], [graphWidth, graphHeight]]);
+
+            // Process data for Sankey layout
+            const graph = processDataForSankey(data);
+            let { nodes, links } = sankey(graph);
+
+            //  —————— SORT LINKS: middleware‐connected links first ——————
+            // const isMWLink = l =>
+            //   integrationMiddlewareNamelist.includes(l.source.id) ||
+            //   integrationMiddlewareNamelist.includes(l.target.id);
+
+            // links = links.slice().sort((a, b) => {
+            //   const aMW = isMWLink(a), bMW = isMWLink(b);
+            //   if (aMW === bMW) return 0;
+            //   return aMW ? -1 : 1;
+            // });
+            console.log("unsorted links:", links);
+            links = links.slice().sort((a, b) => {
+              const isMWLink = l =>
+                integrationMiddlewareNamelist.includes(l.source.id) ||
+                integrationMiddlewareNamelist.includes(l.target.id);
+              const aMW = isMWLink(a), bMW = isMWLink(b);
+              if (aMW === bMW) return 0;
+              return aMW ? -1 : 1;
+            });
+            console.log("sorted links:", links);
+            // —————— NOW DRAW IN SORTED ORDER ——————
+            // g.append("g")
+            //   .attr("class", "links")
+            //   .selectAll(".link")
+            //   .data(links)
+            //   .join("path")
+            //     .attr("class", "link")
+            //     .attr("d", d3.sankeyLinkHorizontal())
+            //     .attr("stroke", d => linksColorScale(d.pattern))
+            //     .attr("stroke-width", d => Math.max(1, d.width))
+            //     .attr("fill", "none")
+            //     // .sort((a, b) => {
+            //     //   const isMWLink = l =>
+            //     //     integrationMiddlewareNamelist.includes(l.source.id) ||
+            //     //     integrationMiddlewareNamelist.includes(l.target.id);
+            //     //   const aMW = isMWLink(a), bMW = isMWLink(b);
+            //     //   if (aMW === bMW) return 0;
+            //     //   return aMW ? -1 : 1;
+            //     // })
+            //     .sort((a, b) => {
+            //       const isMW = l => integrationMiddlewareNamelist.includes(l.source.id)
+            //                       || integrationMiddlewareNamelist.includes(l.target.id);
+            //       // direct-to-A links first (0), middleware links last (1)
+            //       return (isMW(a) ? 1 : 0) - (isMW(b) ? 1 : 0);
+            //     })
+            //     .on("mouseover", handleLinkMouseOver)
+            //     .on("mouseout", handleMouseOut)
+            //     .order();
+
+            // Draw links
+            // g.append("g")
+            //     .attr("class", "links")
+            //     .selectAll(".link")
+            //     .data(links)
+            //     .join("path")
+            //     .attr("class", "link")
+            //     .attr("d", d3.sankeyLinkHorizontal())
+            //     .attr("stroke", d => linksColorScale(d.pattern))
+            //     .attr("stroke-width", d => Math.max(1, d.width))
+            //     .attr("fill", "none")
+            //     // .sort((a, b) => b.width - a.width)
+            //     // .sort((a, b) => Math.abs(a.target.layer - a.source.layer) - Math.abs(b.target.layer - b.source.layer))
+            //     .on("mouseover", handleLinkMouseOver)
+            //     .on("mouseout", handleMouseOut);
+
+            // In createSankey(), after you’ve computed and (optionally) sorted `links`, replace your single‐pass link draw
+// with two passes—one for middleware‐attached links, one for direct‐to-A links:
+
+// 1) Split your array
+// const mwLinks = links.filter(l =>
+//   integrationMiddlewareNamelist.includes(l.source.id) ||
+//   integrationMiddlewareNamelist.includes(l.target.id)
+// );
+// const directLinks = links.filter(l => !mwLinks.includes(l));
+
+// // 2) Draw the middleware links first
+// g.append("g")
+//   .attr("class", "links")
+//   .selectAll("path")
+//   .data(directLinks)
+//   .join("path")
+//     .attr("class", "link")
+//     .attr("d", d3.sankeyLinkHorizontal())
+//     .attr("stroke", d => linksColorScale(d.pattern))
+//     .attr("stroke-width", d => Math.max(1, d.width))
+//     .attr("fill", "none")
+//     .on("mouseover", handleLinkMouseOver)
+//     .on("mouseout", handleMouseOut);
+
+// // 3) Then draw the direct-to-A links on top
+// g.append("g")
+//   .attr("class", "links")
+//   .selectAll("path")
+//   .data(mwLinks)
+//   .join("path")
+//     .attr("class", "link")
+//     .attr("d", d3.sankeyLinkHorizontal())
+//     .attr("stroke", d => linksColorScale(d.pattern))
+//     .attr("stroke-width", d => Math.max(1, d.width))
+//     .attr("fill", "none")
+//     .on("mouseover", handleLinkMouseOver)
+//     .on("mouseout", handleMouseOut);
+  // 1) split links
+  const mwLinks     = links.filter(l =>
+    integrationMiddlewareNamelist.includes(l.source.id) ||
+    integrationMiddlewareNamelist.includes(l.target.id)
+  );
+  const directLinks = links.filter(l => !mwLinks.includes(l));
+
+  // 2) draw direct-to-A links first
+  const directG = g.append("g")
+    .attr("class", "links links--direct");
+  directG.selectAll("path")
+    .data(directLinks)
+    .join("path")
+      .attr("class", "link")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke", d => linksColorScale(d.pattern))
+      .attr("stroke-width", d => Math.max(1, d.width))
+      .attr("fill", "none")
+      .on("mouseover", handleLinkMouseOver)
+      .on("mouseout",  handleMouseOut);
+
+  // 3) then draw middleware-attached links (this group is appended last so it's on top)
+  const mwG = g.append("g")
+    .attr("class", "links links--mw");
+  mwG.selectAll("path")
+    .data(mwLinks)
+    .join("path")
+      .attr("class", "link")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke", d => linksColorScale(d.pattern))
+      .attr("stroke-width", d => Math.max(1, d.width))
+      .attr("fill", "none")
+      .on("mouseover", handleLinkMouseOver)
+      .on("mouseout",  handleMouseOut);
+
+            // Draw nodes
+            const node = g.append("g")
+                .attr("class", "nodes")
+                .selectAll(".node")
+                .data(nodes)
+                .join("g")
+                .attr("class", "node")
+                .attr("transform", d => `translate(${d.x0},${d.y0})`)
+                .on("mouseover", handleNodeMouseOver)
+                .on("mouseout", handleMouseOut)
+                .on("click", (event, d) => {
+                    if (d.url) {
+                    window.open(d.url, "_blank");
+                    }
+                });
+
+            node.append("rect")
+                .attr("height", d => d.y1 - d.y0)
+                .attr("width", d => d.x1 - d.x0)
+                .attr("fill", d => nodesColorScale(d.criticality));
+
+            node.append("text")
+                .attr("x", d => d.x0 < width / 2 ? -6 : d.x1 - d.x0 + 6)
+                .attr("y", d => (d.y1 - d.y0) / 2)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", d => d.x0 < width / 2 ? "end" : "start")
+                .text(d => d.name);
+            // node.append("text")
+            //   .attr("x", d => (d.x1 - d.x0) / 2)    // center label over the node
+            //   .attr("y", -6)                        // 6px above the top of the rect
+            //   .attr("text-anchor", "middle")        // center‐align the text
+            //   .attr("font-size", "12px")
+            //   .attr("font-weight", "500")
+            //   .text(d => d.name);
+            
+            // Add zoom functionality
+            const zoom = d3.zoom()
+                .scaleExtent([0.5, 5])
+                .on("zoom", (event) => {
+                    g.attr("transform", event.transform);
+                });
+            svg.call(zoom);
+        }
+
+        // --- DATA PROCESSING ---
+        function processDataForSankey(data) {
+            // Group nodes by type to create columns
+            const types = [...new Set(data.nodes.map(n => n.type))];
+            
+            data.nodes.forEach(node => {
+                // Assign a layer based on the type's index
+                node.layer = types.indexOf(node.type);
+            });
+
+            // Add a 'value' to each link, required by Sankey. Default to 1 for uniform thickness.
+            const links = data.links.map(l => ({...l, value: l.value || 1}));
+            return { nodes: data.nodes, links };
+        }
+
+      // --- INTERACTIVITY & EVENT HANDLERS ---
+      function handleNodeMouseOver(event, d) {
+            tooltip.transition().duration(200).style("opacity", .9);
+            tooltip.html(`<strong>${d.name} (${d.id})</strong><br/>Type: ${d.type}<br/>Criticality: ${d.criticality}<br/>Internet Facing: ${d.internetFacing}<br/>Environment: ${d.environment}`)
+                .style("left", (event.pageX + 15) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        }
+
+        function handleLinkMouseOver(event, d) {
+            tooltip.transition().duration(200).style("opacity", .9);
+            tooltip.html(`<strong>${d.source.name} → ${d.target.name}</strong><br/>Pattern: ${d.pattern}<br/>Frequency: ${d.frequency}<br/>Desc: ${d.description || 'N/A'}`)
+            .style("left", (event.pageX + 15) + "px")    
+            .style("top", (event.pageY - 28) + "px");
+        }
+
+        function handleMouseOut() {
+            tooltip.transition().duration(500).style("opacity", 0);
+        }
+
+      function setupEventListeners() {
+        resetButton.addEventListener("click", resetAll);
+        applyFiltersButton.addEventListener("click", applyFilters);
+      }
+
+      // --- FILTERING & USE CASES LOGIC ---
+      // --- CHANGED START: Rewritten filter logic ---
+        function applyFilters() {
+            clearHighlightsAndSelections();
+            const searchTerm = systemSearchInput.value.toLowerCase();
+            const selectedType = systemTypeFilter.value;
+            const selectedConnection = connectionTypeFilter.value;
+            const selectedCriticality = criticalityFilter.value;
+            const selectedFrequency = frequencyFilter.value;
+            const selectedRole = roleFilter.value;
+
+            // 1. Filter nodes based on node-specific criteria. These are our "focus" nodes.
+            const focusNodes = originalNodes.filter(n => {
+                const nameMatch = searchTerm === '' || n.name.toLowerCase().includes(searchTerm) || n.id.toLowerCase().includes(searchTerm);
+                const typeMatch = selectedType === 'All' || n.type === selectedType;
+                const criticalityMatch = selectedCriticality === 'All' || n.criticality === selectedCriticality;
+                return nameMatch && typeMatch && criticalityMatch && n.id !== pinnedSystemId;
+            });
+            const focusNodeIds = new Set(focusNodes.map(n => n.id));
+            
+            console.log('filtered nodes ', focusNodeIds);
+
+            // 2. Filter links based on link-specific criteria.
+            const linkFilteredLinks = originalLinks.filter(l => {
+                const connectionMatch = selectedConnection === 'All' || l.pattern === selectedConnection;
+                const frequencyMatch = selectedFrequency === 'All' || l.frequency === selectedFrequency;
+                const roleMatch = selectedRole === 'All' || l.role.toLowerCase() === selectedRole.toLowerCase();
+                return connectionMatch && frequencyMatch && roleMatch;
+                // return ((connectionMatch && frequencyMatch) || (integrationMiddlewareNamelist.includes(l.source) && l.target === pinnedSystemId) || (integrationMiddlewareNamelist.includes(l.target) && l.source === pinnedSystemId))  && roleMatch;
+            });
+
+            console.log('filtered links ', linkFilteredLinks);
+            // 3. The final links are the ones from linkFilteredLinks that touch at least one of the focusNodes.
+            // let finalLinks = linkFilteredLinks.filter(l =>
+            //     (focusNodeIds.has(l.source)) || (focusNodeIds.has(l.target))
+            // );
+            const finalLinks = new Array();
+            linkFilteredLinks.forEach(l => {
+                if (((l.source === pinnedSystemId && integrationMiddlewareNamelist.includes(l.target)) || (l.target === pinnedSystemId && integrationMiddlewareNamelist.includes(l.source))) && (originalLinks.length === linkFilteredLinks.length) && (originalNodes.length-1 === focusNodes.length)) {
+                  // Skip links that connect directly to the pinned system and are middleware
+                } else 
+                if (focusNodeIds.has(l.source) && integrationMiddlewareNamelist.includes(l.target)) {
+                    console.log('middleware ', l);
+                    const middlewareLink = originalLinks.filter(obj => obj.source === l.target && obj.target === pinnedSystemId)[0];
+                    console.log('filtered middleware ', middlewareLink);
+                    finalLinks.push(middlewareLink);
+                     finalLinks.push(l);
+                } else if (focusNodeIds.has(l.target) && integrationMiddlewareNamelist.includes(l.source)) {
+                    console.log('middleware ', l);
+                     const middlewareLink = originalLinks.filter(obj => obj.target === l.source && obj.source === pinnedSystemId)[0];
+                    //  console.log('filtered middleware ', middlewareLink);
+                     finalLinks.push(middlewareLink);
+                     finalLinks.push(l);
+                } else if (focusNodeIds.has(l.source) || (focusNodeIds.has(l.target))) {
+                     finalLinks.push(l);
+                }
+            });
+            // const finalLinks = [];
+            // const addedMain2MW = new Set();
+            // const addedMW2Main = new Set();
+
+            // linkFilteredLinks.forEach(l => {
+            //   // Producer side: focus→MW
+            //   if (focusNodeIds.has(l.source) && integrationMiddlewareNamelist.includes(l.target)) {
+            //     const mw = l.target;
+            //     if (!addedMW2Main.has(mw)) {
+            //       const stub = originalLinks.find(obj =>
+            //         obj.source === mw &&
+            //         obj.target === pinnedSystemId &&
+            //         obj.role === 'Consumer'
+            //       );
+            //       if (stub) {
+            //         finalLinks.push(stub);
+            //         addedMW2Main.add(mw);
+            //       }
+            //     }
+            //     finalLinks.push(l);
+            //   }
+            //   // Consumer side: MW→focus
+            //   else if (focusNodeIds.has(l.target) && integrationMiddlewareNamelist.includes(l.source)) {
+            //     const mw = l.source;
+            //     if (!addedMain2MW.has(mw)) {
+            //       const stub = originalLinks.find(obj =>
+            //         obj.source === pinnedSystemId &&
+            //         obj.target === mw &&
+            //         obj.role === 'Producer'
+            //       );
+            //       if (stub) {
+            //         finalLinks.push(stub);
+            //         addedMain2MW.add(mw);
+            //       }
+            //     }
+            //     finalLinks.push(l);
+            //   }
+            //   // any other focus‐related link
+            //   else if (focusNodeIds.has(l.source) || focusNodeIds.has(l.target)) {
+            //     finalLinks.push(l);
+            //   }
+            // });
+            console.log('finalLinks: ', finalLinks);
+
+            // 4. The final set of nodes includes all nodes from the final links, plus any focus nodes that might be isolates.
+            const finalNodeIds = new Set();
+            finalLinks.forEach(l => {
+                finalNodeIds.add(l.source);
+                finalNodeIds.add(l.target);
+            });
+            // focusNodeIds.forEach(id => finalNodeIds.add(id)); // Add back isolates that match filters
+
+            finalNodeIds.add(pinnedSystemId);
+
+            const finalNodes = originalNodes.filter(n => finalNodeIds.has(n.id));
+            console.log('final nodes: ', finalNodes)
+            const data = {'nodes': finalNodes, 'links': finalLinks, 'metadata': defaultData.metadata};
+            console.log(data);
+            createSankey(data);
+            
+        }
+        // --- CHANGED END ---
+
+      // --- UTILITY FUNCTIONS ---
+      function populateFilters() {
+        const systemTypes = [
+          "All",
+          ...new Set(originalNodes.map((d) => d.type)),
+        ];
+        const connectionTypes = [
+          "All",
+          ...new Set(originalLinks.map((d) => d.pattern)),
+        ];
+        const criticalities = [
+          "All",
+          ...new Set(originalNodes.map((d) => d.criticality)),
+        ];
+        const frequencies = [
+          "All",
+          ...new Set(originalLinks.map((d) => d.frequency)),
+        ];
+        const roles = ["All", "Producer", "Consumer"];
+        const systemOptions = [
+          "None",
+          ...originalNodes.map((d) => d.id),
+        ].sort();
+
+        populateSelect(systemTypeFilter, systemTypes);
+        populateSelect(connectionTypeFilter, connectionTypes);
+        populateSelect(criticalityFilter, criticalities);
+        populateSelect(frequencyFilter, frequencies);
+        populateSelect(roleFilter, roles)
+      }
+
+      function populateSelect(selectElement, options) {
+        selectElement.innerHTML = "";
+        options.forEach((opt) => {
+          const option = document.createElement("option");
+          option.value = opt;
+          option.textContent = opt;
+          selectElement.appendChild(option);
+        });
+      }
+
+      function clearHighlightsAndSelections() {
+            if (node) node.classed('dimmed', false).classed('path-highlight-node', false);
+            if (link) link.classed('dimmed', false).classed('path-highlight-link', false);
+        }
+
+      function resetAll() {
+        // Reset all filter inputs to their default state
+        systemSearchInput.value = "";
+        systemTypeFilter.value = "All";
+        connectionTypeFilter.value = "All";
+        criticalityFilter.value = "All";
+        frequencyFilter.value = "All";
+
+        clearHighlightsAndSelections();
+        createSankey(defaultData);
+      }
+
+      // --- START THE APP ---
+      initialize(defaultData);
+    </script>
+  </body>
+</html>
