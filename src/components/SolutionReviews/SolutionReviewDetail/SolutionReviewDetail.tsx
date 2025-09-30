@@ -330,6 +330,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                       <th className="p-2">Counterpart (Role)</th>
                       <th className="p-2">Method</th>
                       <th className="p-2">Frequency</th>
+                      <th className="p-2">Middleware</th>
                       <th className="p-2">Purpose</th>
                     </tr>
                   </thead>
@@ -340,6 +341,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
                         <td className="p-2">{displayValue(f.counterpartSystemCode ?? f.externalSystemRole)}{f.counterpartSystemRole ? ` (${f.counterpartSystemRole})` : ""}</td>
                         <td className="p-2">{displayValue(f.integrationMethod)}</td>
                         <td className="p-2">{displayValue(f.frequency)}</td>
+                        <td className="p-2">{displayValue(f.middleware)}</td>
                         <td className="p-2">{displayValue(f.purpose)}</td>
                       </tr>
                     ))}

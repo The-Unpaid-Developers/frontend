@@ -14,28 +14,12 @@ import SankeyVisualization from './components/Diagrams/DependenciesFlow/Specific
 import { OverallSystemsVisualization } from './components/Diagrams/DependenciesFlow/OverallSystems';
 
 function App() {
-  const userToken = localStorage.getItem("userToken");
-  const username = localStorage.getItem("username");
-  const isAuthenticated = !!userToken;
-
-  const handleLogout = () => {
-    // Additional logout logic if needed
-    console.log("User logged out");
-    localStorage.removeItem("userToken");
-    localStorage.removeItem("username");
-  };
 
   return (
     <ToastProvider>
       <BrowserRouter>
         <ErrorBoundary>
-          {isAuthenticated && (
-          <Navbar 
-            userRole={userToken} 
-            username={username ?? undefined}
-            onLogout={handleLogout}
-          />
-        )}
+          <Navbar/>
           {/* <SolutionReviewProvider> */}
             <Routes>
               <Route path="/" element={<Dashboard />} />

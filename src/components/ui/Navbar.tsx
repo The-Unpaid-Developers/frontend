@@ -2,22 +2,17 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./Button";
 
-interface NavbarProps {
-  userRole?: string;
-  username?: string;
-  onLogout?: () => void;
-}
-
-export const Navbar: React.FC<NavbarProps> = ({ userRole, username, onLogout }) => {
+export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const userRole = localStorage.getItem("userToken") || undefined;
+  const username = localStorage.getItem("username") || undefined;
 
   const isActive = (path: string) => location.pathname === path;
 
   const handleLogout = () => {
     localStorage.removeItem("userToken");
     localStorage.removeItem("username");
-    onLogout?.();
     navigate("/login");
   };
 
@@ -93,19 +88,32 @@ export const Navbar: React.FC<NavbarProps> = ({ userRole, username, onLogout }) 
               </div>
             )}
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-red-600"
-            >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </Button>
+            {userRole && username ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-gray-600 hover:text-red-600"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/login")}
+                className="text-primary-600 border-primary-600 hover:bg-primary-50"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Login
+              </Button>
+            )}
           </div>
-
           {/* Mobile menu button */}
           <div className="md:hidden">
             <Button
