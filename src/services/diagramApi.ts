@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = 'http://localhost:8081/api/v1';
 
 // const mockSystemFlowData = {
 //     "nodes": [
@@ -206,62 +206,277 @@ const API_BASE_URL = 'http://localhost:8080/api/v1';
 //         "generatedDate": "2025-07-25"
 //     }
 // };
-const mockSystemFlowData = {
+const mockSystemFlowData = 
+{
     "nodes": [
-        // Core System
-        { "id": "A", "name": "System A", "type": "Core System", "criticality": "Major", "url": "A.json" },
-        
-        // Middleware Systems (reduced from 6 to 4)
-        { "id": "M-P", "name": "Message Queue", "type": "Middleware", "criticality": "Standard-2", "url": "M.json" },
-        { "id": "M-C", "name": "Message Queue", "type": "Middleware", "criticality": "Standard-2", "url": "M.json" },
-        { "id": "N-P", "name": "API Gateway", "type": "Middleware", "criticality": "Standard-2", "url": "N.json" },
-        { "id": "N-C", "name": "API Gateway", "type": "Middleware", "criticality": "Standard-2", "url": "N.json" },
-        
-        // External Systems (reduced from 60 to 20)
-        { "id": "SYS1-P", "name": "Payment System", "type": "External", "criticality": "Major", "url": "SYS1.json" },
-        { "id": "SYS1-C", "name": "Payment System", "type": "External", "criticality": "Major", "url": "SYS1.json" },
-        { "id": "SYS3-C", "name": "Notification Service", "type": "External", "criticality": "Standard-2", "url": "SYS3.json" },
-        { "id": "SYS5-P", "name": "Audit System", "type": "External", "criticality": "Standard-1", "url": "SYS5.json" },
-        { "id": "SYS5-C", "name": "Audit System", "type": "External", "criticality": "Standard-1", "url": "SYS5.json" },
-        { "id": "SYS6-P", "name": "Inventory System", "type": "External", "criticality": "Major", "url": "SYS6.json" },
-        { "id": "SYS7-P", "name": "Reporting Service", "type": "External", "criticality": "Standard-2", "url": "SYS7.json" },
-        { "id": "SYS7-C", "name": "Reporting Service", "type": "External", "criticality": "Standard-2", "url": "SYS7.json" },
-        { "id": "SYS8-C", "name": "Email Service", "type": "External", "criticality": "Minor", "url": "SYS8.json" }
+        {
+            "id": "sys-001",
+            "name": "NextGen Platform",
+            "type": "Core System",
+            "criticality": "Major",
+            "url": "sys-001.json"
+        },
+        {
+            "id": "sys-002-P",
+            "name": "Test2",
+            "type": "IncomeSystem",
+            "criticality": "Major",
+            "url": "sys-002.json"
+        },
+        {
+            "id": "OSB-P",
+            "name": "OSB",
+            "type": "Middleware",
+            "criticality": "Standard-2",
+            "url": "OSB.json"
+        },
+        {
+            "id": "sys-003-C",
+            "name": "Test3",
+            "type": "IncomeSystem",
+            "criticality": "Major",
+            "url": "sys-003.json"
+        },
+        {
+            "id": "OSB-C",
+            "name": "OSB",
+            "type": "Middleware",
+            "criticality": "Standard-2",
+            "url": "OSB.json"
+        },
+        {
+            "id": "sys-004-P",
+            "name": "Test4",
+            "type": "IncomeSystem",
+            "criticality": "Major",
+            "url": "sys-004.json"
+        },
+        {
+            "id": "sys-005-P",
+            "name": "Test5",
+            "type": "IncomeSystem",
+            "criticality": "Major",
+            "url": "sys-005.json"
+        },
+        {
+            "id": "sys-005-C",
+            "name": "Test5",
+            "type": "IncomeSystem",
+            "criticality": "Major",
+            "url": "sys-005.json"
+        },
+        {
+            "id": "API_GATEWAY-P",
+            "name": "API_GATEWAY",
+            "type": "Middleware",
+            "criticality": "Standard-2",
+            "url": "API_GATEWAY.json"
+        },
+        {
+            "id": "sys-002-C",
+            "name": "Test2",
+            "type": "IncomeSystem",
+            "criticality": "Major",
+            "url": "sys-002.json"
+        },
+        {
+            "id": "API_GATEWAY-C",
+            "name": "API_GATEWAY",
+            "type": "Middleware",
+            "criticality": "Standard-2",
+            "url": "API_GATEWAY.json"
+        },
+        {
+            "id": "external-C",
+            "name": "external",
+            "type": "External",
+            "criticality": "Major",
+            "url": "external.json"
+        }
     ],
     "links": [
-        // Direct connections from A to external systems (8 connections)
-        { "source": "A", "target": "SYS1-P", "pattern": "API", "frequency": "Real-time", "role": "Producer", "description": "Payment processing" },
-
-        // Connections through Message Queue middleware (4 connections)
-        { "source": "A", "target": "M-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Queue messages" },
-        { "source": "A", "target": "M-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Queue messages" },
-        { "source": "M-P", "target": "SYS5-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Audit events" },
-        { "source": "M-P", "target": "SYS6-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Inventory updates" },
-
-        // Connections through API Gateway middleware (2 connections)
-        { "source": "A", "target": "N-P", "pattern": "API Gateway", "frequency": "Real-time", "role": "Producer", "description": "API routing" },
-        { "source": "N-P", "target": "SYS7-P", "pattern": "API", "frequency": "Real-time", "role": "Producer", "description": "Report generation" },
-
-        // Consumer connections back to A (8 connections)
-        { "source": "SYS1-C", "target": "A", "pattern": "API", "frequency": "Real-time", "role": "Consumer", "description": "Payment confirmations" },
-        { "source": "SYS8-C", "target": "A", "pattern": "File", "frequency": "Daily", "role": "Consumer", "description": "Email reports" },
-
-        // Consumer connections through middleware (6 connections)
-        { "source": "SYS3-C", "target": "M-C", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Status updates" },
-        { "source": "SYS5-C", "target": "M-C", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Audit responses" },
-        { "source": "M-C", "target": "A", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Middleware responses" },
-        { "source": "M-C", "target": "A", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Middleware responses" },
-
-        { "source": "SYS7-C", "target": "N-C", "pattern": "API", "frequency": "Real-time", "role": "Consumer", "description": "Report status" },
-        { "source": "N-C", "target": "A", "pattern": "API Gateway", "frequency": "Real-time", "role": "Consumer", "description": "Gateway responses" },
+        {
+            "source": "sys-002-P",
+            "target": "OSB-P",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Producer"
+        },
+        {
+            "source": "OSB-P",
+            "target": "sys-001",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Consumer"
+        },
+        {
+            "source": "sys-001",
+            "target": "OSB-C",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Producer"
+        },
+        {
+            "source": "OSB-C",
+            "target": "sys-003-C",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Consumer"
+        },
+        {
+            "source": "sys-004-P",
+            "target": "sys-001",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "CONSUMER"
+        },
+        {
+            "source": "sys-005-P",
+            "target": "OSB-P",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Producer"
+        },
+        {
+            "source": "OSB-P",
+            "target": "sys-001",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Consumer"
+        },
+        {
+            "source": "sys-001",
+            "target": "OSB-C",
+            "pattern": "BATCH",
+            "frequency": "DAILY",
+            "role": "Producer"
+        },
+        {
+            "source": "OSB-C",
+            "target": "sys-005-C",
+            "pattern": "BATCH",
+            "frequency": "DAILY",
+            "role": "Consumer"
+        },
+        {
+            "source": "sys-005-P",
+            "target": "API_GATEWAY-P",
+            "pattern": "BATCH",
+            "frequency": "WEEKLY",
+            "role": "Producer"
+        },
+        {
+            "source": "API_GATEWAY-P",
+            "target": "sys-001",
+            "pattern": "BATCH",
+            "frequency": "WEEKLY",
+            "role": "Consumer"
+        },
+        {
+            "source": "sys-001",
+            "target": "sys-005-C",
+            "pattern": "FILE",
+            "frequency": "WEEKLY",
+            "role": "PRODUCER"
+        },
+        {
+            "source": "sys-001",
+            "target": "API_GATEWAY-C",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Producer"
+        },
+        {
+            "source": "API_GATEWAY-C",
+            "target": "sys-002-C",
+            "pattern": "API",
+            "frequency": "DAILY",
+            "role": "Consumer"
+        },
+        {
+            "source": "sys-001",
+            "target": "OSB-C",
+            "pattern": "EVENT",
+            "frequency": "WEEKLY",
+            "role": "Producer"
+        },
+        {
+            "source": "OSB-C",
+            "target": "external-C",
+            "pattern": "EVENT",
+            "frequency": "WEEKLY",
+            "role": "Consumer"
+        }
     ],
     "metadata": {
-        "code": "A",
-        "review": "System Integration Review",
-        "integrationMiddleware": ["M-P", "M-C", "N-P", "N-C"],
-        "generatedDate": "2025-01-02"
+        "code": "sys-001",
+        "review": "AWG-2025-001",
+        "integrationMiddleware": [
+            "OSB-P",
+            "OSB-C",
+            "API_GATEWAY-P",
+            "API_GATEWAY-C"
+        ],
+        "generatedDate": "2025-09-30"
     }
 };
+
+// {
+//     "nodes": [
+//         // Core System
+//         { "id": "A", "name": "System A", "type": "Core System", "criticality": "Major", "url": "A.json" },
+        
+//         // Middleware Systems (reduced from 6 to 4)
+//         { "id": "M-P", "name": "Message Queue", "type": "Middleware", "criticality": "Standard-2", "url": "M.json" },
+//         { "id": "M-C", "name": "Message Queue", "type": "Middleware", "criticality": "Standard-2", "url": "M.json" },
+//         { "id": "N-P", "name": "API Gateway", "type": "Middleware", "criticality": "Standard-2", "url": "N.json" },
+//         { "id": "N-C", "name": "API Gateway", "type": "Middleware", "criticality": "Standard-2", "url": "N.json" },
+        
+//         // External Systems (reduced from 60 to 20)
+//         { "id": "SYS1-P", "name": "Payment System", "type": "External", "criticality": "Major", "url": "SYS1.json" },
+//         { "id": "SYS1-C", "name": "Payment System", "type": "External", "criticality": "Major", "url": "SYS1.json" },
+//         { "id": "SYS3-C", "name": "Notification Service", "type": "External", "criticality": "Standard-2", "url": "SYS3.json" },
+//         { "id": "SYS5-P", "name": "Audit System", "type": "External", "criticality": "Standard-1", "url": "SYS5.json" },
+//         { "id": "SYS5-C", "name": "Audit System", "type": "External", "criticality": "Standard-1", "url": "SYS5.json" },
+//         { "id": "SYS6-P", "name": "Inventory System", "type": "External", "criticality": "Major", "url": "SYS6.json" },
+//         { "id": "SYS7-P", "name": "Reporting Service", "type": "External", "criticality": "Standard-2", "url": "SYS7.json" },
+//         { "id": "SYS7-C", "name": "Reporting Service", "type": "External", "criticality": "Standard-2", "url": "SYS7.json" },
+//         { "id": "SYS8-C", "name": "Email Service", "type": "External", "criticality": "Minor", "url": "SYS8.json" }
+//     ],
+//     "links": [
+//         // Direct connections from A to external systems (8 connections)
+//         { "source": "A", "target": "SYS1-P", "pattern": "API", "frequency": "Real-time", "role": "Producer", "description": "Payment processing" },
+
+//         // Connections through Message Queue middleware (4 connections)
+//         { "source": "A", "target": "M-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Queue messages" },
+//         { "source": "A", "target": "M-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Queue messages" },
+//         { "source": "M-P", "target": "SYS5-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Audit events" },
+//         { "source": "M-P", "target": "SYS6-P", "pattern": "Message Queue", "frequency": "Real-time", "role": "Producer", "description": "Inventory updates" },
+
+//         // Connections through API Gateway middleware (2 connections)
+//         { "source": "A", "target": "N-P", "pattern": "API Gateway", "frequency": "Real-time", "role": "Producer", "description": "API routing" },
+//         { "source": "N-P", "target": "SYS7-P", "pattern": "API", "frequency": "Real-time", "role": "Producer", "description": "Report generation" },
+
+//         // Consumer connections back to A (8 connections)
+//         { "source": "SYS1-C", "target": "A", "pattern": "API", "frequency": "Real-time", "role": "Consumer", "description": "Payment confirmations" },
+//         { "source": "SYS8-C", "target": "A", "pattern": "File", "frequency": "Daily", "role": "Consumer", "description": "Email reports" },
+
+//         // Consumer connections through middleware (6 connections)
+//         { "source": "SYS3-C", "target": "M-C", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Status updates" },
+//         { "source": "SYS5-C", "target": "M-C", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Audit responses" },
+//         { "source": "M-C", "target": "A", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Middleware responses" },
+//         { "source": "M-C", "target": "A", "pattern": "Message Queue", "frequency": "Real-time", "role": "Consumer", "description": "Middleware responses" },
+
+//         { "source": "SYS7-C", "target": "N-C", "pattern": "API", "frequency": "Real-time", "role": "Consumer", "description": "Report status" },
+//         { "source": "N-C", "target": "A", "pattern": "API Gateway", "frequency": "Real-time", "role": "Consumer", "description": "Gateway responses" },
+//     ],
+//     "metadata": {
+//         "code": "A",
+//         "review": "System Integration Review",
+//         "integrationMiddleware": ["M-P", "M-C", "N-P", "N-C"],
+//         "generatedDate": "2025-01-02"
+//     }
+// };
 
 /*
 {
@@ -301,13 +516,13 @@ const mockSystemFlowData = {
 
 export const getSystemFlowAPI = async (systemCode: string) => {
   // const response = await axios.get(`${API_BASE_URL}/system-dependencies/${systemCode}`);
-  const response = await axios.get(`${API_BASE_URL}/solution-review/system-dependencies`);
-  // return response.data;
-  return mockSystemFlowData;
+  const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/${systemCode}`);
+  return response.data;
+  // return mockSystemFlowData;
 };
 
 export const getOverallSystemsFlowAPI = async () => {
-  const response = await axios.get(`${API_BASE_URL}/solution-review/system-dependencies`);
+  // const response = await axios.get(`${API_BASE_URL}/solution-review/system-dependencies`);
   // return response.data;
   return mockSystemFlowData;
 };
