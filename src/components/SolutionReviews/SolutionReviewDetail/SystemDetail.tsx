@@ -237,9 +237,9 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
                           <Button
                             key={transition.operation}
                             variant={
-                              transition.to === "CURRENT"
+                              transition.to === "CURRENT" || transition.to === "ACTIVE"
                                 ? "primary"
-                                : "ghost"
+                                : "secondary"
                             }
                             size="sm"
                             onClick={() =>

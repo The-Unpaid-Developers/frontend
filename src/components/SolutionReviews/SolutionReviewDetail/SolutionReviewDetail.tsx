@@ -121,7 +121,7 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
               {availableTransitions.map(t => (
                 <Button
                   key={t.operation}
-                  variant={t.to === "CURRENT" ? "primary" : "secondary"}
+                  variant={t.to === "CURRENT"  || t.to === "ACTIVE" ? "primary" : "secondary"}
                   size="sm"
                   onClick={() => handleStateTransition(t.operation)}
                   title={t.description}
