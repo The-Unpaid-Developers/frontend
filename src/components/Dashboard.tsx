@@ -5,7 +5,7 @@ import type { SolutionReview } from "../types/solutionReview";
 import {
   SolutionReviewCard,
   SolutionReviewDetail,
-} from "./SolutionReviewDetail";
+} from "./SolutionReviews/SolutionReviewDetail";
 import { Button, Input } from "./ui";
 import { useViewSolutionReview } from "../hooks/useViewSolutionReview";
 import { useToast } from "../context/ToastContext";

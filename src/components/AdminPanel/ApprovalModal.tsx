@@ -10,6 +10,7 @@ interface Concern {
   impact: string;
   disposition: string;
   status: 'UNKNOWN';
+  followUpDate: string; // Will be converted to LocalDateTime format for backend
 }
 
 interface ApprovalModalProps {
@@ -49,15 +50,35 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
     description: '',
     impact: '',
     disposition: '',
-    status: 'UNKNOWN'
+    status: 'UNKNOWN',
+    followUpDate: ''
   });
 
   const { addConcernsToSR } = useAdminPanel();
   const { showSuccess, showError } = useToast();
 
+  // Convert date string to LocalDateTime format (YYYY-MM-DDTHH:mm:ss)
+  const formatDateForBackend = (dateString: string): string => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    // Set time to 23:59:59
+    date.setHours(23, 59, 59, 0);
+    return date.toISOString().slice(0, 19); // Remove milliseconds and timezone
+  };
+
+  // Format date for display in the concern list
+  const formatDateForDisplay = (dateString: string): string => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const addConcern = () => {
-    if (!currentConcern.description || !currentConcern.impact || !currentConcern.disposition) {
-      showError("Please fill in all concern fields");
+    if (!currentConcern.description || !currentConcern.impact || !currentConcern.disposition || !currentConcern.followUpDate) {
+      showError("Please fill in all concern fields including follow-up date");
       return;
     }
 
@@ -73,7 +94,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       description: '',
       impact: '',
       disposition: '',
-      status: 'UNKNOWN'
+      status: 'UNKNOWN',
+      followUpDate: ''
     });
   };
 
@@ -88,13 +110,17 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       console.log('currentSolutionOverview:', currentSolutionOverview);
       console.log('concerns.length:', concerns.length);
       
-      // First, add concerns if any
-      // if (concerns.length > 0) {
-        if (!currentSolutionOverview) {
-          throw new Error('Solution overview not available for adding concerns');
-        }
-        await addConcernsToSR(reviewId, concerns, currentSolutionOverview);
-      // }
+      if (!currentSolutionOverview) {
+        throw new Error('Solution overview not available for adding concerns');
+      }
+
+      // Convert concerns for backend - format dates and remove id field
+      const concernsForBackend = concerns.map(({ id, followUpDate, ...concern }) => ({
+        ...concern,
+        followUpDate: formatDateForBackend(followUpDate)
+      }));
+
+      await addConcernsToSR(reviewId, concernsForBackend, currentSolutionOverview);
       
       // Then call the completion callback (which should handle the actual approval)
       await onApprovalComplete();
@@ -109,7 +135,8 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
         description: '',
         impact: '',
         disposition: '',
-        status: 'UNKNOWN'
+        status: 'UNKNOWN',
+        followUpDate: ''
       });
       
       onClose();
@@ -132,10 +159,16 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
       description: '',
       impact: '',
       disposition: '',
-      status: 'UNKNOWN'
+      status: 'UNKNOWN',
+      followUpDate: ''
     });
     
     onClose();
+  };
+
+  // Get today's date in YYYY-MM-DD format for min date
+  const getTodayDate = () => {
+    return new Date().toISOString().split('T')[0];
   };
 
   return (
@@ -159,68 +192,78 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Concern Type
-                      <DropDown
+                    Concern Type <span className="text-red-500">*</span>
+                    <DropDown
                       value={currentConcern.type}
                       onChange={(e) => setCurrentConcern({...currentConcern, type: e.target.value as any})}
                       options={CONCERN_TYPE_OPTIONS}
                     />
                   </label>
-                  
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Status
                     <DropDown
-                    value={currentConcern.status}
-                    onChange={(e) => setCurrentConcern({...currentConcern, status: e.target.value as any})}
-                    options={CONCERN_STATUS_OPTIONS}
-                  />
+                      value={currentConcern.status}
+                      onChange={(e) => setCurrentConcern({...currentConcern, status: e.target.value as any})}
+                      options={CONCERN_STATUS_OPTIONS}
+                    />
                   </label>
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
+                  Description <span className="text-red-500">*</span>
                   <Input
-                  value={currentConcern.description}
-                  onChange={(e) => setCurrentConcern({...currentConcern, description: e.target.value})}
-                  placeholder="Describe the concern"
-                />
+                    value={currentConcern.description}
+                    onChange={(e) => setCurrentConcern({...currentConcern, description: e.target.value})}
+                    placeholder="Describe the concern"
+                  />
                 </label>
-                
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Impact
+                  Impact <span className="text-red-500">*</span>
                   <Input
-                  value={currentConcern.impact}
-                  onChange={(e) => setCurrentConcern({...currentConcern, impact: e.target.value})}
-                  placeholder="Describe the impact"
-                />
+                    value={currentConcern.impact}
+                    onChange={(e) => setCurrentConcern({...currentConcern, impact: e.target.value})}
+                    placeholder="Describe the impact"
+                  />
                 </label>
-                
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Disposition
+                  Disposition <span className="text-red-500">*</span>
                   <Input
-                  value={currentConcern.disposition}
-                  onChange={(e) => setCurrentConcern({...currentConcern, disposition: e.target.value})}
-                  placeholder="Describe the disposition"
-                />
+                    value={currentConcern.disposition}
+                    onChange={(e) => setCurrentConcern({...currentConcern, disposition: e.target.value})}
+                    placeholder="Describe the disposition"
+                  />
                 </label>
-                
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Follow-up Date <span className="text-red-500">*</span>
+                  <input
+                    type="date"
+                    value={currentConcern.followUpDate}
+                    onChange={(e) => setCurrentConcern({...currentConcern, followUpDate: e.target.value})}
+                    min={getTodayDate()}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </label>
               </div>
 
               <Button
                 onClick={addConcern}
                 variant="secondary"
                 size="sm"
+                disabled={!currentConcern.description || !currentConcern.impact || !currentConcern.disposition || !currentConcern.followUpDate}
               >
                 Add Concern
               </Button>
@@ -246,6 +289,9 @@ const ApprovalModal: React.FC<ApprovalModalProps> = ({
                           </span>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             {concern.status}
+                          </span>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Due: {formatDateForDisplay(concern.followUpDate)}
                           </span>
                         </div>
                         <p className="text-sm font-medium text-gray-900 mb-1">{concern.description}</p>

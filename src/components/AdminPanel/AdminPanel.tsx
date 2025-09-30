@@ -4,7 +4,7 @@ import type { SolutionReview } from "../../types/solutionReview";
 import {
   SolutionReviewCard,
   SolutionReviewDetail,
-} from "../SolutionReviewDetail";
+} from "../SolutionReviews/SolutionReviewDetail";
 import { Input } from "../ui";
 import { useAdminPanel } from "../../hooks/useAdminPanel";
 
