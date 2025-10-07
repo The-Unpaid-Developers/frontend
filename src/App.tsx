@@ -9,7 +9,6 @@ import { Login } from "./components/Authentication/Login";
 import { AdminPanel } from "./components/AdminPanel";
 import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/ui';
-import SpecificSystemFlowDiagram from './components/Diagrams/IntegrationFlow/old/SpecificSystemFlowDiagram';
 import SankeyVisualization from './components/Diagrams/DependenciesFlow/SpecificSystem/SankeyVisualization';
 import { OverallSystemsVisualization } from './components/Diagrams/DependenciesFlow/OverallSystems';
 

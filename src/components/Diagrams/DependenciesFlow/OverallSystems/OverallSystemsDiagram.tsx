@@ -33,7 +33,7 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
         visible: true,
         x: event.pageX,
         y: event.pageY,
-        content: `<strong>${d.source.name} <-> ${d.target.name}</strong><br/>Count: ${d.pattern}`,
+        content: `<strong>${d.source.name} <-> ${d.target.name}</strong><br/>Count: ${d.count}`,
       });
 
       d3.select(event.currentTarget)
