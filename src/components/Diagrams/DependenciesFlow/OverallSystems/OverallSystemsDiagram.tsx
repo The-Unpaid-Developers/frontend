@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 import type { SankeyData } from '../../../../types/diagrams';
 import Tooltip from './Tooltip';
@@ -20,6 +20,59 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
     .domain(["Major", "Standard-1", "Standard-2", "Standard-3"])
     .range(["#ef4444", "#f59e0b", "#22c55e", "#0ea5e9"])
     .unknown("#6b7280");
+
+    const [tooltip, setTooltip] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    content: '',
+  });
+    // Define event handlers
+    const handleLinkMouseOver = (event: any, d: any) => {
+      setTooltip({
+        visible: true,
+        x: event.pageX,
+        y: event.pageY,
+        content: `<strong>${d.source.name} <-> ${d.target.name}</strong><br/>Count: ${d.pattern}`,
+      });
+
+      d3.select(event.currentTarget)
+        .attr("stroke", "#ef4444")
+        .attr("stroke-width", 3)
+        .attr("stroke-opacity", 1);
+    };
+
+    const handleLinkMouseOut = (event: any) => {
+      setTooltip({ visible: false, x: 0, y: 0, content: '' });
+
+      d3.select(event.currentTarget)
+        .attr("stroke", "#999")
+        .attr("stroke-width", 1)
+        .attr("stroke-opacity", 0.6);
+    };
+
+    const handleNodeMouseOver = (event: any, d: any) => {
+      setTooltip({
+        visible: true,
+        x: event.pageX,
+        y: event.pageY,
+        content: `<strong>${d.name}</strong><br/>Type: ${d.type}<br/>Criticality: ${d.criticality}`,
+      });
+
+      // Scale effect
+      d3.select(event.currentTarget).select("circle")
+        .transition().duration(200)
+        .attr("transform", "scale(1.2)");
+    };
+
+    const handleNodeMouseOut = (event: any) => {
+      setTooltip({ visible: false, x: 0, y: 0, content: '' });
+
+      // Reset scale
+      d3.select(event.currentTarget).select("circle")
+        .transition().duration(200)
+        .attr("transform", "scale(1)");
+    };
 
   useEffect(() => {
     if (!svgRef.current || !wrapperRef.current || !data) return;
@@ -154,62 +207,6 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
         .on("drag", dragged);
     }
 
-    function handleNodeMouseOver(event: any, d: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(200).style("opacity", 0.9);
-      tooltip
-        .html(`<strong>${d.name} (${d.id})</strong><br/>Type: ${d.type}<br/>Criticality: ${d.criticality}`)
-        .style("left", (event.pageX + 15) + "px")
-        .style("top", (event.pageY - 28) + "px");
-
-      // Scale effect
-      d3.select(event.currentTarget).select("circle")
-        .transition().duration(200)
-        .attr("transform", "scale(1.2)");
-    }
-
-    function handleNodeMouseOut(event: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(500).style("opacity", 0);
-
-      // Reset scale
-      d3.select(event.currentTarget).select("circle")
-        .transition().duration(200)
-        .attr("transform", "scale(1)");
-    }
-
-    function handleLinkMouseOver(event: any, d: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(200).style("opacity", 0.9);
-      tooltip
-        .html(`<strong>Connection</strong><br/>From: ${d.source.id} To: ${d.target.id}<br/>Pattern: ${d.pattern}<br/>Frequency: ${d.frequency}<br/>Desc: ${d.description || "N/A"}`)
-        .style("left", (event.pageX + 15) + "px")
-        .style("top", (event.pageY - 28) + "px");
-
-      d3.select(event.currentTarget)
-        .attr("stroke", "#ef4444")
-        .attr("stroke-width", 3)
-        .attr("stroke-opacity", 1);
-    }
-
-    function handleLinkMouseOut(event: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(500).style("opacity", 0);
-
-      d3.select(event.currentTarget)
-        .attr("stroke", "#999")
-        .attr("stroke-width", 1)
-        .attr("stroke-opacity", 0.6);
-    }
-
     // Cleanup function
     return () => {
       simulation.stop();
@@ -220,7 +217,10 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
   return (
     <div ref={wrapperRef} className="w-full h-full">
       <svg ref={svgRef} className="w-full h-full" />
-      <Tooltip ref={tooltipRef} />
+      <Tooltip visible={tooltip.visible}
+        x={tooltip.x}
+        y={tooltip.y}
+        content={tooltip.content} />
     </div>
   );
 };

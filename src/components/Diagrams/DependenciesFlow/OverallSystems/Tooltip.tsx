@@ -1,17 +1,30 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 
-interface TooltipProps {}
+interface TooltipProps {
+  visible: boolean;
+  x: number;
+  y: number;
+  content: string;
+}
 
-const Tooltip = forwardRef<HTMLDivElement, TooltipProps>((props, ref) => {
+const Tooltip: React.FC<TooltipProps> = ({ visible, x, y, content }) => {
+  if (!visible) return null;
+
   return (
     <div
-      ref={ref}
-      className="absolute text-left p-2 text-xs bg-gray-800 text-white border-0 rounded-lg pointer-events-none opacity-0 transition-opacity duration-200 z-10"
-      style={{ maxWidth: '300px' }}
-    />
+      className="fixed z-10 pointer-events-none"
+      style={{
+        left: `${x + 15}px`,
+        top: `${y - 28}px`,
+        opacity: visible ? 1 : 0,
+        transition: 'opacity 0.2s',
+      }}
+    >
+      <div className="bg-gray-800 text-white text-xs p-2 rounded-lg border-0">
+        <div dangerouslySetInnerHTML={{ __html: content }} />
+      </div>
+    </div>
   );
-});
-
-Tooltip.displayName = 'Tooltip';
+};
 
 export default Tooltip;
