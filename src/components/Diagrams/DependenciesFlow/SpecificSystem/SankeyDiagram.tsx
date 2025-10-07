@@ -305,7 +305,7 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .on('mouseover', (event, d) => handleNodeMouseOver(event, d as ProcessedNode))
       .on('mouseout', handleMouseOut)
       .on('click', (_event, d: any) => {
-        navigate(`/view-system-flow-diagram/${d.id}`);
+        navigate(`/view-system-flow-diagram/${d.id.slice(0, -2)}`);
       });
 
     node
