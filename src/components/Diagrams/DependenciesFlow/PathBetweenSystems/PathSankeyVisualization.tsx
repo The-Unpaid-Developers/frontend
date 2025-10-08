@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import type { PathSankeyData, FilterState, Link } from '../../../../types/diagrams';
+import type { PathSankeyData } from '../../../../types/diagrams';
 import { useFetchDiagramData } from '../../../../hooks/useFetchDiagramData';
 import { useToast } from '../../../../context/ToastContext';
-import PathSankeyFilters from './PathSankeyFilters';
 import PathSankeyDiagram from './PathSankeyDiagram';
 import PathSankeyLegend from './PathSankeyLegend';
 
@@ -22,17 +21,6 @@ const PathSankeyVisualization: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PathSankeyData | null>(null);
-
-  const [filters, setFilters] = useState<FilterState>({
-    systemSearch: '',
-    systemType: 'All',
-    connectionType: 'All',
-    criticality: 'All',
-    frequency: 'All',
-    role: 'All',
-  });
-
-  const [filteredData, setFilteredData] = useState<PathSankeyData | null>(null);
 
   // Hooks
   const { loadSystemsPaths } = useFetchDiagramData();
@@ -61,14 +49,12 @@ const PathSankeyVisualization: React.FC = () => {
 
       const diagramData = await loadSystemsPaths(producer.trim(), consumer.trim());
       setData(diagramData);
-      setFilteredData(diagramData);
       showSuccess(`Successfully loaded paths between ${producer} and ${consumer}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load paths diagram data';
       setError(errorMessage);
       showError(errorMessage);
       setData(null);
-      setFilteredData(null);
     } finally {
       setIsLoading(false);
     }
@@ -91,70 +77,7 @@ const PathSankeyVisualization: React.FC = () => {
       consumerSystemCode: '',
     });
     setData(null);
-    setFilteredData(null);
     setError(null);
-  };
-
-  const applyFilters = () => {
-    if (!data) return;
-
-    const searchTerm = filters.systemSearch.toLowerCase();
-    
-    // Filter nodes based on node-specific criteria
-    const focusNodes = data.nodes.filter(n => {
-      const nameMatch = searchTerm === '' ||
-        n.name.toLowerCase().includes(searchTerm) ||
-        n.id.toLowerCase().includes(searchTerm);
-      const typeMatch = filters.systemType === 'All' || n.type === filters.systemType;
-      const criticalityMatch = filters.criticality === 'All' || n.criticality === filters.criticality;
-      return nameMatch && typeMatch && criticalityMatch;
-    });
-
-    const focusNodeIds = new Set(focusNodes.map(n => n.id));
-
-    // Filter links based on link-specific criteria
-    const linkFilteredLinks = data.links.filter(l => {
-      const connectionMatch = filters.connectionType === 'All' || l.pattern === filters.connectionType;
-      const frequencyMatch = filters.frequency === 'All' || l.frequency === filters.frequency;
-      const roleMatch = filters.role === 'All' || l.role.toLowerCase() === filters.role.toLowerCase();
-      
-      // Only include links that connect filtered nodes
-      return connectionMatch && frequencyMatch && roleMatch && 
-             focusNodeIds.has(l.source) && focusNodeIds.has(l.target);
-    });
-
-    // Build final nodes based on remaining links
-    const finalNodeIds = new Set<string>();
-    linkFilteredLinks.forEach(l => {
-      finalNodeIds.add(l.source);
-      finalNodeIds.add(l.target);
-    });
-
-    const finalNodes = data.nodes.filter(n => finalNodeIds.has(n.id));
-
-    setFilteredData({
-      nodes: finalNodes,
-      links: linkFilteredLinks,
-      metadata: {
-        ...data.metadata,
-        producerSystem: systemCodes.producerSystemCode,
-        consumerSystem: systemCodes.consumerSystemCode,
-      },
-    });
-  };
-
-  const resetFilters = () => {
-    setFilters({
-      systemSearch: '',
-      systemType: 'All',
-      connectionType: 'All',
-      criticality: 'All',
-      frequency: 'All',
-      role: 'All',
-    });
-    if (data) {
-      setFilteredData(data);
-    }
   };
 
   return (
@@ -275,6 +198,15 @@ const PathSankeyVisualization: React.FC = () => {
                     </div>
                   )}
                   
+                  {data && !isLoading && (
+                    <div className="text-green-600 text-xs flex items-center space-x-1">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Path loaded successfully</span>
+                    </div>
+                  )}
+                  
                   {!systemCodes.producerSystemCode || !systemCodes.consumerSystemCode ? (
                     <div className="text-gray-500 text-xs flex items-center space-x-1">
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -293,20 +225,6 @@ const PathSankeyVisualization: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            {/* Standard Filters */}
-            {data && (
-              <PathSankeyFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                onApplyFilters={applyFilters}
-                onResetFilters={resetFilters}
-                originalNodes={data.nodes}
-                originalLinks={data.links}
-                producerSystemId={systemCodes.producerSystemCode}
-                consumerSystemId={systemCodes.consumerSystemCode}
-              />
-            )}
 
             {/* Legend */}
             <PathSankeyLegend />
@@ -357,9 +275,9 @@ const PathSankeyVisualization: React.FC = () => {
                   </div>
                 )}
 
-                {filteredData && (
+                {data && (
                   <PathSankeyDiagram
-                    data={filteredData}
+                    data={data}
                     width={1000}
                     height={1000}
                     producerSystemId={systemCodes.producerSystemCode}

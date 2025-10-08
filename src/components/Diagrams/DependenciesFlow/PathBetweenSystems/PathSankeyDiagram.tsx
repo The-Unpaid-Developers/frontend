@@ -189,7 +189,7 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       //   return 0;
       // })
       .extent([[0, 0], [graphWidth, graphHeight]])
-      .iterations(1000);
+      .iterations(100);
 
     const graph = processDataForSankey(data);
     let { nodes, links } = sankeyGenerator(graph as any);
@@ -279,16 +279,42 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
         // return isMW ? 0.6 : 0.4; // MW links slightly more opaque
         return 0.4;
       })
+      .attr('border', '1px solid black')
       .attr('stroke-opacity', (d) => {
         // const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
         // return isMW ? 0.5 : 0.3; // MW links slightly more opaque
         return 0.3;
       })
       .style('transition', 'fill-opacity 0.2s ease-in-out')
-      .on('mouseover', (event, d) => handleLinkMouseOver(event, d as ProcessedLink))
-      .on('mouseout', handleMouseOut)
-      .on('mouseover.hover', function(event, d) {
-        d3.select(this).attr('fill-opacity', 0.4);
+      // .on('mouseover', (event, d) => handleLinkMouseOver(event, d as ProcessedLink))
+      // .on('mouseout', handleMouseOut)
+      .on('mouseover', function(event, d) {
+        // Enhance the hovered link
+        d3.select(this)
+          .attr('fill-opacity', 0.8)
+          .attr('stroke-opacity', 0.9);
+        
+        // Also enhance the corresponding border
+        d3.selectAll('.link-border')
+          .filter((borderD: any) => borderD === d)
+          .attr('stroke-opacity', 1)
+          .attr('stroke', '#1a202c'); // Darker on hover
+          
+        handleLinkMouseOver(event, d as ProcessedLink);
+      })
+      .on('mouseout', function(event, d) {
+        // Reset the main link
+        d3.select(this)
+          .attr('fill-opacity', 0.4)
+          .attr('stroke-opacity', 0.3);
+          
+        // Reset the corresponding border
+        d3.selectAll('.link-border')
+          .filter((borderD: any) => borderD === d)
+          .attr('stroke-opacity', 0.8)
+          .attr('stroke', '#2d3748');
+          
+        handleMouseOut();
       })
       // .on('mouseout.hover', function(event, d) {
       //   const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
