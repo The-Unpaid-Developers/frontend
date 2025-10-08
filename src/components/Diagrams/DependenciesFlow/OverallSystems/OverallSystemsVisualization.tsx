@@ -1,33 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import type { SankeyData, FilterState } from '../../../../types/diagrams';
+import { useNavigate } from 'react-router-dom';
+import type { OverallSystemsDiagData, OverallSystemsDiagFilterState } from '../../../../types/diagrams';
 import { useFetchDiagramData } from '../../../../hooks/useFetchDiagramData';
 import { useToast } from '../../../../context/ToastContext';
-import OverallSystemsFilters from './OverallSystemsFilters';
-import OverallSystemsDiagram from './OverallSystemsDiagram';
-import OverallSystemsLegend from './OverallSystemsLegend';
-import { useNavigate } from 'react-router-dom';
+import OverallSystemsNewFilters from './OverallSystemsFilters';
+import OverallSystemsNewDiagram from './OverallSystemsDiagram';
+import OverallSystemsNewLegend from './OverallSystemsLegend';
 
-interface OverallSystemsVisualizationProps {
-  // Optional props for customization
-}
-
-const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = () => {
+const OverallSystemsNewVisualization: React.FC = () => {
   const navigate = useNavigate();
   // Data loading state
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<SankeyData | null>(null);
+  const [data, setData] = useState<OverallSystemsDiagData | null>(null);
 
-  const [filters, setFilters] = useState<FilterState>({
+  const [filters, setFilters] = useState<OverallSystemsDiagFilterState>({
     systemSearch: '',
     systemType: 'All',
-    connectionType: 'All',
     criticality: 'All',
-    frequency: 'All',
-    role: 'All',
   });
 
-  const [filteredData, setFilteredData] = useState<SankeyData | null>(null);
+  const [filteredData, setFilteredData] = useState<OverallSystemsDiagData | null>(null);
 
   // Hooks
   const { loadOverallSystemFlows } = useFetchDiagramData();
@@ -43,7 +36,7 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
       setData(diagramData);
       setFilteredData(diagramData);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load overall systems data';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load overall systems diagram data';
       setError(errorMessage);
       showError(errorMessage);
     } finally {
@@ -51,7 +44,7 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
     }
   };
 
-  // Fetch data on component mount
+  // Fetch data when system code changes
   useEffect(() => {
     fetchDiagramData();
   }, []);
@@ -61,52 +54,47 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
     fetchDiagramData();
   };
 
+  // Apply filters - matching the working HTML template logic
   const applyFilters = () => {
     if (!data) return;
 
     const searchTerm = filters.systemSearch.toLowerCase();
-
-    // Filter nodes based on node-specific criteria
+    
+    // 1. Filter nodes based on node-specific criteria. These are our "focus" nodes.
     const focusNodes = data.nodes.filter(n => {
       const typeMatch = filters.systemType === 'All' || n.type === filters.systemType;
       const criticalityMatch = filters.criticality === 'All' || n.criticality === filters.criticality;
       return typeMatch && criticalityMatch;
     });
-
     const focusNodeIds = new Set(focusNodes.map(n => n.id));
 
-    // Filter links based on link-specific criteria
-    const linkFilteredLinks = data.links.filter(l => {
-      const connectionMatch = filters.connectionType === 'All' || l.pattern === filters.connectionType;
-      const frequencyMatch = filters.frequency === 'All' || l.frequency === filters.frequency;
-      return connectionMatch && frequencyMatch;
-    });
-
-    // Build final links
+    // 3. The final links are the ones from linkFilteredLinks that touch at least one of the focusNodes.
+    console.log(focusNodeIds);
+    console.log(data.links);
     let finalLinks;
     if (searchTerm !== '') {
-      finalLinks = linkFilteredLinks.filter(l =>
-        (focusNodeIds.has(l.source) && l.target.toLowerCase().includes(searchTerm)) ||
-        (focusNodeIds.has(l.target) && l.source.toLowerCase().includes(searchTerm))
+      finalLinks = data.links.filter(l =>
+        (focusNodeIds.has(l.source.id) && l.target.id.toLowerCase().includes(searchTerm)) || 
+        (focusNodeIds.has(l.target.id) && l.source.id.toLowerCase().includes(searchTerm))
       );
     } else {
-      finalLinks = linkFilteredLinks.filter(l =>
-        focusNodeIds.has(l.source) && focusNodeIds.has(l.target)
+      finalLinks = data.links.filter(l =>
+        (focusNodeIds.has(l.source.id)) && (focusNodeIds.has(l.target.id))
       );
     }
 
-    // Build final nodes
+    // 4. The final set of nodes includes all nodes from the final links, plus any focus nodes that might be isolates.
     const finalNodeIds = new Set<string>();
     finalLinks.forEach(l => {
-      finalNodeIds.add(l.source);
-      finalNodeIds.add(l.target);
+      finalNodeIds.add(l.source.id);
+      finalNodeIds.add(l.target.id);
     });
-
     if (searchTerm === '') {
-      focusNodeIds.forEach(id => finalNodeIds.add(id));
+      focusNodeIds.forEach(id => finalNodeIds.add(id)); // Add back isolates that match filters
     }
 
     const finalNodes = data.nodes.filter(n => finalNodeIds.has(n.id));
+    console.log("After filtering, nodes:", finalNodes, "links:", finalLinks);
 
     setFilteredData({
       nodes: finalNodes,
@@ -119,14 +107,17 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
     setFilters({
       systemSearch: '',
       systemType: 'All',
-      connectionType: 'All',
-      criticality: 'All',
-      frequency: 'All',
-      role: 'All',
+      criticality: 'All'
     });
     if (data) {
       setFilteredData(data);
     }
+  };
+
+  // Handle node click
+  const handleNodeClick = (nodeId: string) => {
+    console.log("Node clicked in visualization:", nodeId);
+    navigate(`/view-system-flow-diagram/${nodeId}`);
   };
 
   // Loading state
@@ -138,7 +129,7 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
             <div className="flex items-center space-x-2">
               <svg className="animate-spin h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               <span className="text-gray-500 text-lg">Loading overall systems diagram...</span>
             </div>
@@ -158,7 +149,7 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
               <svg className="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-red-600 font-medium text-lg">Failed to load diagram</p>
+              <p className="text-red-600 font-medium text-lg">Failed to load overall systems diagram</p>
               <p className="text-gray-500 text-sm mt-1">{error || 'No data available'}</p>
               <button
                 onClick={handleRefresh}
@@ -184,7 +175,7 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
                 Overall Systems
               </h1>
               <p className="text-gray-600 mt-1">
-                Generated on: <span>{data.metadata.generatedDate}</span>
+                Generated on: <span>{data.metadata.generatedDate || new Date().toLocaleDateString()}</span>
               </p>
             </div>
             <button
@@ -204,7 +195,7 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Filters Column */}
           <div className="lg:col-span-3">
-            <OverallSystemsFilters
+            <OverallSystemsNewFilters
               filters={filters}
               onFiltersChange={setFilters}
               onApplyFilters={applyFilters}
@@ -212,19 +203,17 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
               originalNodes={data.nodes}
               originalLinks={data.links}
             />
-            <OverallSystemsLegend />
+            <OverallSystemsNewLegend />
           </div>
 
           {/* Graph Column */}
           <div className="lg:col-span-9">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden h-[85vh]">
-              <div className="w-full h-full relative">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden" style={{ height: '85vh' }}>
+              <div className="w-full h-full relative overflow-auto">
                 {filteredData && (
-                  <OverallSystemsDiagram
+                  <OverallSystemsNewDiagram
                     data={filteredData}
-                    onNodeClick={(nodeId) => {
-                      navigate(`/view-system-flow-diagram/${nodeId}`);
-                    }}
+                    onNodeClick={handleNodeClick}
                   />
                 )}
               </div>
@@ -236,4 +225,4 @@ const OverallSystemsVisualization: React.FC<OverallSystemsVisualizationProps> = 
   );
 };
 
-export default OverallSystemsVisualization;
+export default OverallSystemsNewVisualization;

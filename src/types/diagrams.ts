@@ -64,6 +64,32 @@ export interface FilterState {
   role: string;
 }
 
+// Overall Systems Diagram
+export interface OverallSystemsDiagNode {
+  id: string;
+  name: string;
+  type: string;
+  criticality: string;
+}
+
+export interface OverallSystemsDiagLink {
+  source: OverallSystemsDiagNode;
+  target: OverallSystemsDiagNode;
+  count: string;
+}
+
+export interface OverallSystemsDiagData {
+  nodes: OverallSystemsDiagNode[];
+  links: OverallSystemsDiagLink[];
+  metadata: Metadata;
+}
+
+export interface OverallSystemsDiagFilterState {
+  systemSearch: string;
+  systemType: string;
+  criticality: string;
+}
+
 export interface ProcessedNode extends Node {
   layer?: number;
   x0?: number;

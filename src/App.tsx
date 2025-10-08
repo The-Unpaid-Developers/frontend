@@ -10,9 +10,8 @@ import { AdminPanel } from "./components/AdminPanel";
 import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/ui';
 import SankeyVisualization from './components/Diagrams/DependenciesFlow/SpecificSystem/SankeyVisualization';
-import { OverallSystemsVisualization } from './components/Diagrams/DependenciesFlow/OverallSystems';
 import PathSankeyVisualization from './components/Diagrams/DependenciesFlow/PathBetweenSystems/PathSankeyVisualization';
-import OverallSystemsNewVisualization from './components/Diagrams/DependenciesFlow/OverallSystemsNew/OverallSystemsNewVisualization';
+import OverallSystemsNewVisualization from './components/Diagrams/DependenciesFlow/OverallSystems/OverallSystemsVisualization';
 
 function App() {
 
@@ -31,7 +30,6 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/view-system-flow-diagram/:systemCode" element={<SankeyVisualization />} />
-              {/* <Route path="/view-overall-systems-diagram" element={<OverallSystemsVisualization />} /> */}
               <Route path="/view-overall-systems-diagram" element={<OverallSystemsNewVisualization />} />
               <Route path="/view-paths-between-systems" element={<PathSankeyVisualization />} />
               {/* Add more routes as needed */}
