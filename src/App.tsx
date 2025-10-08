@@ -9,7 +9,7 @@ import { Login } from "./components/Authentication/Login";
 import { AdminPanel } from "./components/AdminPanel";
 import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/ui';
-import SankeyVisualization from './components/Diagrams/DependenciesFlow/SpecificSystem/SankeyVisualization';
+import SankeyVisualization from './components/Diagrams/DependenciesFlow/SpecificSystem/SpecificSystemVisualization';
 import PathSankeyVisualization from './components/Diagrams/DependenciesFlow/PathBetweenSystems/PathSankeyVisualization';
 import OverallSystemsNewVisualization from './components/Diagrams/DependenciesFlow/OverallSystems/OverallSystemsVisualization';
 

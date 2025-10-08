@@ -18,6 +18,7 @@ const OverallSystemsNewVisualization: React.FC = () => {
     systemSearch: '',
     systemType: 'All',
     criticality: 'All',
+    role: 'All',
   });
 
   const [filteredData, setFilteredData] = useState<OverallSystemsDiagData | null>(null);
@@ -54,41 +55,87 @@ const OverallSystemsNewVisualization: React.FC = () => {
     fetchDiagramData();
   };
 
-  // Apply filters - matching the working HTML template logic
+  // Apply filters - with role filtering and middleware handling
   const applyFilters = () => {
     if (!data) return;
 
     const searchTerm = filters.systemSearch.toLowerCase();
-    
-    // 1. Filter nodes based on node-specific criteria. These are our "focus" nodes.
-    const focusNodes = data.nodes.filter(n => {
+    const mainSystemId = data.metadata.code;
+    const integrationMiddleware = data.metadata.integrationMiddleware || [];
+
+    // 1. Filter nodes based on node-specific criteria and role
+    let focusNodes = data.nodes.filter(n => {
       const typeMatch = filters.systemType === 'All' || n.type === filters.systemType;
       const criticalityMatch = filters.criticality === 'All' || n.criticality === filters.criticality;
-      return typeMatch && criticalityMatch;
+
+      // Role filtering based on suffix
+      let roleMatch = true;
+      if (filters.role === 'Producer') {
+        roleMatch = n.id.endsWith('-P');
+      } else if (filters.role === 'Consumer') {
+        roleMatch = n.id.endsWith('-C');
+      }
+
+      return typeMatch && criticalityMatch && roleMatch;
     });
+
     const focusNodeIds = new Set(focusNodes.map(n => n.id));
+    console.log('Focus nodes after role filter:', focusNodeIds);
 
-    // 3. The final links are the ones from linkFilteredLinks that touch at least one of the focusNodes.
-    console.log(focusNodeIds);
-    console.log(data.links);
-    let finalLinks;
-    if (searchTerm !== '') {
-      finalLinks = data.links.filter(l =>
-        (focusNodeIds.has(l.source.id) && l.target.id.toLowerCase().includes(searchTerm)) || 
-        (focusNodeIds.has(l.target.id) && l.source.id.toLowerCase().includes(searchTerm))
-      );
-    } else {
-      finalLinks = data.links.filter(l =>
-        (focusNodeIds.has(l.source.id)) && (focusNodeIds.has(l.target.id))
-      );
-    }
+    // 2. Build final links with middleware handling to avoid duplicates
+    const finalLinksSet = new Map<string, typeof data.links[0]>();
 
-    // 4. The final set of nodes includes all nodes from the final links, plus any focus nodes that might be isolates.
+    data.links.forEach(l => {
+      const linkKey = `${l.source.id}-${l.target.id}`;
+
+      if (searchTerm !== '') {
+        // Search term filtering
+        if ((focusNodeIds.has(l.source.id) && l.target.id.toLowerCase().includes(searchTerm)) ||
+            (focusNodeIds.has(l.target.id) && l.source.id.toLowerCase().includes(searchTerm))) {
+          finalLinksSet.set(linkKey, l);
+        }
+      } else {
+        // Handle middleware connections to avoid duplicates
+        if (focusNodeIds.has(l.source.id) && integrationMiddleware.includes(l.target.id)) {
+          // Focus node -> Middleware: add this link
+          finalLinksSet.set(linkKey, l);
+
+          // Find corresponding middleware -> main system link
+          const middlewareLink = data.links.find(ml =>
+            ml.source.id === l.target.id && ml.target.id === mainSystemId
+          );
+          if (middlewareLink) {
+            const mlKey = `${middlewareLink.source.id}-${middlewareLink.target.id}`;
+            finalLinksSet.set(mlKey, middlewareLink);
+          }
+        } else if (focusNodeIds.has(l.target.id) && integrationMiddleware.includes(l.source.id)) {
+          // Middleware -> Focus node: add this link
+          finalLinksSet.set(linkKey, l);
+
+          // Find corresponding main system -> middleware link
+          const middlewareLink = data.links.find(ml =>
+            ml.source.id === mainSystemId && ml.target.id === l.source.id
+          );
+          if (middlewareLink) {
+            const mlKey = `${middlewareLink.source.id}-${middlewareLink.target.id}`;
+            finalLinksSet.set(mlKey, middlewareLink);
+          }
+        } else if (focusNodeIds.has(l.source.id) && focusNodeIds.has(l.target.id)) {
+          // Both nodes are in focus set (direct connections)
+          finalLinksSet.set(linkKey, l);
+        }
+      }
+    });
+
+    const finalLinks = Array.from(finalLinksSet.values());
+
+    // 3. Build final nodes from links + add main system if needed
     const finalNodeIds = new Set<string>();
     finalLinks.forEach(l => {
       finalNodeIds.add(l.source.id);
       finalNodeIds.add(l.target.id);
     });
+
     if (searchTerm === '') {
       focusNodeIds.forEach(id => finalNodeIds.add(id)); // Add back isolates that match filters
     }
@@ -107,7 +154,8 @@ const OverallSystemsNewVisualization: React.FC = () => {
     setFilters({
       systemSearch: '',
       systemType: 'All',
-      criticality: 'All'
+      criticality: 'All',
+      role: 'All',
     });
     if (data) {
       setFilteredData(data);

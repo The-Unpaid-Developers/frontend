@@ -88,6 +88,7 @@ export interface OverallSystemsDiagFilterState {
   systemSearch: string;
   systemType: string;
   criticality: string;
+  role: string;
 }
 
 export interface ProcessedNode extends Node {

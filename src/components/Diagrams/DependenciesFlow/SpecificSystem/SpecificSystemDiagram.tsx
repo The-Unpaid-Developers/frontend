@@ -98,7 +98,7 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       visible: true,
       x: event.pageX,
       y: event.pageY,
-      content: `<strong>${d.source.name} → ${d.target.name}</strong><br/>Pattern: ${d.pattern}<br/>Frequency: ${d.frequency}`,
+      content: `<strong>${d.source.name} → ${d.target.name}</strong><br/>Pattern: ${d.pattern}<br/>Frequency: ${d.frequency}<br/>Role: ${d.role}`,
     });
   };
 

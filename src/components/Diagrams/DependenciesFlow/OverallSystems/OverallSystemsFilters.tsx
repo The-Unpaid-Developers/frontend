@@ -92,6 +92,26 @@ const OverallSystemsNewFilters: React.FC<OverallSystemsNewFiltersProps> = ({
               ))}
             </select>
           </div>
+
+          {/* Role Filter */}
+          <div>
+            <label
+              htmlFor="role-filter"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Role
+            </label>
+            <select
+              id="role-filter"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              value={filters.role}
+              onChange={(e) => handleInputChange('role', e.target.value)}
+            >
+              <option value="All">All</option>
+              <option value="Producer">Producer</option>
+              <option value="Consumer">Consumer</option>
+            </select>
+          </div>
         </div>
 
         {/* Action Buttons */}
