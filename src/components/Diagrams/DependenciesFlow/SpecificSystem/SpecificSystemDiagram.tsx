@@ -276,21 +276,41 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .attr('fill', 'none')
       .attr('fill-opacity', (d) => {
         const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
-        return isMW ? 0.6 : 0.4; // MW links slightly more opaque
+        return isMW ? 0.4 : 0.6; // MW links slightly less opaque
       })
       .attr('stroke-opacity', (d) => {
         const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
-        return isMW ? 0.5 : 0.3; // MW links slightly more opaque
+        return isMW ? 0.3 : 0.5; // MW links slightly less opaque
       })
       .style('transition', 'fill-opacity 0.2s ease-in-out')
-      .on('mouseover', (event, d) => handleLinkMouseOver(event, d as ProcessedLink))
-      .on('mouseout', handleMouseOut)
-      .on('mouseover.hover', function(event, d) {
-        d3.select(this).attr('fill-opacity', 0.8);
+      .on('mouseover', function(event, d) {
+        // Enhance the hovered link
+        d3.select(this)
+          .attr('fill-opacity', 0.8)
+          .attr('stroke-opacity', 0.9);
+        
+        // Also enhance the corresponding border
+        d3.selectAll('.link-border')
+          .filter((borderD: any) => borderD === d)
+          .attr('stroke-opacity', 1)
+          .attr('stroke', '#1a202c'); // Darker on hover
+          
+        handleLinkMouseOver(event, d as ProcessedLink);
       })
-      .on('mouseout.hover', function(event, d) {
+      .on('mouseout', function(event, d) {
         const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
-        d3.select(this).attr('fill-opacity', isMW ? 0.6 : 0.4);
+        // Reset the main link
+        d3.select(this)
+          .attr('fill-opacity', isMW ? 0.4 : 0.6)
+          .attr('stroke-opacity', isMW ? 0.3 : 0.5);
+          
+        // Reset the corresponding border
+        d3.selectAll('.link-border')
+          .filter((borderD: any) => borderD === d)
+          .attr('stroke-opacity', 0.8)
+          .attr('stroke', '#2d3748');
+          
+        handleMouseOut();
       });
 
     // Draw nodes
