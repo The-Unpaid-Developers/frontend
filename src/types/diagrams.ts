@@ -80,6 +80,7 @@ export interface ProcessedLink {
   pattern: string;
   frequency: string;
   role: string;
+  middleware?: string;
   value?: number;
   width?: number;
 }
@@ -87,4 +88,36 @@ export interface ProcessedLink {
 export interface LegendItem {
   color: string;
   label: string;
+}
+
+
+// Paths 
+export interface PathNode {
+  id: string;
+  name: string;
+  type: string;
+  criticality: string;
+  url?: string;
+}
+
+export interface PathLink {
+  source: string;
+  target: string;
+  pattern: string;
+  frequency: string;
+  role: string;
+  value?: number;
+}
+
+export interface PathMetadata {
+  producerSystem: string;
+  consumerSystem: string;
+  integrationMiddleware: string[];
+  generatedDate: string;
+}
+
+export interface PathSankeyData {
+  nodes: PathNode[];
+  links: PathLink[];
+  metadata: PathMetadata;
 }

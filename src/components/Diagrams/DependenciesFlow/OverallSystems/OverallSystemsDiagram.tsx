@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import * as d3 from 'd3';
 import type { SankeyData } from '../../../../types/diagrams';
 import Tooltip from './Tooltip';
+import { useNavigate } from 'react-router-dom';
 
 interface OverallSystemsDiagramProps {
   data: SankeyData;
@@ -15,64 +16,115 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const nodesColorScale = d3.scaleOrdinal()
     .domain(["Major", "Standard-1", "Standard-2", "Standard-3"])
     .range(["#ef4444", "#f59e0b", "#22c55e", "#0ea5e9"])
     .unknown("#6b7280");
 
-    const [tooltip, setTooltip] = useState({
+  const [tooltip, setTooltip] = useState({
     visible: false,
     x: 0,
     y: 0,
     content: '',
   });
-    // Define event handlers
-    const handleLinkMouseOver = (event: any, d: any) => {
+
+  // Helper function to hide tooltip
+  const hideTooltip = () => {
+    setTooltip({ visible: false, x: 0, y: 0, content: '' });
+  };
+
+  // Define event handlers with proper relative positioning
+  const handleLinkMouseOver = (event: any, d: any) => {
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (rect) {
       setTooltip({
         visible: true,
-        x: event.pageX,
-        y: event.pageY,
-        content: `<strong>${d.source.name} <-> ${d.target.name}</strong><br/>Count: ${d.count}`,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+        content: `<strong>${d.source.name} <-> ${d.target.name}</strong><br/>Pattern: ${d.pattern}<br/>Frequency: ${d.frequency}`,
       });
+    }
 
-      d3.select(event.currentTarget)
-        .attr("stroke", "#ef4444")
-        .attr("stroke-width", 3)
-        .attr("stroke-opacity", 1);
-    };
+    d3.select(event.currentTarget)
+      .attr("stroke", "#ef4444")
+      .attr("stroke-width", 3)
+      .attr("stroke-opacity", 1);
+  };
 
-    const handleLinkMouseOut = (event: any) => {
-      setTooltip({ visible: false, x: 0, y: 0, content: '' });
+  const handleLinkMouseMove = (event: any) => {
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (rect) {
+      setTooltip(prev => ({
+        ...prev,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      }));
+    }
+  };
 
-      d3.select(event.currentTarget)
-        .attr("stroke", "#999")
-        .attr("stroke-width", 1)
-        .attr("stroke-opacity", 0.6);
-    };
+  const handleLinkMouseOut = (event: any) => {
+    hideTooltip();
 
-    const handleNodeMouseOver = (event: any, d: any) => {
+    d3.select(event.currentTarget)
+      .attr("stroke", "#999")
+      .attr("stroke-width", 1)
+      .attr("stroke-opacity", 0.6);
+  };
+
+  const handleNodeMouseOver = (event: any, d: any) => {
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (rect) {
       setTooltip({
         visible: true,
-        x: event.pageX,
-        y: event.pageY,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
         content: `<strong>${d.name}</strong><br/>Type: ${d.type}<br/>Criticality: ${d.criticality}`,
       });
+    }
 
-      // Scale effect
-      d3.select(event.currentTarget).select("circle")
-        .transition().duration(200)
-        .attr("transform", "scale(1.2)");
-    };
+    // Scale effect - use r attribute instead of transform scale
+    d3.select(event.currentTarget).select("circle")
+      .transition().duration(200)
+      .attr("r", 15);
+  };
 
-    const handleNodeMouseOut = (event: any) => {
-      setTooltip({ visible: false, x: 0, y: 0, content: '' });
+  const handleNodeMouseMove = (event: any) => {
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (rect) {
+      setTooltip(prev => ({
+        ...prev,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      }));
+    }
+  };
 
-      // Reset scale
-      d3.select(event.currentTarget).select("circle")
-        .transition().duration(200)
-        .attr("transform", "scale(1)");
-    };
+  const handleNodeMouseOut = (event: any) => {
+    hideTooltip();
+
+    // Reset scale
+    d3.select(event.currentTarget).select("circle")
+      .transition().duration(200)
+      .attr("r", 12);
+  };
+
+  // Handle node click
+  const handleNodeClick = (event: any, d: any) => {
+    console.log("Node clicked:", d);
+    event.stopPropagation(); // Prevent event bubbling
+    
+    // Hide tooltip on click
+    hideTooltip();
+    
+    // Use onNodeClick prop if provided, otherwise navigate
+    if (onNodeClick) {
+      onNodeClick(d.id);
+    } else {
+      navigate(`/view-system-flow-diagram/${d.id}`);
+    }
+  };
 
   useEffect(() => {
     if (!svgRef.current || !wrapperRef.current || !data) return;
@@ -91,6 +143,20 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
             g.attr("transform", event.transform);
           })
       );
+
+    // Add mousemove handler to SVG to detect when mouse is not over any interactive element
+    svg.on("mousemove", (event) => {
+      // Check if mouse is over a node or link
+      const target = event.target;
+      const isOverInteractiveElement = target.closest('.node') || target.closest('.link');
+      
+      if (!isOverInteractiveElement) {
+        hideTooltip();
+      }
+    });
+
+    // Add mouse leave handler to SVG
+    svg.on("mouseleave", hideTooltip);
 
     const g = svg.append("g");
 
@@ -128,8 +194,10 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
       .attr("class", "link")
       .attr("stroke", "#999")
       .attr("stroke-opacity", 0.6)
+      .attr("stroke-width", 1)
       .style("cursor", "pointer")
       .on("mouseover", handleLinkMouseOver)
+      .on("mousemove", handleLinkMouseMove)
       .on("mouseout", handleLinkMouseOut);
 
     // Create nodes
@@ -141,28 +209,25 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
       .style("cursor", "pointer")
       .call(drag(simulation) as any)
       .on("mouseover", handleNodeMouseOver)
-      .on("mouseout", handleNodeMouseOut)
-      .on("click", (event, d) => {
-        if (onNodeClick) {
-          onNodeClick(d.id);
-        }
-      });
+      .on("mousemove", handleNodeMouseMove)
+      .on("mouseout", handleNodeMouseOut);
+      
 
     node.append("circle")
       .attr("r", 12)
       .attr("fill", (d: any) => nodesColorScale(d.criticality) as string)
       .attr("stroke", "#fff")
-      .attr("stroke-width", 2)
-      .style("transition", "transform 0.2s ease-in-out, stroke 0.2s");
+      .attr("stroke-width", 2);
 
     node.append("text")
       .text((d: any) => d.name)
       .attr("dx", 15)
       .attr("dy", "0.35em")
       .style("font-size", "10px")
-      .style("pointer-events", "none")
+      .style("pointer-events", "none") // This is important - prevents text from blocking clicks
       .style("fill", "#374151")
       .style("font-weight", "500");
+      // Removed the click handler from text - it's handled by the parent group
 
     // Create link labels
     const linkLabel = g.append("g")
@@ -191,10 +256,16 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
     }
 
     function drag(simulation: d3.Simulation<any, any>) {
+      let startX: number, startY: number;
+      const dragThreshold = 5; // pixels
+
       function dragstarted(event: any, d: any) {
         if (!event.active) simulation.alphaTarget(0.3).restart();
         d.fx = d.x;
         d.fy = d.y;
+        startX = event.x;
+        startY = event.y;
+        hideTooltip();
       }
 
       function dragged(event: any, d: any) {
@@ -202,25 +273,61 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
         d.fy = event.y;
       }
 
+      function dragended(event: any, d: any) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+
+        // Check if this was a click (minimal movement)
+        const dx = event.x - startX;
+        const dy = event.y - startY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < dragThreshold) {
+          // This was a click, not a drag
+          console.log("Node clicked:", d);
+          event.sourceEvent.stopPropagation();
+
+          // Use onNodeClick prop if provided, otherwise navigate
+          if (onNodeClick) {
+            onNodeClick(d.id);
+          } else {
+            navigate(`/view-system-flow-diagram/${d.id}`);
+          }
+        }
+      }
+
       return d3.drag()
         .on("start", dragstarted)
-        .on("drag", dragged);
+        .on("drag", dragged)
+        .on("end", dragended);
     }
+
+    // Stop simulation after initial layout to prevent continuous movement
+    setTimeout(() => {
+      simulation.stop();
+    }, 3000);
 
     // Cleanup function
     return () => {
       simulation.stop();
     };
 
-  }, [data, onNodeClick, nodesColorScale]);
+  }, [data, onNodeClick, nodesColorScale, navigate]);
 
   return (
-    <div ref={wrapperRef} className="w-full h-full">
+    <div 
+      ref={wrapperRef} 
+      className="w-full h-full relative"
+      onMouseLeave={hideTooltip}
+    >
       <svg ref={svgRef} className="w-full h-full" />
-      <Tooltip visible={tooltip.visible}
+      <Tooltip 
+        visible={tooltip.visible}
         x={tooltip.x}
         y={tooltip.y}
-        content={tooltip.content} />
+        content={tooltip.content} 
+      />
     </div>
   );
 };

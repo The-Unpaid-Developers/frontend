@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./Button";
+import { path } from "d3";
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export const Navbar: React.FC = () => {
     { path: "/view-overall-systems-diagram", label: "Overall Systems Diagram", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
     // Add more diagram options here in the future
     // { path: "/view-system-flow-diagram", label: "System Flow Diagram", icon: "..." },
+    { path: "/view-paths-between-systems", label: "Paths Between Systems", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" },
   ];
 
   // Add admin panel for EAO users
