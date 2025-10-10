@@ -1,16 +1,16 @@
 import React from 'react';
-import type { FilterState, Node, Link } from '../../../../types/diagrams';
+import type { OverallSystemsDiagFilterState, OverallSystemsDiagNode, OverallSystemsDiagLink } from '../../../../types/diagrams';
 
-interface OverallSystemsFiltersProps {
-  filters: FilterState;
-  onFiltersChange: (filters: FilterState) => void;
+interface OverallSystemsNewFiltersProps {
+  filters: OverallSystemsDiagFilterState;
+  onFiltersChange: (filters: OverallSystemsDiagFilterState) => void;
   onApplyFilters: () => void;
   onResetFilters: () => void;
-  originalNodes: Node[];
-  originalLinks: Link[];
+  originalNodes: OverallSystemsDiagNode[];
+  originalLinks: OverallSystemsDiagLink[];
 }
 
-const OverallSystemsFilters: React.FC<OverallSystemsFiltersProps> = ({
+const OverallSystemsNewFilters: React.FC<OverallSystemsNewFiltersProps> = ({
   filters,
   onFiltersChange,
   onApplyFilters,
@@ -18,15 +18,15 @@ const OverallSystemsFilters: React.FC<OverallSystemsFiltersProps> = ({
   originalNodes,
   originalLinks,
 }) => {
-  const updateFilter = (key: keyof FilterState, value: string) => {
-    onFiltersChange({ ...filters, [key]: value });
-  };
-
-  // Get unique values for filter options
   const systemTypes = ['All', ...new Set(originalNodes.map(n => n.type))];
-  const connectionTypes = ['All', ...new Set(originalLinks.map(l => l.pattern))];
   const criticalities = ['All', ...new Set(originalNodes.map(n => n.criticality))];
-  const frequencies = ['All', ...new Set(originalLinks.map(l => l.frequency))];
+
+  const handleInputChange = (field: keyof OverallSystemsDiagFilterState, value: string) => {
+    onFiltersChange({
+      ...filters,
+      [field]: value,
+    });
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-5 self-start">
@@ -35,27 +35,37 @@ const OverallSystemsFilters: React.FC<OverallSystemsFiltersProps> = ({
       <div className="space-y-6">
         {/* General Filters */}
         <div className="space-y-4">
+          {/* System Search */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="system-search"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Filter by System Name/Code
             </label>
             <input
               type="text"
+              id="system-search"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               value={filters.systemSearch}
-              onChange={(e) => updateFilter('systemSearch', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              onChange={(e) => handleInputChange('systemSearch', e.target.value)}
               placeholder="Search systems..."
             />
           </div>
 
+          {/* System Type Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="system-type-filter"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               System Type
             </label>
             <select
+              id="system-type-filter"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               value={filters.systemType}
-              onChange={(e) => updateFilter('systemType', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              onChange={(e) => handleInputChange('systemType', e.target.value)}
             >
               {systemTypes.map(type => (
                 <option key={type} value={type}>{type}</option>
@@ -63,49 +73,43 @@ const OverallSystemsFilters: React.FC<OverallSystemsFiltersProps> = ({
             </select>
           </div>
 
+          {/* Criticality Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="criticality-filter"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Criticality
             </label>
             <select
+              id="criticality-filter"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
               value={filters.criticality}
-              onChange={(e) => updateFilter('criticality', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              onChange={(e) => handleInputChange('criticality', e.target.value)}
             >
-              {criticalities.map(criticality => (
-                <option key={criticality} value={criticality}>{criticality}</option>
+              {criticalities.map(crit => (
+                <option key={crit} value={crit}>{crit}</option>
               ))}
             </select>
           </div>
 
-          {/* Hidden in original HTML but keeping structure */}
-          <div className="hidden">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Connection Type
+          {/* Role Filter */}
+          <div>
+            <label
+              htmlFor="role-filter"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Role
             </label>
             <select
-              value={filters.connectionType}
-              onChange={(e) => updateFilter('connectionType', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm"
+              id="role-filter"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+              value={filters.role}
+              onChange={(e) => handleInputChange('role', e.target.value)}
             >
-              {connectionTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="hidden">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Frequency
-            </label>
-            <select
-              value={filters.frequency}
-              onChange={(e) => updateFilter('frequency', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white shadow-sm"
-            >
-              {frequencies.map(frequency => (
-                <option key={frequency} value={frequency}>{frequency}</option>
-              ))}
+              <option value="All">All</option>
+              <option value="Producer">Producer</option>
+              <option value="Consumer">Consumer</option>
             </select>
           </div>
         </div>
@@ -130,4 +134,4 @@ const OverallSystemsFilters: React.FC<OverallSystemsFiltersProps> = ({
   );
 };
 
-export default OverallSystemsFilters;
+export default OverallSystemsNewFilters;

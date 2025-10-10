@@ -1,14 +1,13 @@
 import React, { useRef, useEffect } from 'react';
 import * as d3 from 'd3';
-import type { SankeyData } from '../../../../types/diagrams';
-import Tooltip from './Tooltip';
+import type { OverallSystemsDiagData } from '../../../../types/diagrams';
 
-interface OverallSystemsDiagramProps {
-  data: SankeyData;
+interface OverallSystemsNewDiagramProps {
+  data: OverallSystemsDiagData;
   onNodeClick?: (nodeId: string) => void;
 }
 
-const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
+const OverallSystemsNewDiagram: React.FC<OverallSystemsNewDiagramProps> = ({
   data,
   onNodeClick
 }) => {
@@ -22,13 +21,14 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
     .unknown("#6b7280");
 
   useEffect(() => {
-    if (!svgRef.current || !wrapperRef.current || !data) return;
+    if (!svgRef.current || !wrapperRef.current || !tooltipRef.current || !data) return;
 
     // Clear previous content
     d3.select(svgRef.current).selectAll("*").remove();
 
     const wrapper = d3.select(wrapperRef.current);
     const { width, height } = wrapper.node()!.getBoundingClientRect();
+    const tooltip = d3.select(tooltipRef.current);
 
     const svg = d3.select(svgRef.current)
       .attr("viewBox", [0, 0, width, height])
@@ -40,6 +40,55 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
       );
 
     const g = svg.append("g");
+
+    // Add CSS styles directly to the SVG elements
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      .node circle {
+        stroke: #fff;
+        stroke-width: 2px;
+        transition: transform 0.2s ease-in-out, stroke 0.2s;
+        cursor: pointer;
+      }
+      .node:hover circle {
+        transform: scale(1.2);
+      }
+      .node text {
+        font-size: 10px;
+        pointer-events: none;
+        fill: #374151;
+        font-weight: 500;
+      }
+      .link {
+        stroke-opacity: 0.6;
+        transition: stroke-opacity 0.3s, stroke 0.3s, stroke-width 0.3s;
+        cursor: pointer;
+      }
+      .link-label {
+        font-size: 9px;
+        fill: #4b5563;
+        pointer-events: none;
+        text-anchor: middle;
+      }
+      .highlighted {
+        stroke: #ef4444 !important;
+        stroke-width: 3px !important;
+        stroke-opacity: 1 !important;
+      }
+      .path-highlight-node circle {
+        stroke: #10b981;
+        stroke-width: 4px;
+      }
+      .path-highlight-link {
+        stroke: #10b981;
+        stroke-width: 4px;
+        stroke-opacity: 1;
+      }
+      .dimmed {
+        opacity: 0.1;
+      }
+    `;
+    document.head.appendChild(styleElement);
 
     // Add arrow markers
     svg.append("defs")
@@ -56,6 +105,66 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
       .append("path")
       .attr("d", "M0,-5L10,0L0,5")
       .attr("fill", "#999");
+
+    // Event handlers - matching the working HTML template exactly
+    function handleNodeMouseOver(event: any, d: any) {
+      tooltip.transition().duration(200).style("opacity", 0.9);
+      tooltip
+        .html(`<strong>${d.name} (${d.id})</strong><br/>Type: ${d.type}<br/>Criticality: ${d.criticality}`)
+        .style("left", (event.pageX + 15) + "px")
+        .style("top", (event.pageY - 28) + "px");
+    }
+
+    function handleNodeMouseOut() {
+      tooltip.transition().duration(500).style("opacity", 0);
+    }
+
+    function handleLinkMouseOver(event: any, d: any) {
+      tooltip.transition().duration(200).style("opacity", 0.9);
+      tooltip
+        .html(`<strong>Connection</strong><br/>Between: ${d.source.id} and ${d.target.id}<br/>Count: ${d.count}`)
+        .style("left", (event.pageX + 15) + "px")
+        .style("top", (event.pageY - 28) + "px");
+      
+      d3.select(event.currentTarget).classed("highlighted", true);
+    }
+
+    function handleLinkMouseOut(event: any) {
+      tooltip.transition().duration(500).style("opacity", 0);
+      d3.select(event.currentTarget).classed("highlighted", false);
+    }
+
+    // Handle node click - exactly like the HTML template
+    function handleNodeClick(event: any, d: any) {
+      console.log("Node clicked:", d);
+      if (onNodeClick) {
+        onNodeClick(d.id);
+      }
+      // You can also add the URL opening logic from the HTML template if needed
+      // if (d.url) {
+      //   window.open(d.url, "_blank");
+      // }
+    }
+
+    // Drag functions - EXACTLY matching the working HTML template
+    function drag(sim: d3.Simulation<any, any>) {
+      function dragstarted(event: any, d: any) {
+        if (!event.active) sim.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      }
+      
+      function dragged(event: any, d: any) {
+        d.fx = event.x;
+        d.fy = event.y;
+      }
+      
+      // NO dragended function - this is the key difference!
+      return d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged);
+        // .on("end", dragended); // REMOVED - this was causing click interference
+    }
 
     // Create simulation
     const simulation = d3.forceSimulation(data.nodes as any)
@@ -75,32 +184,26 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
       .attr("class", "link")
       .attr("stroke", "#999")
       .attr("stroke-opacity", 0.6)
-      .style("cursor", "pointer")
+      .attr("stroke-width", 1)
       .on("mouseover", handleLinkMouseOver)
       .on("mouseout", handleLinkMouseOut);
 
-    // Create nodes
+    // Create nodes - EXACTLY like the HTML template
     const node = g.append("g")
       .selectAll("g")
       .data(data.nodes)
       .join("g")
       .attr("class", "node")
-      .style("cursor", "pointer")
       .call(drag(simulation) as any)
       .on("mouseover", handleNodeMouseOver)
       .on("mouseout", handleNodeMouseOut)
-      .on("click", (event, d) => {
-        if (onNodeClick) {
-          onNodeClick(d.id);
-        }
-      });
+      .on("click", handleNodeClick); // ADD BACK the click handler
 
     node.append("circle")
       .attr("r", 12)
       .attr("fill", (d: any) => nodesColorScale(d.criticality) as string)
       .attr("stroke", "#fff")
-      .attr("stroke-width", 2)
-      .style("transition", "transform 0.2s ease-in-out, stroke 0.2s");
+      .attr("stroke-width", 2);
 
     node.append("text")
       .text((d: any) => d.name)
@@ -117,7 +220,6 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
       .data(data.links)
       .join("text")
       .attr("class", "link-label")
-      .text((d: any) => d.pattern)
       .style("font-size", "9px")
       .style("fill", "#4b5563")
       .style("pointer-events", "none")
@@ -137,92 +239,27 @@ const OverallSystemsDiagram: React.FC<OverallSystemsDiagramProps> = ({
         .attr("y", (d: any) => (d.source.y + d.target.y) / 2);
     }
 
-    function drag(simulation: d3.Simulation<any, any>) {
-      function dragstarted(event: any, d: any) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-      }
-
-      function dragged(event: any, d: any) {
-        d.fx = event.x;
-        d.fy = event.y;
-      }
-
-      return d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged);
-    }
-
-    function handleNodeMouseOver(event: any, d: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(200).style("opacity", 0.9);
-      tooltip
-        .html(`<strong>${d.name} (${d.id})</strong><br/>Type: ${d.type}<br/>Criticality: ${d.criticality}`)
-        .style("left", (event.pageX + 15) + "px")
-        .style("top", (event.pageY - 28) + "px");
-
-      // Scale effect
-      d3.select(event.currentTarget).select("circle")
-        .transition().duration(200)
-        .attr("transform", "scale(1.2)");
-    }
-
-    function handleNodeMouseOut(event: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(500).style("opacity", 0);
-
-      // Reset scale
-      d3.select(event.currentTarget).select("circle")
-        .transition().duration(200)
-        .attr("transform", "scale(1)");
-    }
-
-    function handleLinkMouseOver(event: any, d: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(200).style("opacity", 0.9);
-      tooltip
-        .html(`<strong>Connection</strong><br/>From: ${d.source.id} To: ${d.target.id}<br/>Pattern: ${d.pattern}<br/>Frequency: ${d.frequency}<br/>Desc: ${d.description || "N/A"}`)
-        .style("left", (event.pageX + 15) + "px")
-        .style("top", (event.pageY - 28) + "px");
-
-      d3.select(event.currentTarget)
-        .attr("stroke", "#ef4444")
-        .attr("stroke-width", 3)
-        .attr("stroke-opacity", 1);
-    }
-
-    function handleLinkMouseOut(event: any) {
-      if (!tooltipRef.current) return;
-      
-      const tooltip = d3.select(tooltipRef.current);
-      tooltip.transition().duration(500).style("opacity", 0);
-
-      d3.select(event.currentTarget)
-        .attr("stroke", "#999")
-        .attr("stroke-width", 1)
-        .attr("stroke-opacity", 0.6);
-    }
-
     // Cleanup function
     return () => {
       simulation.stop();
+      // Remove the style element when component unmounts
+      if (styleElement.parentNode) {
+        styleElement.parentNode.removeChild(styleElement);
+      }
     };
 
   }, [data, onNodeClick, nodesColorScale]);
 
   return (
-    <div ref={wrapperRef} className="w-full h-full">
+    <div ref={wrapperRef} className="w-full h-full relative">
       <svg ref={svgRef} className="w-full h-full" />
-      <Tooltip ref={tooltipRef} />
+      <div
+        ref={tooltipRef}
+        className="fixed text-left p-2 text-xs bg-gray-800 text-white border-0 rounded-lg pointer-events-none opacity-0 transition-opacity duration-200 z-50"
+        style={{ maxWidth: '300px' }}
+      />
     </div>
   );
 };
 
-export default OverallSystemsDiagram;
+export default OverallSystemsNewDiagram;

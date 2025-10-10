@@ -522,7 +522,12 @@ export const getSystemFlowAPI = async (systemCode: string) => {
 };
 
 export const getOverallSystemsFlowAPI = async () => {
-  // const response = await axios.get(`${API_BASE_URL}/solution-review/system-dependencies`);
-  // return response.data;
-  return mockSystemFlowData;
+  const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/all`);
+  return response.data;
+//   return mockSystemFlowData;
 };
+
+export const getSystemPaths = async (producerSystemCode: string, consumerSystemCode: string) => {
+  const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/path?start=${producerSystemCode}&end=${consumerSystemCode}`);
+  return response.data;
+}

@@ -64,6 +64,33 @@ export interface FilterState {
   role: string;
 }
 
+// Overall Systems Diagram
+export interface OverallSystemsDiagNode {
+  id: string;
+  name: string;
+  type: string;
+  criticality: string;
+}
+
+export interface OverallSystemsDiagLink {
+  source: OverallSystemsDiagNode;
+  target: OverallSystemsDiagNode;
+  count: string;
+}
+
+export interface OverallSystemsDiagData {
+  nodes: OverallSystemsDiagNode[];
+  links: OverallSystemsDiagLink[];
+  metadata: Metadata;
+}
+
+export interface OverallSystemsDiagFilterState {
+  systemSearch: string;
+  systemType: string;
+  criticality: string;
+  role: string;
+}
+
 export interface ProcessedNode extends Node {
   layer?: number;
   x0?: number;
@@ -80,6 +107,7 @@ export interface ProcessedLink {
   pattern: string;
   frequency: string;
   role: string;
+  middleware?: string;
   value?: number;
   width?: number;
 }
@@ -87,4 +115,36 @@ export interface ProcessedLink {
 export interface LegendItem {
   color: string;
   label: string;
+}
+
+
+// Paths 
+export interface PathNode {
+  id: string;
+  name: string;
+  type: string;
+  criticality: string;
+  url?: string;
+}
+
+export interface PathLink {
+  source: string;
+  target: string;
+  pattern: string;
+  frequency: string;
+  role: string;
+  value?: number;
+}
+
+export interface PathMetadata {
+  producerSystem: string;
+  consumerSystem: string;
+  integrationMiddleware: string[];
+  generatedDate: string;
+}
+
+export interface PathSankeyData {
+  nodes: PathNode[];
+  links: PathLink[];
+  metadata: PathMetadata;
 }

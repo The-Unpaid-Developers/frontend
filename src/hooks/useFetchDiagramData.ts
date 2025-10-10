@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getOverallSystemsFlowAPI, getSystemFlowAPI } from "../services/diagramApi";
+import { getOverallSystemsFlowAPI, getSystemFlowAPI, getSystemPaths } from "../services/diagramApi";
 
 export const useFetchDiagramData = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -42,10 +42,31 @@ export const useFetchDiagramData = () => {
     }
   };
 
+  const loadSystemsPaths = async (producerSystemCode: string, consumerSystemCode: string) => {
+    setIsLoading(true);
+    try {
+      const responseData = await getSystemPaths(producerSystemCode, consumerSystemCode); // Import or define mock data
+      console.log("flow data ", responseData);
+      // if (responseData) {
+      //   setSystems(responseData);
+      // }
+      return responseData;
+    } 
+    catch (error) {
+      setError(error.message);
+      console.error("Error loading review data:", error);
+      throw error;
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return {
     loadSystemFlows,
     loadOverallSystemFlows,
+    loadSystemsPaths,
     isLoading,
     error,
   };
