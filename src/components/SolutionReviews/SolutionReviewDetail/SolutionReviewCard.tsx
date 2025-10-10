@@ -55,7 +55,7 @@ export const SolutionReviewCard: React.FC<SolutionReviewCardProps> = ({
         {review.solutionOverview && (
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Category:</span>
+              <span className="text-gray-500">Business Unit:</span>
               <span className="font-medium">
                 {review.solutionOverview.businessUnit ?? "N/A"}
               </span>
