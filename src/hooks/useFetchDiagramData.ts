@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { getOverallSystemsFlowAPI, getSystemFlowAPI, getSystemPaths } from "../services/diagramApi";
+import { getOverallSystemsFlowAPI, getSystemFlowAPI, getSystemPaths, getBusinessCapabilities } from "../services/diagramApi";
 
 export const useFetchDiagramData = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -62,11 +62,28 @@ export const useFetchDiagramData = () => {
     }
   };
 
+  const loadBusinessCapabilities = async () => {
+    setIsLoading(true);
+    try {
+      const responseData = await getBusinessCapabilities();
+      console.log("business capabilities data ", responseData);
+      return responseData;
+    } 
+    catch (error) {
+      setError(error.message);
+      console.error("Error loading review data:", error);
+      throw error;
+    } 
+    finally {
+      setIsLoading(false);
+    }
+  };
 
   return {
     loadSystemFlows,
     loadOverallSystemFlows,
     loadSystemsPaths,
+    loadBusinessCapabilities,
     isLoading,
     error,
   };
