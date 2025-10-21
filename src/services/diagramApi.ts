@@ -531,3 +531,147 @@ export const getSystemPaths = async (producerSystemCode: string, consumerSystemC
   const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/path?start=${producerSystemCode}&end=${consumerSystemCode}`);
   return response.data;
 }
+
+const mockBCData = {
+    "capabilities": [
+        {
+            "id": "l1-unknown1",
+            "name": "UNKNOWN1",
+            "level": "L1",
+            "parentId": null,
+            "systemCount": 1
+        },
+        {
+            "id": "l1-unknown2",
+            "name": "UNKNOWN2",
+            "level": "L1",
+            "parentId": null,
+            "systemCount": 1
+        },
+        {
+            "id": "l2-unknown1",
+            "name": "UNKNOWN1",
+            "level": "L2",
+            "parentId": "l1-unknown1",
+            "systemCount": 1
+        },
+        {
+            "id": "l2-unknown2",
+            "name": "UNKNOWN2",
+            "level": "L2",
+            "parentId": "l1-unknown1",
+            "systemCount": 1
+        },
+        {
+            "id": "l2-unknown3",
+            "name": "UNKNOWN3",
+            "level": "L2",
+            "parentId": "l1-unknown2",
+            "systemCount": 1
+        },
+        {
+            "id": "l2-unknown4",
+            "name": "UNKNOWN4",
+            "level": "L2",
+            "parentId": "l1-unknown2",
+            "systemCount": 1
+        },
+        {
+            "id": "l3-unknown1",
+            "name": "UNKNOWN1",
+            "level": "L3",
+            "parentId": "l2-unknown1",
+            "systemCount": 9
+        },
+        {
+            "id": "l3-unknown2",
+            "name": "UNKNOWN2",
+            "level": "L3",
+            "parentId": "l2-unknown1",
+            "systemCount": 9
+        },
+        {
+            "id": "l3-unknown3",
+            "name": "UNKNOWN3",
+            "level": "L3",
+            "parentId": "l2-unknown2",
+            "systemCount": 9
+        },
+        {
+            "id": "l3-unknown4",
+            "name": "UNKNOWN4",
+            "level": "L3",
+            "parentId": "l2-unknown2",
+            "systemCount": 9
+        },
+        {
+            "id": "sys-002",
+            "name": "Test2",
+            "level": "System",
+            "parentId": "l3-unknown1",
+            "systemCount": null
+        },
+        {
+            "id": "sys-003",
+            "name": "Test3",
+            "level": "System",
+            "parentId": "l3-unknown1",
+            "systemCount": null
+        },
+        {
+            "id": "sys-004",
+            "name": "Test4",
+            "level": "System",
+            "parentId": "l3-unknown2",
+            "systemCount": null
+        },
+        {
+            "id": "sys-005",
+            "name": "Test5",
+            "level": "System",
+            "parentId": "l3-unknown2",
+            "systemCount": null
+        },
+        {
+            "id": "sys-001",
+            "name": "NextGen Platform",
+            "level": "System",
+            "parentId": "l3-unknown3",
+            "systemCount": null
+        },
+        {
+            "id": "sys-006",
+            "name": "Test6",
+            "level": "System",
+            "parentId": "l3-unknown3",
+            "systemCount": null
+        },
+        {
+            "id": "sys-007",
+            "name": "Test7",
+            "level": "System",
+            "parentId": "l3-unknown4",
+            "systemCount": null
+        },
+        {
+            "id": "sys-008",
+            "name": "Test8",
+            "level": "System",
+            "parentId": "l3-unknown4",
+            "systemCount": null
+        },
+        {
+            "id": "sys-009",
+            "name": "Solution9",
+            "level": "System",
+            "parentId": "l3-unknown1",
+            "systemCount": null
+        }
+    ]
+};
+
+export const getBusinessCapabilities = async () => {
+//   const response = await axios.get(`${API_BASE_URL}/diagram/business-capabilities`);
+//   return response.data;
+    return mockBCData;
+}

@@ -148,3 +148,31 @@ export interface PathSankeyData {
   links: PathLink[];
   metadata: PathMetadata;
 }
+
+// Business Capabilities
+export interface BusinessCapability {
+  id: string;
+  name: string;
+  level: string;
+  parentId: string | null;
+  systemCount?: number | null;
+  metadata?: {
+    systemCode: string;
+    projectName: string;
+    reviewStatus: string;
+    approvalStatus: string;
+    architect: string;
+  };
+}
+
+export interface BusinessCapabilitiesData {
+  capabilities: BusinessCapability[];
+}
+
+export interface HierarchyNode extends d3.HierarchyNode<BusinessCapability> {
+  _children?: HierarchyNode[];
+  x?: number;
+  y?: number;
+  x0?: number;
+  y0?: number;
+}

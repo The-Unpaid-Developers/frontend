@@ -12,6 +12,7 @@ import { Navbar } from './components/ui';
 import SankeyVisualization from './components/Diagrams/DependenciesFlow/SpecificSystem/SpecificSystemVisualization';
 import PathSankeyVisualization from './components/Diagrams/DependenciesFlow/PathBetweenSystems/PathSankeyVisualization';
 import OverallSystemsNewVisualization from './components/Diagrams/DependenciesFlow/OverallSystems/OverallSystemsVisualization';
+import { BusinessCapabilitiesVisualization } from './components/Diagrams/BusinessCapabilities';
 
 function App() {
 
@@ -32,6 +33,7 @@ function App() {
               <Route path="/view-system-flow-diagram/:systemCode" element={<SankeyVisualization />} />
               <Route path="/view-overall-systems-diagram" element={<OverallSystemsNewVisualization />} />
               <Route path="/view-paths-between-systems" element={<PathSankeyVisualization />} />
+              <Route path="/view-business-capabilities" element={<BusinessCapabilitiesVisualization />} />
               {/* Add more routes as needed */}
             </Routes>
           {/* </SolutionReviewProvider> */}
