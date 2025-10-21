@@ -5,6 +5,8 @@ import { useToast } from '../../../context/ToastContext';
 import BusinessCapabilitiesSearch from './BusinessCapabilitiesSearch';
 import BusinessCapabilitiesDiagram, { type BusinessCapabilitiesDiagramHandle } from './BusinessCapabilitiesDiagram';
 import BusinessCapabilitiesLegend from './BusinessCapabilitiesLegend';
+import { useSearchParams, useParams, useNavigate, useLocation } from 'react-router-dom';
+
 
 const BusinessCapabilitiesVisualization: React.FC = () => {
   // Data loading state
@@ -14,10 +16,15 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [matchCount, setMatchCount] = useState(0);
   const diagramRef = useRef<BusinessCapabilitiesDiagramHandle>(null);
+  // const [searchParams] = useSearchParams();
+  // const systemCode = searchParams.get('systemCode');
+  const systemCode = useParams<{ systemCode?: string }>().systemCode;
 
   // Hooks
-  const { loadBusinessCapabilities } = useFetchDiagramData();
+  const { loadBusinessCapabilities, loadSystemBusinessCapabilities } = useFetchDiagramData();
   const { showError } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Fetch data from backend
   const fetchDiagramData = async () => {
@@ -25,7 +32,9 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      const diagramData = await loadBusinessCapabilities();
+      const diagramData = systemCode
+        ? await loadSystemBusinessCapabilities(systemCode)
+        : await loadBusinessCapabilities();
       setData(diagramData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load business capabilities data';
@@ -36,10 +45,10 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
     }
   };
 
-  // Fetch data on mount
+  // Fetch data on mount and when systemCode changes
   useEffect(() => {
     fetchDiagramData();
-  }, []);
+  }, [systemCode]);
 
   // Handle expand/collapse
   const handleExpandAll = () => {
@@ -48,6 +57,12 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
 
   const handleCollapseAll = () => {
     diagramRef.current?.collapseAll();
+  };
+
+  // Handle system node click - navigate with systemCode query param
+  const handleSystemClick = (systemCode: string) => {
+    const currentPath = location.pathname;
+    navigate(`${currentPath}/${systemCode}`);
   };
 
   // Handle search match callback
@@ -159,6 +174,7 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
                     data={data.capabilities}
                     searchTerm={searchTerm}
                     onSearchMatch={handleSearchMatch}
+                    onSystemClick={handleSystemClick}
                   />
                 )}
               </div>

@@ -675,3 +675,8 @@ export const getBusinessCapabilities = async () => {
   return response.data;
     // return mockBCData;
 }
+
+export const getSystemBusinessCapabilities = async (systemCode: string) => {
+  const response = await axios.get(`${API_BASE_URL}/diagram/business-capabilities/${systemCode}`);
+  return response.data;
+}

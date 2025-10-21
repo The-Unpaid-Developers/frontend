@@ -6,6 +6,7 @@ interface BusinessCapabilitiesDiagramProps {
   data: BusinessCapability[];
   searchTerm?: string;
   onSearchMatch?: (matchedNodes: string[]) => void;
+  onSystemClick?: (systemCode: string) => void;
 }
 
 export interface BusinessCapabilitiesDiagramHandle {
@@ -16,7 +17,8 @@ export interface BusinessCapabilitiesDiagramHandle {
 const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle, BusinessCapabilitiesDiagramProps>(({
   data,
   searchTerm = '',
-  onSearchMatch
+  onSearchMatch,
+  onSystemClick
 }, ref) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -396,6 +398,13 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
         .attr('class', 'node')
         .attr('transform', () => `translate(${source.y0 || 0},${source.x0 || 0})`)
         .on('click', (event, d: any) => {
+          // If it's a System level node, navigate to the system view
+          if (d.data.level === 'System' && onSystemClick) {
+            onSystemClick(d.data.id);
+            return;
+          }
+
+          // Otherwise, handle expand/collapse
           if (d.children || d._children) {
             if (d.children) {
               d._children = d.children;
@@ -461,7 +470,7 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
           const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
           return isInPath ? 3 : 2;
         })
-        .style('cursor', (d: any) => (d.children || d._children) ? 'pointer' : 'default');
+        .style('cursor', (d: any) => (d.children || d._children || d.data.level === 'System') ? 'pointer' : 'default');
 
       // Text label
       nodeEnter.append('text')
@@ -512,7 +521,7 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
           const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
           return isInPath ? 3 : 2;
         })
-        .style('cursor', (d: any) => (d.children || d._children) ? 'pointer' : 'default');
+        .style('cursor', (d: any) => (d.children || d._children || d.data.level === 'System') ? 'pointer' : 'default');
 
       nodeUpdate.select('text')
         .transition()

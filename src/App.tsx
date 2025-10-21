@@ -33,7 +33,7 @@ function App() {
               <Route path="/view-system-flow-diagram/:systemCode" element={<SankeyVisualization />} />
               <Route path="/view-overall-systems-diagram" element={<OverallSystemsNewVisualization />} />
               <Route path="/view-paths-between-systems" element={<PathSankeyVisualization />} />
-              <Route path="/view-business-capabilities" element={<BusinessCapabilitiesVisualization />} />
+              <Route path="/view-business-capabilities/:systemCode?" element={<BusinessCapabilitiesVisualization />} />
               {/* Add more routes as needed */}
             </Routes>
           {/* </SolutionReviewProvider> */}
