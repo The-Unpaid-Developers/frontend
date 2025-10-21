@@ -166,7 +166,11 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
     // Build hierarchy from flat data
     const buildHierarchy = (capabilities: BusinessCapability[]) => {
       const idMap = new Map<string, any>();
-      const root: any = { id: 'root', name: 'Business Capabilities', children: [] };
+
+      // Check if we're in system-specific view (has a top-level System node)
+      const topLevelSystemNode = capabilities.find(cap =>
+        cap.parentId === null && cap.level === 'Root'
+      );
 
       // Create a map of all nodes
       capabilities.forEach(cap => {
@@ -174,17 +178,48 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
       });
 
       // Build tree structure
-      capabilities.forEach(cap => {
-        const node = idMap.get(cap.id);
-        if (cap.parentId === null) {
-          root.children.push(node);
-        } else {
-          const parent = idMap.get(cap.parentId);
-          if (parent) {
-            parent.children.push(node);
+      let root: any;
+
+      if (topLevelSystemNode) {
+        // System-specific view: use the system node as root with level 'Root'
+        const systemNode = idMap.get(topLevelSystemNode.id);
+        root = { ...systemNode, level: 'Root' };
+
+        // Rebuild the tree structure with the system as root
+        capabilities.forEach(cap => {
+          if (cap.id === topLevelSystemNode.id) {
+            // Skip the system node itself
+            return;
           }
-        }
-      });
+
+          const node = idMap.get(cap.id);
+          if (cap.parentId === topLevelSystemNode.id) {
+            // Direct children of system become children of root
+            root.children.push(node);
+          } else if (cap.parentId !== null) {
+            // Other nodes attach to their parents
+            const parent = idMap.get(cap.parentId);
+            if (parent) {
+              parent.children.push(node);
+            }
+          }
+        });
+      } else {
+        // General view: use default root
+        root = { id: 'root', name: 'Business Capabilities', level: 'Root', children: [] };
+
+        capabilities.forEach(cap => {
+          const node = idMap.get(cap.id);
+          if (cap.parentId === null) {
+            root.children.push(node);
+          } else {
+            const parent = idMap.get(cap.parentId);
+            if (parent) {
+              parent.children.push(node);
+            }
+          }
+        });
+      }
 
       return root;
     };
@@ -202,7 +237,7 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
 
     // Color scale for levels
     const levelColors: { [key: string]: string } = {
-      'root': '#1f2937',
+      'Root': '#1f2937',
       'L1': '#3b82f6',
       'L2': '#10b981',
       'L3': '#f59e0b',
@@ -274,36 +309,37 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
     // Expand ONLY paths to matched nodes
     if (searchTerm && matchedNodes.size > 0) {
       function expandPathNodes(node: any) {
-        // If this node is in the path to a matched node, expand it
+        // Only process nodes that are in the path to a matched node
         if (nodesInPath.has(node)) {
+          // Expand this node if it's collapsed
           if (node._children) {
             node.children = node._children;
             node._children = null;
           }
 
-          // Recursively process children
+          // Recurse on children only if this node is in the path
           if (node.children) {
             node.children.forEach((child: any) => expandPathNodes(child));
           }
         }
-
-        // Also check collapsed children in case they're in the path
-        if (node._children) {
-          node._children.forEach((child: any) => {
-            if (nodesInPath.has(child)) {
-              expandPathNodes(child);
-            }
-          });
-        }
+        // Don't recurse on nodes not in the path - keep them collapsed
       }
 
       expandPathNodes(root);
 
-      // Keep matched nodes themselves collapsed if they have children
+      // Keep matched nodes collapsed ONLY if they have children AND none of their descendants match
       root.descendants().forEach((d: any) => {
         if (matchedNodes.has(d.data.id) && d.children && d.children.length > 0) {
-          d._children = d.children;
-          d.children = null;
+          // Check if any descendant also matches
+          const hasMatchedDescendant = d.descendants().some((descendant: any) =>
+            descendant !== d && matchedNodes.has(descendant.data.id)
+          );
+
+          // Only collapse if no descendants match
+          if (!hasMatchedDescendant) {
+            d._children = d.children;
+            d.children = null;
+          }
         }
       });
     } else {
@@ -400,7 +436,7 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
         .on('click', (event, d: any) => {
           // If it's a System level node, navigate to the system view
           if (d.data.level === 'System' && onSystemClick) {
-            onSystemClick(d.data.id);
+            onSystemClick(d.data.systemCode);
             return;
           }
 
