@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import * as d3 from 'd3';
 import type { BusinessCapability, HierarchyNode } from '../../../types/diagrams';
 
@@ -8,15 +8,24 @@ interface BusinessCapabilitiesDiagramProps {
   onSearchMatch?: (matchedNodes: string[]) => void;
 }
 
-const BusinessCapabilitiesDiagram: React.FC<BusinessCapabilitiesDiagramProps> = ({
+export interface BusinessCapabilitiesDiagramHandle {
+  expandAll: () => void;
+  collapseAll: () => void;
+}
+
+const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle, BusinessCapabilitiesDiagramProps>(({
   data,
   searchTerm = '',
   onSearchMatch
-}) => {
+}, ref) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; node: any } | null>(null);
+  const rootNodeRef = useRef<any>(null);
+  const updateFunctionRef = useRef<((source: any) => void) | null>(null);
 
   // Update dimensions on mount and resize
   useEffect(() => {
@@ -31,6 +40,99 @@ const BusinessCapabilitiesDiagram: React.FC<BusinessCapabilitiesDiagramProps> = 
     window.addEventListener('resize', updateDimensions);
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
+
+  // Close context menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(event.target as Node)) {
+        setContextMenu(null);
+      }
+    };
+
+    if (contextMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [contextMenu]);
+
+  // Context menu handlers
+  const handleExpandChildren = (node: any) => {
+    if (!updateFunctionRef.current) return;
+
+    function expandAllChildren(d: any) {
+      if (d._children) {
+        d.children = d._children;
+        d._children = null;
+      }
+      if (d.children) {
+        d.children.forEach((child: any) => expandAllChildren(child));
+      }
+    }
+
+    expandAllChildren(node);
+    updateFunctionRef.current(node);
+    setContextMenu(null);
+  };
+
+  const handleCollapseChildren = (node: any) => {
+    if (!updateFunctionRef.current) return;
+
+    function collapseAllChildren(d: any) {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      }
+      if (d._children) {
+        d._children.forEach((child: any) => collapseAllChildren(child));
+      }
+    }
+
+    collapseAllChildren(node);
+    updateFunctionRef.current(node);
+    setContextMenu(null);
+  };
+
+  // Expose expand/collapse functions to parent
+  useImperativeHandle(ref, () => ({
+    expandAll: () => {
+      if (!rootNodeRef.current || !updateFunctionRef.current) return;
+
+      function expand(d: any) {
+        if (d._children) {
+          d.children = d._children;
+          d._children = null;
+        }
+        if (d.children) {
+          d.children.forEach((child: any) => expand(child));
+        }
+      }
+
+      expand(rootNodeRef.current);
+      updateFunctionRef.current(rootNodeRef.current);
+    },
+    collapseAll: () => {
+      if (!rootNodeRef.current || !updateFunctionRef.current) return;
+
+      function collapse(d: any) {
+        if (d.children) {
+          d._children = d.children;
+          d.children = null;
+        }
+        if (d._children) {
+          d._children.forEach((child: any) => collapse(child));
+        }
+      }
+
+      // Collapse all nodes except root
+      rootNodeRef.current.descendants().forEach((d: any) => {
+        if (d.depth > 0) {
+          collapse(d);
+        }
+      });
+
+      updateFunctionRef.current(rootNodeRef.current);
+    }
+  }));
 
   useEffect(() => {
     if (!svgRef.current || !wrapperRef.current || !tooltipRef.current || !data.length || dimensions.width === 0) return;
@@ -87,6 +189,7 @@ const BusinessCapabilitiesDiagram: React.FC<BusinessCapabilitiesDiagramProps> = 
 
     const hierarchyData = buildHierarchy(data);
     const root = d3.hierarchy(hierarchyData);
+    rootNodeRef.current = root;
 
     // Tree layout
     const treeLayout = d3.tree<any>()
@@ -214,6 +317,7 @@ const BusinessCapabilitiesDiagram: React.FC<BusinessCapabilitiesDiagramProps> = 
     // Update function
     function update(source: any) {
       const duration = 300;
+      updateFunctionRef.current = update;
 
       // Recompute layout
       treeLayout(root);
@@ -301,6 +405,16 @@ const BusinessCapabilitiesDiagram: React.FC<BusinessCapabilitiesDiagramProps> = 
               d._children = null;
             }
             update(d);
+          }
+        })
+        .on('contextmenu', (event, d: any) => {
+          event.preventDefault();
+          if (d.children || d._children) {
+            setContextMenu({
+              x: event.pageX,
+              y: event.pageY,
+              node: d
+            });
           }
         })
         .on('mouseover', (event, d: any) => {
@@ -460,8 +574,36 @@ const BusinessCapabilitiesDiagram: React.FC<BusinessCapabilitiesDiagramProps> = 
         className="fixed text-left p-2 text-xs bg-gray-800 text-white border-0 rounded-lg pointer-events-none opacity-0 transition-opacity duration-200 z-50"
         style={{ maxWidth: '300px' }}
       />
+      {contextMenu && (
+        <div
+          ref={contextMenuRef}
+          className="fixed bg-white shadow-lg rounded-lg border border-gray-200 py-1 z-50"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            onClick={() => handleExpandChildren(contextMenu.node)}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Expand All Children</span>
+          </button>
+          <button
+            onClick={() => handleCollapseChildren(contextMenu.node)}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+            </svg>
+            <span>Collapse All Children</span>
+          </button>
+        </div>
+      )}
     </div>
   );
-};
+});
+
+BusinessCapabilitiesDiagram.displayName = 'BusinessCapabilitiesDiagram';
 
 export default BusinessCapabilitiesDiagram;

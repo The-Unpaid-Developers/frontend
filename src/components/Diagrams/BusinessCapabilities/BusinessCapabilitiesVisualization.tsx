@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { BusinessCapabilitiesData } from '../../../types/diagrams';
 import { useFetchDiagramData } from '../../../hooks/useFetchDiagramData';
 import { useToast } from '../../../context/ToastContext';
 import BusinessCapabilitiesSearch from './BusinessCapabilitiesSearch';
-import BusinessCapabilitiesDiagram from './BusinessCapabilitiesDiagram';
+import BusinessCapabilitiesDiagram, { type BusinessCapabilitiesDiagramHandle } from './BusinessCapabilitiesDiagram';
 import BusinessCapabilitiesLegend from './BusinessCapabilitiesLegend';
 
 const BusinessCapabilitiesVisualization: React.FC = () => {
@@ -13,6 +13,7 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
   const [data, setData] = useState<BusinessCapabilitiesData | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [matchCount, setMatchCount] = useState(0);
+  const diagramRef = useRef<BusinessCapabilitiesDiagramHandle>(null);
 
   // Hooks
   const { loadBusinessCapabilities } = useFetchDiagramData();
@@ -40,9 +41,13 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
     fetchDiagramData();
   }, []);
 
-  // Handle refresh
-  const handleRefresh = () => {
-    fetchDiagramData();
+  // Handle expand/collapse
+  const handleExpandAll = () => {
+    diagramRef.current?.expandAll();
+  };
+
+  const handleCollapseAll = () => {
+    diagramRef.current?.collapseAll();
   };
 
   // Handle search match callback
@@ -82,7 +87,7 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
               <p className="text-red-600 font-medium text-lg">Failed to load business capabilities</p>
               <p className="text-gray-500 text-sm mt-1">{error || 'No data available'}</p>
               <button
-                onClick={handleRefresh}
+                onClick={fetchDiagramData}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Try Again
@@ -108,17 +113,28 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
                 Hierarchical view of business capabilities and systems
               </p>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={isLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center space-x-2"
-              title="Refresh diagram"
-            >
-              <svg className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Refresh</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleExpandAll}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                title="Expand all nodes"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Expand All</span>
+              </button>
+              <button
+                onClick={handleCollapseAll}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2"
+                title="Collapse all nodes"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                </svg>
+                <span>Collapse All</span>
+              </button>
+            </div>
           </div>
         </header>
 
@@ -139,6 +155,7 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
               <div className="w-full h-full relative overflow-hidden">
                 {data && (
                   <BusinessCapabilitiesDiagram
+                    ref={diagramRef}
                     data={data.capabilities}
                     searchTerm={searchTerm}
                     onSearchMatch={handleSearchMatch}
