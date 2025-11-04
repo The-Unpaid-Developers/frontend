@@ -34,6 +34,26 @@ const mapToOptions = (m: EnumMap): Option[] =>
   Object.entries(m).map(([value, label]) => ({ value, label }));
 
 /* ===================== Business Capabilities ===================== */
+// NOTE: Business capabilities are now dynamically loaded from the API
+/**
+ * This file contains static dropdown values for backward compatibility.
+ * 
+ * For NEW features, prefer using dynamic API-driven data:
+ * 
+ * Business Capabilities:
+ * - Use useBusinessCapabilities hook from '../../../../hooks/useBusinessCapabilities'
+ * - API endpoint: /api/v1/lookups/business-capabilities
+ * - Provides hierarchical L1→L2→L3 filtering
+ * 
+ * Technology Components:
+ * - Use useTechComponents hook from '../../../../hooks/useTechComponents'  
+ * - API endpoint: /api/v1/lookups/tech-components
+ * - Provides product name → version filtering
+ * 
+ * The static values below are maintained for components not yet migrated.
+ */
+
+// Legacy static values - TODO: Remove once all components use dynamic data
 const L1_CAPABILITY_VALUES = [
   "POLICY_MANAGEMENT",
   "CLAIMS_MANAGEMENT",
