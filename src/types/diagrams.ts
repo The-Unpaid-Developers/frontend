@@ -1,30 +1,3 @@
-// export interface SystemDependencyDiagramData {
-//   nodes: Array<{
-//     id: string; // system code
-//     name: string; // system name
-//     type: string; // system type
-//     criticality: string; // system criticality
-//     internetFacing: string; // internet facing status
-//     environment: string; // system environment
-//     url: string; // system URL
-//   }>;
-//   links: Array<{
-//     source: string; // source system
-//     target: string; // target system
-//     pattern: string; // connection pattern
-//     frequency: string; // connection frequency
-//     role: string; // role in the connection, dont need??
-//     description?: string; // optional description
-//     value?: number; // connection count
-//   }>;
-//   metadata: {
-//     code: string;
-//     review: string;
-//     integrationMiddleware: string[];
-//     generatedDate: string;
-//   };
-// }
-
 export interface Node {
   id: string;
   name: string;
@@ -154,6 +127,7 @@ export interface BusinessCapability {
   id: string;
   name: string;
   level: string;
+  systemCode: string;
   parentId: string | null;
   systemCount?: number | null;
   metadata?: {
