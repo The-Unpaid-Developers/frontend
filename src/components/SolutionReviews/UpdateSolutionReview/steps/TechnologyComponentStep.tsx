@@ -3,6 +3,7 @@ import { Button, Input, DropDown, Card, CardHeader, CardTitle, CardContent } fro
 import type { StepProps } from "./StepProps";
 import type { TechnologyComponent } from "../../../../types/solutionReview";
 import { USAGE_OPTIONS } from "../../DropDownListValues";
+import { useTechComponents } from "../../../../hooks/useTechComponents";
 
 const empty: TechnologyComponent = {
   componentName: "",
@@ -16,6 +17,8 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
   isSaving = false,
   initialData,
 }) => {
+  const { data, loading, error } = useTechComponents();
+  
   const initialList: TechnologyComponent[] = initialData.technologyComponents;
   const [list, setList] = useState<TechnologyComponent[]>(
     () => initialList ?? []
@@ -24,19 +27,32 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingComponent, setEditingComponent] = useState<TechnologyComponent | null>(null);
 
+  // Get version options based on current product selection
+  const versionOptionsForNew = data?.getVersionOptionsForProduct(row.productName) || [];
+  const versionOptionsForEdit = editingComponent && data ? data.getVersionOptionsForProduct(editingComponent.productName) : [];
+  const productNameOptions = data?.productNameOptions || [];
+
   useEffect(() => {
     if (initialData.technologyComponents) {
       setList(initialData.technologyComponents);
     }
   }, [initialData.technologyComponents]);
 
-  const update = (k: keyof TechnologyComponent, v: any) =>
-    setRow((r) => ({ ...r, [k]: v }));
+  const update = (k: keyof TechnologyComponent, v: any) => {
+    setRow((r) => {
+      const updated = { ...r, [k]: v };
+      // Reset product version when product name changes
+      if (k === 'productName') {
+        updated.productVersion = '';
+      }
+      return updated;
+    });
+  };
 
   const addComponent = () => {
     if (!row.componentName || !row.productName || !row.usage) return;
     
-    setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+    setList([...list, { ...row }]);
     setRow(empty);
   };
 
@@ -65,7 +81,15 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
   };
 
   const updateEditingComponent = (field: keyof TechnologyComponent, value: string) => {
-    setEditingComponent(prev => prev ? { ...prev, [field]: value } : null);
+    setEditingComponent(prev => {
+      if (!prev) return null;
+      const updated = { ...prev, [field]: value };
+      // Reset product version when product name changes
+      if (field === 'productName') {
+        updated.productVersion = '';
+      }
+      return updated;
+    });
   };
 
   const save = async () => {
@@ -91,52 +115,72 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Component Name <span className="text-red-500">*</span>
-                <Input
-                  placeholder="Enter component name"
-                  value={row.componentName}
-                  onChange={(e) => update("componentName", e.target.value)}
-                />
-              </label>
+          {loading && (
+            <div className="text-center py-4">
+              <div className="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-blue-600 rounded-full" role="status" aria-label="loading">
+                <span className="sr-only">Loading...</span>
+              </div>
+              <p className="mt-2 text-sm text-gray-600">Loading tech components...</p>
             </div>
+          )}
+          
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              Error loading tech components: {error}
+            </div>
+          )}
+          
+          {!loading && !error && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Component Name <span className="text-red-500">*</span>
+                  <Input
+                    placeholder="Enter component name"
+                    value={row.componentName}
+                    onChange={(e) => update("componentName", e.target.value)}
+                  />
+                </label>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Name <span className="text-red-500">*</span>
-                <Input
-                  placeholder="Enter product name"
-                  value={row.productName}
-                  onChange={(e) => update("productName", e.target.value)}
-                />
-              </label>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Name <span className="text-red-500">*</span>
+                  <DropDown
+                    placeholder="Select product"
+                    value={row.productName}
+                    onChange={(e) => update("productName", e.target.value)}
+                    options={productNameOptions}
+                  />
+                </label>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product Version
-                <Input
-                  placeholder="Enter product version"
-                  value={row.productVersion}
-                  onChange={(e) => update("productVersion", e.target.value)}
-                />
-              </label>
-            </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Version
+                  <DropDown
+                    placeholder="Select version"
+                    value={row.productVersion}
+                    onChange={(e) => update("productVersion", e.target.value)}
+                    options={versionOptionsForNew}
+                    disabled={!row.productName}
+                  />
+                </label>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Usage <span className="text-red-500">*</span>
-                <DropDown
-                  placeholder="Select usage"
-                  value={row.usage}
-                  onChange={(e) => update("usage", e.target.value)}
-                  options={USAGE_OPTIONS}
-                />
-              </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Usage <span className="text-red-500">*</span>
+                  <DropDown
+                    placeholder="Select usage"
+                    value={row.usage}
+                    onChange={(e) => update("usage", e.target.value)}
+                    options={USAGE_OPTIONS}
+                  />
+                </label>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="mt-4 flex justify-end">
             <Button
@@ -208,17 +252,20 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
                             />
                           </td>
                           <td className="px-4 py-3">
-                            <Input
+                            <DropDown
                               value={editingComponent.productName}
                               onChange={e => updateEditingComponent('productName', e.target.value)}
-                              placeholder="Product name"
+                              options={productNameOptions}
+                              placeholder="Select product"
                             />
                           </td>
                           <td className="px-4 py-3">
-                            <Input
+                            <DropDown
                               value={editingComponent.productVersion}
                               onChange={e => updateEditingComponent('productVersion', e.target.value)}
-                              placeholder="Product version"
+                              options={versionOptionsForEdit}
+                              placeholder="Select version"
+                              disabled={!editingComponent.productName}
                             />
                           </td>
                           <td className="px-4 py-3">
