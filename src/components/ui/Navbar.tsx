@@ -9,6 +9,7 @@ export const Navbar: React.FC = () => {
   const userRole = localStorage.getItem("userToken") || undefined;
   const username = localStorage.getItem("username") || undefined;
   const [showDiagramDropdown, setShowDiagramDropdown] = useState(false);
+  const [showQueryDropdown, setShowQueryDropdown] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -31,6 +32,11 @@ export const Navbar: React.FC = () => {
     { path:"/view-business-capabilities", label: "Business Capabilities", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" }
   ];
 
+  const queryOptions = [
+    { path: "/view-all-queries", label: "View All Queries", icon: "M12 4v16m8-8H4" },
+    { path: "/create-query", label: "Create Query", icon: "M12 4v16m8-8H4" },
+  ];
+
   // Add admin panel for EAO users
   if (userRole === "EAO") {
     navItems.push({
@@ -44,6 +50,11 @@ export const Navbar: React.FC = () => {
     navigate(path);
     setShowDiagramDropdown(false);
   };
+
+  const handleQueryClick = (path: string) => {
+    navigate(path);
+    setShowQueryDropdown(false);
+  }
 
   return (
     <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
@@ -132,6 +143,55 @@ export const Navbar: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Queries & Lookups Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowQueryDropdown(!showQueryDropdown)}
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
+                  queryOptions.some(item => isActive(item.path))
+                    ? "bg-primary-100 text-primary-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span>Lookups & Queries</span>
+                <svg
+                  className={`w-4 h-4 transition-transform ${showQueryDropdown ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown Menu */}
+              {showQueryDropdown && (
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="py-1">
+                    {queryOptions.map((option) => (
+                      <button
+                        key={option.path}
+                        onClick={() => handleQueryClick(option.path)}
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center space-x-3 transition-colors ${
+                          isActive(option.path)
+                            ? "bg-primary-100 text-primary-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={option.icon} />
+                        </svg>
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* User Menu */}
@@ -199,6 +259,14 @@ export const Navbar: React.FC = () => {
         <div 
           className="fixed inset-0 z-40" 
           onClick={() => setShowDiagramDropdown(false)}
+        />
+      )}
+
+      {/* Click outside to close dropdown */}
+      {showQueryDropdown && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowQueryDropdown(false)}
         />
       )}
 

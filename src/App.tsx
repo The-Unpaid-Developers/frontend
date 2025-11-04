@@ -13,6 +13,10 @@ import SankeyVisualization from './components/Diagrams/DependenciesFlow/Specific
 import PathSankeyVisualization from './components/Diagrams/DependenciesFlow/PathBetweenSystems/PathSankeyVisualization';
 import OverallSystemsNewVisualization from './components/Diagrams/DependenciesFlow/OverallSystems/OverallSystemsVisualization';
 import { BusinessCapabilitiesVisualization } from './components/Diagrams/BusinessCapabilities';
+import { CreateQueryPage } from './components/Query/CreateQueryPage';
+import { QueryDetailPage } from './components/Query/QueryDetailPage';
+import { ExecuteQueryResultPage } from './components/Query/ExecuteQueryResultPage';
+import { ViewAllQueriesPage } from './components/Query/ViewAllQueriesPage';
 
 function App() {
 
@@ -34,6 +38,10 @@ function App() {
               <Route path="/view-overall-systems-diagram" element={<OverallSystemsNewVisualization />} />
               <Route path="/view-paths-between-systems" element={<PathSankeyVisualization />} />
               <Route path="/view-business-capabilities/:systemCode?" element={<BusinessCapabilitiesVisualization />} />
+              <Route path="/create-query" element={<CreateQueryPage />} />
+              <Route path="/view-query/:queryName" element={<QueryDetailPage />} />
+              <Route path="/execute-query/:queryName" element={<ExecuteQueryResultPage />} />
+              <Route path="/view-queries" element={<ViewAllQueriesPage />} />
               {/* Add more routes as needed */}
             </Routes>
           {/* </SolutionReviewProvider> */}
