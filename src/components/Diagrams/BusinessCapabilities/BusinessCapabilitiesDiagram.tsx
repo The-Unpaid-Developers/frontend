@@ -486,27 +486,60 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
           tooltip.transition().duration(500).style('opacity', 0);
         });
 
-      // Circle for each node
-      nodeEnter.append('circle')
-        .attr('r', 8)
-        .attr('fill', (d: any) => {
-          if (matchedNodes.has(d.data.id)) {
-            return '#fbbf24'; // Matched node - yellow
-          }
-          if (pathNodes.has(d.data.id) && matchedNodes.size > 0) {
-            return '#fb923c'; // Path node - lighter orange
-          }
-          return levelColors[d.data.level] || levelColors['root'];
-        })
-        .attr('stroke', (d: any) => {
-          const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
-          return isInPath ? '#f59e0b' : '#fff';
-        })
-        .attr('stroke-width', (d: any) => {
-          const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
-          return isInPath ? 3 : 2;
-        })
-        .style('cursor', (d: any) => (d.children || d._children || d.data.level === 'System') ? 'pointer' : 'default');
+      // Shape for each node (square for System, circle for others)
+      nodeEnter.each(function(d: any) {
+        const node = d3.select(this);
+
+        if (d.data.level === 'System') {
+          // Square for System nodes
+          node.append('rect')
+            .attr('x', -8)
+            .attr('y', -8)
+            .attr('width', 16)
+            .attr('height', 16)
+            .attr('rx', 2)
+            .attr('fill', () => {
+              if (matchedNodes.has(d.data.id)) {
+                return '#fbbf24'; // Matched node - yellow
+              }
+              if (pathNodes.has(d.data.id) && matchedNodes.size > 0) {
+                return '#fb923c'; // Path node - lighter orange
+              }
+              return levelColors[d.data.level] || levelColors['root'];
+            })
+            .attr('stroke', () => {
+              const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
+              return isInPath ? '#f59e0b' : '#fff';
+            })
+            .attr('stroke-width', () => {
+              const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
+              return isInPath ? 3 : 2;
+            })
+            .style('cursor', () => (d.children || d._children || d.data.level === 'System') ? 'pointer' : 'default');
+        } else {
+          // Circle for non-System nodes
+          node.append('circle')
+            .attr('r', 8)
+            .attr('fill', () => {
+              if (matchedNodes.has(d.data.id)) {
+                return '#fbbf24'; // Matched node - yellow
+              }
+              if (pathNodes.has(d.data.id) && matchedNodes.size > 0) {
+                return '#fb923c'; // Path node - lighter orange
+              }
+              return levelColors[d.data.level] || levelColors['root'];
+            })
+            .attr('stroke', () => {
+              const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
+              return isInPath ? '#f59e0b' : '#fff';
+            })
+            .attr('stroke-width', () => {
+              const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
+              return isInPath ? 3 : 2;
+            })
+            .style('cursor', () => (d.children || d._children || d.data.level === 'System') ? 'pointer' : 'default');
+        }
+      });
 
       // Text label
       nodeEnter.append('text')
@@ -538,8 +571,30 @@ const BusinessCapabilitiesDiagram = forwardRef<BusinessCapabilitiesDiagramHandle
         .duration(duration)
         .attr('transform', (d: any) => `translate(${d.y},${d.x})`);
 
+      // Update circles
       nodeUpdate.select('circle')
         .attr('r', 8)
+        .attr('fill', (d: any) => {
+          if (matchedNodes.has(d.data.id)) {
+            return '#fbbf24'; // Matched node - yellow
+          }
+          if (pathNodes.has(d.data.id) && matchedNodes.size > 0) {
+            return '#fb923c'; // Path node - lighter orange
+          }
+          return levelColors[d.data.level] || levelColors['root'];
+        })
+        .attr('stroke', (d: any) => {
+          const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
+          return isInPath ? '#f59e0b' : '#fff';
+        })
+        .attr('stroke-width', (d: any) => {
+          const isInPath = matchedNodes.has(d.data.id) || (pathNodes.has(d.data.id) && matchedNodes.size > 0);
+          return isInPath ? 3 : 2;
+        })
+        .style('cursor', (d: any) => (d.children || d._children || d.data.level === 'System') ? 'pointer' : 'default');
+
+      // Update rectangles (System nodes)
+      nodeUpdate.select('rect')
         .attr('fill', (d: any) => {
           if (matchedNodes.has(d.data.id)) {
             return '#fbbf24'; // Matched node - yellow
