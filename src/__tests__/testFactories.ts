@@ -198,6 +198,48 @@ export const createErrorResponse = (message: string = 'Operation failed', code: 
 });
 
 /**
+ * Solution Review Factory
+ */
+export const createSolutionReview = (overrides?: any) => ({
+  id: '1',
+  systemCode: 'SYS-001',
+  documentState: 'DRAFT' as const,
+  solutionOverview: {
+    id: '1',
+    solutionDetails: {
+      solutionName: 'Test Solution',
+      projectName: 'Test Project',
+      solutionReviewCode: 'SR-001',
+      solutionArchitectName: 'John Doe',
+      deliveryProjectManagerName: 'Jane Smith',
+      itBusinessPartner: 'Bob Johnson',
+    },
+    reviewedBy: null,
+    reviewType: 'NEW_BUILD' as const,
+    approvalStatus: 'PENDING' as const,
+    reviewStatus: 'DRAFT' as const,
+    conditions: null,
+    businessUnit: 'IT',
+    businessDriver: 'COST_OPTIMIZATION' as const,
+    valueOutcome: 'test value',
+    applicationUsers: [],
+    concerns: [],
+  },
+  businessCapabilities: [],
+  systemComponents: [],
+  integrationFlows: [],
+  dataAssets: [],
+  technologyComponents: [],
+  enterpriseTools: [],
+  processCompliances: [],
+  createdAt: '2023-01-01T00:00:00Z',
+  lastModifiedAt: '2023-01-02T00:00:00Z',
+  createdBy: 'admin',
+  lastModifiedBy: 'admin',
+  ...overrides,
+});
+
+/**
  * Pagination Factory
  */
 export interface PaginatedData<T> {
