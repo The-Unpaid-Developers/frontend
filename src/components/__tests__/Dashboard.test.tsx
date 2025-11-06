@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '../../test/utils';
+import { render, screen, fireEvent, waitFor } from '../../test/test-utils';
 import { Dashboard } from '../Dashboard';
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';
 import { useToast } from '../../context/ToastContext';
@@ -102,5 +102,86 @@ describe('Dashboard', () => {
     render(<Dashboard />);
 
     expect(mockLoadSystems).toHaveBeenCalled();
+  });
+
+  it('renders loading state', () => {
+    mockUseViewSolutionReview.mockReturnValue({
+      solutionReviews: [],
+      setSolutionReviews: vi.fn(),
+      loadSystemSolutionReviews: mockLoadSolutionReviews,
+      loadSolutionReviewById: vi.fn(),
+      loadSolutionReviews: mockLoadSolutionReviews,
+      loadSystems: mockLoadSystems,
+      pageMeta: mockPageMeta,
+      isLoading: true,
+      error: null
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText('Loading solution reviews...')).toBeInTheDocument();
+  });
+
+  it('renders empty state when no reviews', () => {
+    mockUseViewSolutionReview.mockReturnValue({
+      solutionReviews: [],
+      setSolutionReviews: vi.fn(),
+      loadSystemSolutionReviews: mockLoadSolutionReviews,
+      loadSolutionReviewById: vi.fn(),
+      loadSolutionReviews: mockLoadSolutionReviews,
+      loadSystems: mockLoadSystems,
+      pageMeta: { ...mockPageMeta, totalElements: 0 },
+      isLoading: false,
+      error: null
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText('No solution reviews found')).toBeInTheDocument();
+  });
+
+  it('renders solution review cards', () => {
+    render(<Dashboard />);
+    expect(screen.getByText('Test Solution Review 1')).toBeInTheDocument();
+  });
+
+  it('shows pagination controls when data exists', () => {
+    render(<Dashboard />);
+    expect(screen.getByText(/Page 1 \/ 1/)).toBeInTheDocument();
+  });
+
+  it('switches to reviews view', async () => {
+    render(<Dashboard />);
+    const reviewsButton = screen.getByText('Reviews View');
+    fireEvent.click(reviewsButton);
+    await waitFor(() => {
+      expect(mockLoadSolutionReviews).toHaveBeenCalled();
+    });
+  });
+
+  it('shows create button in empty state', () => {
+    mockUseViewSolutionReview.mockReturnValue({
+      solutionReviews: [],
+      setSolutionReviews: vi.fn(),
+      loadSystemSolutionReviews: mockLoadSolutionReviews,
+      loadSolutionReviewById: vi.fn(),
+      loadSolutionReviews: mockLoadSolutionReviews,
+      loadSystems: mockLoadSystems,
+      pageMeta: { ...mockPageMeta, totalElements: 0 },
+      isLoading: false,
+      error: null
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText('Create Your First Solution Review')).toBeInTheDocument();
+  });
+
+  it('handles error during data load', async () => {
+    const errorMessage = 'Network error';
+    mockLoadSystems.mockRejectedValue({ message: errorMessage });
+
+    render(<Dashboard />);
+
+    await waitFor(() => {
+      expect(mockShowError).toHaveBeenCalledWith(expect.stringContaining(errorMessage));
+    });
   });
 });
