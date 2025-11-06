@@ -7,7 +7,6 @@ import {
   getBusinessCapabilities,
   getSystemBusinessCapabilities
 } from '../diagramApi';
-import { expectAsyncError } from '../../test/helpers/testHelpers';
 import { TEST_CONFIG } from '../../test/config';
 
 // Mock axios
@@ -63,10 +62,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(notFoundError);
 
-      await expectAsyncError(
-        () => getSystemFlowAPI(systemCode),
-        'System not found'
-      );
+      await expect(getSystemFlowAPI(systemCode)).rejects.toEqual(notFoundError);
       expect(mockedAxios.get).toHaveBeenCalledWith(
         `${API_BASE_URL}/diagram/system-dependencies/${systemCode}`
       );
@@ -90,11 +86,12 @@ describe('diagramApi', () => {
       const mockResponse = { data: { nodes: [], edges: [] } };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
-      await getSystemFlowAPI(systemCode);
+      const result = await getSystemFlowAPI(systemCode);
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         `${API_BASE_URL}/diagram/system-dependencies/${systemCode}`
       );
+      expect(result).toEqual({ nodes: [], edges: [] });
     });
 
     it('should handle large system flow data', async () => {
@@ -177,10 +174,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(serviceError);
 
-      await expectAsyncError(
-        () => getOverallSystemsFlowAPI(),
-        'Service temporarily unavailable'
-      );
+      await expect(getOverallSystemsFlowAPI()).rejects.toEqual(serviceError);
     });
 
     it('should handle network timeout', async () => {
@@ -188,10 +182,7 @@ describe('diagramApi', () => {
       timeoutError.name = 'TimeoutError';
       mockedAxios.get.mockRejectedValue(timeoutError);
 
-      await expectAsyncError(
-        () => getOverallSystemsFlowAPI(),
-        'timeout of 10000ms exceeded'
-      );
+      await expect(getOverallSystemsFlowAPI()).rejects.toThrow('timeout of 10000ms exceeded');
     });
 
     it('should handle authentication errors', async () => {
@@ -203,10 +194,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(authError);
 
-      await expectAsyncError(
-        () => getOverallSystemsFlowAPI(),
-        'Authentication required'
-      );
+      await expect(getOverallSystemsFlowAPI()).rejects.toEqual(authError);
     });
   });
 
@@ -280,10 +268,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(invalidError);
 
-      await expectAsyncError(
-        () => getSystemPaths(producerSystemCode, consumerSystemCode),
-        'Invalid system codes provided'
-      );
+      await expect(getSystemPaths(producerSystemCode, consumerSystemCode)).rejects.toEqual(invalidError);
     });
 
     it('should handle same producer and consumer', async () => {
@@ -308,11 +293,12 @@ describe('diagramApi', () => {
       const mockResponse = { data: { paths: [] } };
       mockedAxios.get.mockResolvedValue(mockResponse);
 
-      await getSystemPaths(producerSystemCode, consumerSystemCode);
+      const result = await getSystemPaths(producerSystemCode, consumerSystemCode);
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         `${API_BASE_URL}/diagram/system-dependencies/path?start=${producerSystemCode}&end=${consumerSystemCode}`
       );
+      expect(result).toEqual({ paths: [] });
     });
   });
 
@@ -394,10 +380,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(authError);
 
-      await expectAsyncError(
-        () => getBusinessCapabilities(),
-        'Insufficient permissions to view business capabilities'
-      );
+      await expect(getBusinessCapabilities()).rejects.toEqual(authError);
     });
 
     it('should handle malformed capability data', async () => {
@@ -519,10 +502,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(notFoundError);
 
-      await expectAsyncError(
-        () => getSystemBusinessCapabilities(systemCode),
-        'System not found in business capability mapping'
-      );
+      await expect(getSystemBusinessCapabilities(systemCode)).rejects.toEqual(notFoundError);
     });
 
     it('should handle systems with legacy capability mappings', async () => {
@@ -580,10 +560,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(maintenanceError);
 
-      await expectAsyncError(
-        () => getBusinessCapabilities(),
-        'Service temporarily unavailable for maintenance'
-      );
+      await expect(getBusinessCapabilities()).rejects.toEqual(maintenanceError);
     });
 
     it('should handle rate limiting', async () => {
@@ -598,10 +575,7 @@ describe('diagramApi', () => {
       };
       mockedAxios.get.mockRejectedValue(rateLimitError);
 
-      await expectAsyncError(
-        () => getOverallSystemsFlowAPI(),
-        'Rate limit exceeded'
-      );
+      await expect(getOverallSystemsFlowAPI()).rejects.toEqual(rateLimitError);
     });
 
     it('should handle malformed JSON responses', async () => {

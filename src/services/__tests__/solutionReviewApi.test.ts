@@ -12,7 +12,6 @@ import {
   getSRsByStateAPI,
   addConcernsToSRAPI
 } from '../solutionReviewApi';
-import { expectAsyncError } from '../../test/helpers/testHelpers';
 import { TEST_CONFIG } from '../../test/config';
 
 // Mock axios
@@ -54,10 +53,7 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.post.mockRejectedValue(mockError);
 
-      await expectAsyncError(
-        () => createSolutionReviewAPI(mockData, systemCode),
-        'API Error'
-      );
+      await expect(createSolutionReviewAPI(mockData, systemCode)).rejects.toThrow('API Error');
     });
   });
 
@@ -83,10 +79,7 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.put.mockRejectedValue(mockError);
 
-      await expectAsyncError(
-        () => saveSolutionReviewDraftAPI(mockData),
-        'Save failed'
-      );
+      await expect(saveSolutionReviewDraftAPI(mockData)).rejects.toThrow('Save failed');
     });
   });
 
@@ -117,10 +110,7 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.get.mockRejectedValue(mockError);
 
-      await expectAsyncError(
-        () => getSolutionReviewByIdAPI(reviewId),
-        'Not found'
-      );
+      await expect(getSolutionReviewByIdAPI(reviewId)).rejects.toThrow('Not found');
     });
   });
 
@@ -155,11 +145,12 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.get.mockResolvedValue(mockResponse);
 
-      await getAllSolutionReviewsAPI(page, size);
+      const result = await getAllSolutionReviewsAPI(page, size);
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         `${API_BASE_URL}/solution-review/paging?page=${page}&size=${size}`
       );
+      expect(result).toEqual({ content: [] });
     });
   });
 
@@ -213,11 +204,12 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.get.mockResolvedValue(mockResponse);
 
-      await getSystemSolutionReviewsAPI(systemCode);
+      const result = await getSystemSolutionReviewsAPI(systemCode);
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         `${API_BASE_URL}/solution-review/system?systemCode=${systemCode}`
       );
+      expect(result).toEqual([]);
     });
   });
 
@@ -247,10 +239,7 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.post.mockRejectedValue(mockError);
 
-      await expectAsyncError(
-        () => transitionSolutionReviewStateAPI(transitionData),
-        'Invalid transition'
-      );
+      await expect(transitionSolutionReviewStateAPI(transitionData)).rejects.toThrow('Invalid transition');
     });
   });
 
@@ -281,10 +270,7 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.post.mockRejectedValue(mockError);
 
-      await expectAsyncError(
-        () => createSRFromExistingAPI(systemCode),
-        'System not found'
-      );
+      await expect(createSRFromExistingAPI(systemCode)).rejects.toThrow('System not found');
     });
   });
 
@@ -323,11 +309,12 @@ describe('solutionReviewApi', () => {
       mockedAxios.get.mockResolvedValue(mockResponse);
 
       for (const state of states) {
-        await getSRsByStateAPI(state, 0, 10);
+        const result = await getSRsByStateAPI(state, 0, 10);
         
         expect(mockedAxios.get).toHaveBeenCalledWith(
           `${API_BASE_URL}/solution-review/by-state?documentState=${state}&page=0&size=10`
         );
+        expect(result).toEqual({ content: [] });
       }
     });
   });
@@ -362,10 +349,7 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.put.mockRejectedValue(mockError);
 
-      await expectAsyncError(
-        () => addConcernsToSRAPI(concernsData),
-        'Failed to add concerns'
-      );
+      await expect(addConcernsToSRAPI(concernsData)).rejects.toThrow('Failed to add concerns');
     });
   });
 
@@ -377,16 +361,16 @@ describe('solutionReviewApi', () => {
       mockedAxios.put.mockRejectedValue(networkError);
 
       // Test that all APIs properly propagate network errors
-      await expectAsyncError(() => getSolutionReviewByIdAPI('sr-1'), 'Network Error');
-      await expectAsyncError(() => createSolutionReviewAPI({}, 'SYS-001'), 'Network Error');
-      await expectAsyncError(() => saveSolutionReviewDraftAPI({}), 'Network Error');
-      await expectAsyncError(() => getAllSolutionReviewsAPI(0, 10), 'Network Error');
-      await expectAsyncError(() => getAllSystemsAPI(0, 10), 'Network Error');
-      await expectAsyncError(() => getSystemSolutionReviewsAPI('SYS-001'), 'Network Error');
-      await expectAsyncError(() => transitionSolutionReviewStateAPI({}), 'Network Error');
-      await expectAsyncError(() => createSRFromExistingAPI('SYS-001'), 'Network Error');
-      await expectAsyncError(() => getSRsByStateAPI('DRAFT', 0, 10), 'Network Error');
-      await expectAsyncError(() => addConcernsToSRAPI({}), 'Network Error');
+      await expect(getSolutionReviewByIdAPI('sr-1')).rejects.toThrow('Network Error');
+      await expect(createSolutionReviewAPI({}, 'SYS-001')).rejects.toThrow('Network Error');
+      await expect(saveSolutionReviewDraftAPI({})).rejects.toThrow('Network Error');
+      await expect(getAllSolutionReviewsAPI(0, 10)).rejects.toThrow('Network Error');
+      await expect(getAllSystemsAPI(0, 10)).rejects.toThrow('Network Error');
+      await expect(getSystemSolutionReviewsAPI('SYS-001')).rejects.toThrow('Network Error');
+      await expect(transitionSolutionReviewStateAPI({})).rejects.toThrow('Network Error');
+      await expect(createSRFromExistingAPI('SYS-001')).rejects.toThrow('Network Error');
+      await expect(getSRsByStateAPI('DRAFT', 0, 10)).rejects.toThrow('Network Error');
+      await expect(addConcernsToSRAPI({})).rejects.toThrow('Network Error');
     });
   });
 
@@ -398,16 +382,23 @@ describe('solutionReviewApi', () => {
       mockedAxios.put.mockResolvedValue(mockResponse);
 
       // Call all APIs to verify they use the same base URL
-      await createSolutionReviewAPI({}, 'SYS-001');
-      await saveSolutionReviewDraftAPI({});
-      await getSolutionReviewByIdAPI('sr-1');
-      await getAllSolutionReviewsAPI(0, 10);
-      await getAllSystemsAPI(0, 10);
-      await getSystemSolutionReviewsAPI('SYS-001');
-      await transitionSolutionReviewStateAPI({});
-      await createSRFromExistingAPI('SYS-001');
-      await getSRsByStateAPI('DRAFT', 0, 10);
-      await addConcernsToSRAPI({});
+      const createResult = await createSolutionReviewAPI({}, 'SYS-001');
+      const saveResult = await saveSolutionReviewDraftAPI({});
+      const getByIdResult = await getSolutionReviewByIdAPI('sr-1');
+      const getAllResult = await getAllSolutionReviewsAPI(0, 10);
+      const getAllSystemsResult = await getAllSystemsAPI(0, 10);
+      const getSystemSRsResult = await getSystemSolutionReviewsAPI('SYS-001');
+      const transitionResult = await transitionSolutionReviewStateAPI({});
+      const createFromExistingResult = await createSRFromExistingAPI('SYS-001');
+      const getSRsByStateResult = await getSRsByStateAPI('DRAFT', 0, 10);
+      const addConcernsResult = await addConcernsToSRAPI({});
+
+      // Assert all results are the expected mock response
+      [createResult, saveResult, getByIdResult, getAllResult, getAllSystemsResult, 
+       getSystemSRsResult, transitionResult, createFromExistingResult, 
+       getSRsByStateResult, addConcernsResult].forEach(result => {
+        expect(result).toEqual({});
+      });
 
       // Check that all calls include the expected base URL
       const allCalls = [
