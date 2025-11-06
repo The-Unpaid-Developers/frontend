@@ -17,6 +17,9 @@ import { CreateQueryPage } from './components/Query/CreateQueryPage';
 import { QueryDetailPage } from './components/Query/QueryDetailPage';
 import { ExecuteQueryResultPage } from './components/Query/ExecuteQueryResultPage';
 import { ViewAllQueriesPage } from './components/Query/ViewAllQueriesPage';
+import { ViewAllLookupsPage } from './components/Lookup/ViewAllLookupsPage';
+import { CreateLookupPage } from './components/Lookup/CreateLookupPage';
+import { LookupDetailPage } from './components/Lookup/LookupDetailPage';
 
 function App() {
 
@@ -34,14 +37,21 @@ function App() {
               <Route path="/view-solution-review/:id" element={<SolutionReviewDetailPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/admin" element={<AdminPanel />} />
+              {/* diagram pages */}
               <Route path="/view-system-flow-diagram/:systemCode" element={<SankeyVisualization />} />
               <Route path="/view-overall-systems-diagram" element={<OverallSystemsNewVisualization />} />
               <Route path="/view-paths-between-systems" element={<PathSankeyVisualization />} />
               <Route path="/view-business-capabilities/:systemCode?" element={<BusinessCapabilitiesVisualization />} />
+              {/* query pages */}
               <Route path="/create-query" element={<CreateQueryPage />} />
               <Route path="/view-query/:queryName" element={<QueryDetailPage />} />
               <Route path="/execute-query/:queryName" element={<ExecuteQueryResultPage />} />
               <Route path="/view-queries" element={<ViewAllQueriesPage />} />
+              {/* lookup pages */}
+              <Route path="/create-lookup" element={<CreateLookupPage />} />
+              <Route path="/view-lookup/:lookupName" element={<LookupDetailPage />} />
+              <Route path="/view-lookups" element={<ViewAllLookupsPage />} />
+              <Route path="/update-lookup/:lookupName" element={<CreateLookupPage />} />
               {/* Add more routes as needed */}
             </Routes>
           {/* </SolutionReviewProvider> */}

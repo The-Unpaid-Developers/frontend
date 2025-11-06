@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getTechComponentsAPI } from '../services/lookupApi';
-import type { TechComponent } from '../services/lookupApi';
+import { getTechComponentsAPI } from '../services/dropdownApi';
+import type { TechComponent } from '../services/dropdownApi';
 
 export interface Option {
   value: string;

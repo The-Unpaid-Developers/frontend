@@ -33,8 +33,10 @@ export const Navbar: React.FC = () => {
   ];
 
   const queryOptions = [
-    { path: "/view-all-queries", label: "View All Queries", icon: "M12 4v16m8-8H4" },
+    { path: "/view-queries", label: "View All Queries", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
     { path: "/create-query", label: "Create Query", icon: "M12 4v16m8-8H4" },
+    { path: "/view-lookups", label: "View All Lookups", icon: "M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" },
+    { path: "/create-lookup", label: "Create Lookup", icon: "M12 4v16m8-8H4" },
   ];
 
   // Add admin panel for EAO users

@@ -1,34 +1,47 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = 'http://localhost:8080/api/v1/lookups';
 
-export interface BusinessCapability {
-  l1: string;
-  l2: string;
-  l3: string;
-}
-
-export interface TechComponent {
-  productName: string;
-  productVersion: string;
-}
-
-export const getBusinessCapabilitiesAPI = async (): Promise<BusinessCapability[]> => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/lookups/business-capabilities`);
+export const getAllLookupsAPI = async () => {
+    const response = await axios.get(`${API_BASE_URL}`);
     return response.data;
-  } catch (error) {
-    console.error('Error fetching business capabilities:', error);
-    throw error;
-  }
 };
 
-export const getTechComponentsAPI = async (): Promise<TechComponent[]> => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/lookups/tech-components`);
+export const getSpecificLookupAPI = async (lookupName: string) => {
+    const response = await axios.get(`${API_BASE_URL}/${lookupName}`);
     return response.data;
-  } catch (error) {
-    console.error('Error fetching tech components:', error);
-    throw error;
-  }
 };
+
+export const createLookupAPI = async (data: any) => {
+    const response = await axios.post(`${API_BASE_URL}`, data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
+export const getFieldDescriptionsAPI = async (lookupName: string) => {
+    const response = await axios.get(`${API_BASE_URL}/${lookupName}/field-descriptions`);
+    return response.data;
+}
+
+export const updateFieldDescriptionsAPI = async (lookupName: string, data: any) => {
+    const response = await axios.put(`${API_BASE_URL}/${lookupName}/field-descriptions`, data);
+    return response.data;
+}
+
+export const deleteLookupAPI = async (lookupName: string) => {
+    const response = await axios.delete(`${API_BASE_URL}/${lookupName}`);
+    return response.data;
+}
+
+export const updateLookupAPI = async (lookupName: string, data: any) => {
+    const response = await axios.put(`${API_BASE_URL}/${lookupName}`, data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
+
