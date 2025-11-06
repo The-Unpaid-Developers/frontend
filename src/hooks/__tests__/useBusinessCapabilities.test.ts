@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useBusinessCapabilities } from '../useBusinessCapabilities';
 import { getBusinessCapabilitiesAPI } from '../../services/lookupApi';
+import { createBusinessCapabilitiesList, createBusinessCapability } from '../../__tests__/testFactories';
 
 // Mock the API
 vi.mock('../../services/lookupApi');
@@ -26,12 +27,7 @@ describe('useBusinessCapabilities', () => {
   });
 
   it('should fetch and process business capabilities successfully', async () => {
-    const mockCapabilities = [
-      { l1: 'Policy Management', l2: 'Policy Administration', l3: 'Policy Issuance' },
-      { l1: 'Policy Management', l2: 'Policy Administration', l3: 'Policy Renewal' },
-      { l1: 'Claims', l2: 'Claims Processing', l3: 'Claims Review' },
-      { l1: 'Claims', l2: 'Claims Processing', l3: 'Claims Settlement' }
-    ];
+    const mockCapabilities = createBusinessCapabilitiesList(4);
     mockedGetBusinessCapabilitiesAPI.mockResolvedValue(mockCapabilities);
 
     const { result } = renderHook(() => useBusinessCapabilities());
@@ -65,7 +61,7 @@ describe('useBusinessCapabilities', () => {
 
   it('should handle empty L1 selection for L2 filtering', async () => {
     const mockCapabilities = [
-      { l1: 'Test', l2: 'Test L2', l3: 'Test L3' }
+      createBusinessCapability({ l1: 'Test', l2: 'Test L2', l3: 'Test L3' })
     ];
     mockedGetBusinessCapabilitiesAPI.mockResolvedValue(mockCapabilities);
 
@@ -109,6 +105,20 @@ describe('useBusinessCapabilities', () => {
     expect(result.current.error).toBe(errorMessage);
     expect(result.current.data).toBe(null);
     // Note: Console error is logged (visible in stderr), spy assertion removed for coverage focus
+  });
+
+  it('should handle non-Error rejection with default message', async () => {
+    // Test when the API rejects with something that's not an Error object
+    mockedGetBusinessCapabilitiesAPI.mockRejectedValue('String error');
+
+    const { result } = renderHook(() => useBusinessCapabilities());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe('Failed to fetch business capabilities');
+    expect(result.current.data).toBe(null);
   });
 
   it('should handle empty capabilities array', async () => {

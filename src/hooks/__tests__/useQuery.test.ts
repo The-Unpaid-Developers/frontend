@@ -9,6 +9,7 @@ import {
   updateQueryAPI,
   deleteQueryAPI
 } from '../../services/queryApi';
+import { createQueryList, createQuery } from '../../__tests__/testFactories';
 
 // Mock the API functions
 vi.mock('../../services/queryApi', () => ({
@@ -34,10 +35,7 @@ describe('useQuery', () => {
 
   describe('loadAllQueries', () => {
     it('should load all queries successfully', async () => {
-      const mockQueries = [
-        { id: 1, name: 'test-query-1', sql: 'SELECT * FROM table1' },
-        { id: 2, name: 'test-query-2', sql: 'SELECT * FROM table2' }
-      ];
+      const mockQueries = createQueryList();
       mockedGetAllQueriesAPI.mockResolvedValue(mockQueries);
 
       const { result } = renderHook(() => useQuery());
@@ -108,7 +106,7 @@ describe('useQuery', () => {
   describe('loadSpecificQuery', () => {
     it('should load specific query successfully', async () => {
       const queryName = 'test-query';
-      const mockQuery = { id: 1, name: queryName, sql: 'SELECT * FROM table' };
+      const mockQuery = createQuery({ name: queryName });
       mockedGetSpecificQueryAPI.mockResolvedValue(mockQuery);
 
       const { result } = renderHook(() => useQuery());
@@ -148,6 +146,23 @@ describe('useQuery', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
+    });
+
+    it('should handle errors without message property in loadSpecificQuery', async () => {
+      const queryName = 'test-query';
+      const errorObject = { status: 404 };
+
+      mockedGetSpecificQueryAPI.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useQuery());
+
+      await act(async () => {
+        try {
+          await result.current.loadSpecificQuery(queryName);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
     });
   });
 
@@ -197,6 +212,24 @@ describe('useQuery', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
     });
+
+    it('should handle errors without message property in executeQuery', async () => {
+      const queryName = 'test-query';
+      const payload = { param1: 'value1' };
+      const errorObject = 'execution failed';
+
+      mockedExecuteQueryAPI.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useQuery());
+
+      await act(async () => {
+        try {
+          await result.current.executeQuery(queryName, payload);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
+    });
   });
 
   describe('createQuery', () => {
@@ -242,6 +275,23 @@ describe('useQuery', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
+    });
+
+    it('should handle errors without message property in createQuery', async () => {
+      const queryData = { name: 'new-query', sql: 'SELECT * FROM table' };
+      const errorObject = { validationErrors: ['field required'] };
+
+      mockedCreateQueryAPI.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useQuery());
+
+      await act(async () => {
+        try {
+          await result.current.createQuery(queryData);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
     });
   });
 
@@ -291,6 +341,24 @@ describe('useQuery', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
     });
+
+    it('should handle errors without message property in updateQuery', async () => {
+      const queryName = 'test-query';
+      const updateData = { sql: 'SELECT * FROM updated_table' };
+      const errorObject = { status: 'failed' };
+
+      mockedUpdateQueryAPI.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useQuery());
+
+      await act(async () => {
+        try {
+          await result.current.updateQuery(queryName, updateData);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
+    });
   });
 
   describe('deleteQuery', () => {
@@ -336,6 +404,23 @@ describe('useQuery', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
+    });
+
+    it('should handle errors without message property in deleteQuery', async () => {
+      const queryName = 'test-query';
+      const errorObject = 403;
+
+      mockedDeleteQueryAPI.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useQuery());
+
+      await act(async () => {
+        try {
+          await result.current.deleteQuery(queryName);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
     });
   });
 
