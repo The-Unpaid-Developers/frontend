@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Button, Input, DropDown, Card, CardHeader, CardTitle, CardContent } from "../../../ui";
 import type { StepProps } from "./StepProps";
 import type { SolutionOverview } from "../../../../types/solutionReview";
-import { useUpdateSolutionReview } from "../../../../hooks/useUpdateSolutionReview";
 import {
   APPLICATION_USER_OPTIONS,
   REVIEW_TYPE_OPTIONS,

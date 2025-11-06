@@ -1,4 +1,3 @@
-import { DocumentState } from "../types/solutionReview";
 import type {
   SolutionReview,
   UpdateSolutionReviewData
@@ -32,11 +31,12 @@ const mockSolutionReview = [
       concerns: [
         {
           id: "c-1",
-            type: "RISK",
-            description: "Concern Risk Description",
-            impact: "DB is nuked",
-            disposition: "AWS manage DBs",
-            status: "UNKNOWN"
+          type: "RISK",
+          description: "Concern Risk Description",
+          impact: "DB is nuked",
+          disposition: "AWS manage DBs",
+          status: "UNKNOWN",
+          followUpDate: "2025-12-01"
         }
       ]
     },
@@ -444,7 +444,8 @@ const mockSolutionReview = [
           description: "Legacy token format",
           impact: "Integration friction",
           disposition: "Phase-out plan",
-          status: "OPEN"
+          status: "OPEN",
+          followUpDate: "2025-12-15"
         }
       ]
     },
@@ -496,7 +497,6 @@ export const mockApiService = {
    * @throws {APIError} When the ID is invalid or API call fails
    */
   async getSolutionReviewById(id: string): Promise<UpdateSolutionReviewData | null> {
-    console.log('in');
     try {
       if (!id || typeof id !== "string") {
         throw new APIError(

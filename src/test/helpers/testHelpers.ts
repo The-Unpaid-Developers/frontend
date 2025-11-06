@@ -186,7 +186,6 @@ export const testAllHttpErrorCodes = (
   args: any[] = []
 ) => {
   const statusCodes = [400, 401, 403, 404, 408, 429, 500, 502, 503, 504];
-  const responses = createApiMockResponses();
   
   return statusCodes.map(status => ({
     status,

@@ -1,11 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { DocumentState, DocumentStateFilter } from "../types/solutionReview";
+import { DocumentState } from "../types/solutionReview";
 import type { SolutionReview } from "../types/solutionReview";
-import {
-  SolutionReviewCard,
-  SolutionReviewDetail,
-} from "./SolutionReviews/SolutionReviewDetail";
+import { SolutionReviewCard } from "./SolutionReviews/SolutionReviewDetail";
 import { Button, Input } from "./ui";
 import { useViewSolutionReview } from "../hooks/useViewSolutionReview";
 import { useToast } from "../context/ToastContext";
@@ -14,7 +11,7 @@ export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"systems" | "reviews">("systems");
   const [searchTerm, setSearchTerm] = useState("");
-  const [stateFilter, setStateFilter] = useState<DocumentState | "ALL">("ALL");
+  const [stateFilter] = useState<DocumentState | "ALL">("ALL");
   const { isLoading, solutionReviews, loadSolutionReviews, pageMeta, loadSystems } =
     useViewSolutionReview();
 
@@ -53,13 +50,6 @@ export const Dashboard: React.FC = () => {
       await loadSolutionReviews(p, pageSize);
     }
   };
-
-  const stateCounts = useMemo(() => {
-    return solutionReviews.reduce((acc, review) => {
-      acc[review.documentState] = (acc[review.documentState] || 0) + 1;
-      return acc;
-    }, {} as Record<DocumentState, number>);
-  }, [solutionReviews]);
 
   const onViewCard = (r: SolutionReview) => {
     if (viewMode === "systems") {
@@ -197,31 +187,29 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Pagination */}
-        
+
         {!isLoading && totalElements > 0 && (
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div className="flex bg-gray-200 rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode("systems")}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === "systems"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Systems View
-                  </button>
-                  <button
-                    onClick={() => setViewMode("reviews")}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === "reviews"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Reviews View
-                  </button>
-                </div>
+              <button
+                onClick={() => setViewMode("systems")}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === "systems"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                  }`}
+              >
+                Systems View
+              </button>
+              <button
+                onClick={() => setViewMode("reviews")}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === "reviews"
+                    ? "bg-white text-gray-900 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900"
+                  }`}
+              >
+                Reviews View
+              </button>
+            </div>
             <div className="text-sm text-gray-600">
               Showing{" "}
               <span className="font-medium">

@@ -5,7 +5,7 @@ import { useToast } from '../../../context/ToastContext';
 import BusinessCapabilitiesSearch from './BusinessCapabilitiesSearch';
 import BusinessCapabilitiesDiagram, { type BusinessCapabilitiesDiagramHandle } from './BusinessCapabilitiesDiagram';
 import BusinessCapabilitiesLegend from './BusinessCapabilitiesLegend';
-import { useSearchParams, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 
 const BusinessCapabilitiesVisualization: React.FC = () => {
@@ -16,8 +16,6 @@ const BusinessCapabilitiesVisualization: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [matchCount, setMatchCount] = useState(0);
   const diagramRef = useRef<BusinessCapabilitiesDiagramHandle>(null);
-  // const [searchParams] = useSearchParams();
-  // const systemCode = searchParams.get('systemCode');
   const systemCode = useParams<{ systemCode?: string }>().systemCode;
 
   // Hooks

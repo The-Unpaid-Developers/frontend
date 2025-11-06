@@ -515,7 +515,6 @@ const mockSystemFlowData =
 */
 
 export const getSystemFlowAPI = async (systemCode: string) => {
-  // const response = await axios.get(`${API_BASE_URL}/system-dependencies/${systemCode}`);
   const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/${systemCode}`);
   return response.data;
   // return mockSystemFlowData;

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useAdminPanel } from '../useAdminPanel';
 import { getSRsByStateAPI, addConcernsToSRAPI } from '../../services/solutionReviewApi';
 import { mockConsole } from '../../test/test-utils';

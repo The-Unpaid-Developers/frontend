@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { sankey, sankeyLinkHorizontal, sankeyJustify } from 'd3-sankey';
 import type { PathSankeyData, ProcessedNode, ProcessedLink } from '../../../../types/diagrams';
 import PathTooltip from './PathTooltip';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface SankeyDiagramProps {
   data: PathSankeyData;
@@ -50,40 +50,6 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
     return { nodes: sankeyData.nodes, links };
   };
 
-  // const processDataForSankey = (sankeyData: SankeyData) => {
-  // const types = [...new Set(sankeyData.nodes.map(n => n.type))];
-
-  // sankeyData.nodes.forEach(node => {
-  //   (node as any).layer = types.indexOf(node.type);
-  // });
-
-  // // Consolidate duplicate links
-  // const linkMap = new Map<string, any>();
-  
-  // sankeyData.links.forEach(link => {
-  //   const key = `${link.source}-${link.target}-${link.pattern}`;
-    
-  //   if (linkMap.has(key)) {
-  //     // Combine duplicate links by increasing value
-  //     const existing = linkMap.get(key);
-  //     existing.value += (link.value || 1);
-  //     existing.frequency = existing.frequency; // Keep original frequency
-  //   } else {
-  //     linkMap.set(key, { 
-  //       ...link, 
-  //       value: link.value || 1 
-  //     });
-  //   }
-  // });
-
-//   const consolidatedLinks = Array.from(linkMap.values());
-  
-//   return { 
-//     nodes: sankeyData.nodes, 
-//     links: consolidatedLinks 
-//   };
-// };
-
   const handleNodeMouseOver = (event: MouseEvent, d: ProcessedNode) => {
     setTooltip({
       visible: true,
@@ -127,138 +93,11 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .nodeWidth(20)
       .nodePadding(50)
       .nodeAlign(sankeyJustify)
-      // .nodeSort((a, b) => {
-      //   const allLinks = (node: ProcessedNode) => [
-      //     ...(node.sourceLinks || []),
-      //     ...(node.targetLinks || []),
-      //   ];
-
-      //   const touchesMW = (node: ProcessedNode) =>
-      //     integrationMiddleware.includes(node.id) ||
-      //     allLinks(node).some(
-      //       l =>
-      //         integrationMiddleware.includes(l.source.id) ||
-      //         integrationMiddleware.includes(l.target.id)
-      //     );
-
-      //   const directToMain = (node: ProcessedNode) =>
-      //     allLinks(node).some(
-      //       l =>
-      //         (l.source.id === pinnedSystemId && l.target.id !== pinnedSystemId) ||
-      //         (l.target.id === pinnedSystemId && l.source.id !== pinnedSystemId)
-      //     );
-
-      //   // Prioritize nodes connected to middleware to be on top
-      //   const aMW = touchesMW(a);
-      //   const bMW = touchesMW(b);
-      //   if (aMW !== bMW) return aMW ? -1 : 1;
-        
-      //   // Group nodes by their base system (prefix before '-') and sort within groups
-      //   const getBase = (node: ProcessedNode) => {
-      //     // if node is middleware itself, return its base
-      //     if (integrationMiddleware.includes(node.id)) {
-      //       return node.id.split('-')[0];
-      //     }
-      //     // else find a link that connects to middleware and return that base
-      //     const link = allLinks(node).find(
-      //       l =>
-      //         integrationMiddleware.includes(l.source.id) ||
-      //         integrationMiddleware.includes(l.target.id)
-      //     );
-      //     const mw = link
-      //       ? integrationMiddleware.find(id => id === link.source.id || id === link.target.id)
-      //       : '';
-      //     return mw ? mw.split('-')[0] : '';
-      //   };
-
-      //   const bases = Array.from(
-      //     new Set(integrationMiddleware.map(id => id.split('-')[0]))
-      //   ).sort();
-      //   // sort by base system first, then direct connections, then type
-      //   const aBase = getBase(a);
-      //   const bBase = getBase(b);
-      //   if (aBase !== bBase) {
-      //     return bases.indexOf(aBase) - bases.indexOf(bBase);
-      //   }
-
-      //   const aDir = directToMain(a);
-      //   const bDir = directToMain(b);
-      //   if (aDir !== bDir) return aDir ? 1 : -1;
-
-      //   // return a.type.localeCompare(b.type);
-      //   return 0;
-      // })
       .extent([[0, 0], [graphWidth, graphHeight]])
       .iterations(100);
 
     const graph = processDataForSankey(data);
     let { nodes, links } = sankeyGenerator(graph as any);
-
-    // const isMWLink = (l: ProcessedLink) =>
-    //   integrationMiddleware.includes(l.source.id) ||
-    //   integrationMiddleware.includes(l.target.id);
-
-    // const mwLinks = links.filter(isMWLink);
-    // const directLinks = links.filter(l => !isMWLink(l));
-
-    // // Draw direct-to-A links first
-    // const directG = g.append('g').attr('class', 'links links--direct');
-    // directG
-    //   .selectAll('path')
-    //   .data(directLinks)
-    //   .join('path')
-    //   .attr('class', 'link')
-    //   .attr('d', sankeyLinkHorizontal())
-    //   .attr('stroke', (d: any) => linksColorScale(d.pattern) as string)
-    //   .attr('stroke-width', (d: any) => Math.max(1, d.width))
-    //   .attr('fill', 'none')
-    //   .attr('fill-opacity', 0.5)
-    //   .attr('stroke-opacity', 0.3)
-    //   .style('transition', 'fill-opacity 0.2s ease-in-out')
-    //   .on('mouseover', (event, d) => handleLinkMouseOver(event, d as ProcessedLink))
-    //   .on('mouseout', handleMouseOut)
-    //   .on('mouseover.hover', function() {
-    //     d3.select(this).attr('fill-opacity', 0.7);
-    //   })
-    //   .on('mouseout.hover', function() {
-    //     d3.select(this).attr('fill-opacity', 0.5);
-    //   });
-
-    // // Draw middleware-attached links on top
-    // const mwG = g.append('g').attr('class', 'links links--mw');
-    // mwG
-    //   .selectAll('path')
-    //   .data(mwLinks)
-    //   .join('path')
-    //   .attr('class', 'link')
-    //   .attr('d', sankeyLinkHorizontal())
-    //   .attr('stroke', (d: any) => linksColorScale(d.pattern) as string)
-    //   .attr('stroke-width', (d: any) => Math.max(1, d.width))
-    //   .attr('fill', 'none')
-    //   .attr('fill-opacity', 0.5)
-    //   .attr('stroke-opacity', 0.3)
-    //   .style('transition', 'fill-opacity 0.2s ease-in-out')
-    //   .on('mouseover', (event, d) => handleLinkMouseOver(event, d as ProcessedLink))
-    //   .on('mouseout', handleMouseOut)
-    //   .on('mouseover.hover', function() {
-    //     d3.select(this).attr('fill-opacity', 0.7);
-    //   })
-    //   .on('mouseout.hover', function() {
-    //     d3.select(this).attr('fill-opacity', 0.5);
-    //   });
-    // Sort links: direct links first (will be drawn first, appearing below)
-    // indirect (middleware) links second (will be drawn on top)
-    // const sortedLinks = [...links].sort((a, b) => {
-    //   const aIsMW = integrationMiddleware.includes(a.source.id) || integrationMiddleware.includes(a.target.id);
-    //   const bIsMW = integrationMiddleware.includes(b.source.id) || integrationMiddleware.includes(b.target.id);
-      
-    //   // Direct links (false) should come first (return -1), MW links (true) should come second (return 1)
-    //   if (!aIsMW && bIsMW) return -1;  // a is direct, b is MW -> a first
-    //   if (aIsMW && !bIsMW) return 1;   // a is MW, b is direct -> b first
-      
-    //   // If both are same type, maintain relative order
-    //   return 0;
-    // });
 
     // Use sortedLinks instead of the original split approach
     const linkGroup = g.append('g').attr('class', 'links');
@@ -266,28 +105,18 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
       .selectAll('path')
       .data(links)
       .join('path')
-      // .attr('class', (d) => {
-      //   const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
-      //   return `link ${isMW ? 'link--mw' : 'link--direct'}`;
-      // })
       .attr('d', sankeyLinkHorizontal())
       .attr('stroke', (d: any) => linksColorScale(d.pattern) as string)
       .attr('stroke-width', (d: any) => Math.max(1, d.width))
       .attr('fill', 'none')
       .attr('fill-opacity', (d) => {
-        // const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
-        // return isMW ? 0.6 : 0.4; // MW links slightly more opaque
         return 0.4;
       })
       .attr('border', '1px solid black')
       .attr('stroke-opacity', (d) => {
-        // const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
-        // return isMW ? 0.5 : 0.3; // MW links slightly more opaque
         return 0.3;
       })
       .style('transition', 'fill-opacity 0.2s ease-in-out')
-      // .on('mouseover', (event, d) => handleLinkMouseOver(event, d as ProcessedLink))
-      // .on('mouseout', handleMouseOut)
       .on('mouseover', function(event, d) {
         // Enhance the hovered link
         d3.select(this)
@@ -316,10 +145,6 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({
           
         handleMouseOut();
       })
-      // .on('mouseout.hover', function(event, d) {
-      //   const isMW = integrationMiddleware.includes(d.source.id) || integrationMiddleware.includes(d.target.id);
-      //   d3.select(this).attr('fill-opacity', isMW ? 0.6 : 0.4);
-      // });
 
     // Draw nodes
     const node = g

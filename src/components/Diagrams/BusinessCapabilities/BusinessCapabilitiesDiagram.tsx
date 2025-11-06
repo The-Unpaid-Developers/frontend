@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import * as d3 from 'd3';
-import type { BusinessCapability, HierarchyNode } from '../../../types/diagrams';
+import type { BusinessCapability } from '../../../types/diagrams';
 
 interface BusinessCapabilitiesDiagramProps {
   data: BusinessCapability[];

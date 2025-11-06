@@ -3,10 +3,9 @@ import axios from 'axios';
 import {
   getBusinessCapabilitiesAPI,
   getTechComponentsAPI,
-  type BusinessCapability,
   type TechComponent
 } from '../lookupApi';
-import { mockBusinessCapabilities, mockTechComponents } from '../../test/fixtures/mockData';
+import { mockBusinessCapabilities } from '../../test/fixtures/mockData';
 import { expectAsyncError } from '../../test/helpers/testHelpers';
 import { TEST_CONFIG } from '../../test/config';
 
