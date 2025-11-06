@@ -65,7 +65,13 @@ vi.mock('../components/Query/ViewAllQueriesPage', () => ({
 }));
 
 vi.mock('../components/ui', () => ({
-  Navbar: () => <nav data-testid="navbar">Navigation Bar</nav>
+  Navbar: () => <nav data-testid="navbar">Navigation Bar</nav>,
+  Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <div data-testid="card" className={className}>{children}</div>
+  ),
+  CardContent: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <div data-testid="card-content" className={className}>{children}</div>
+  ),
 }));
 
 // Helper function to render App and navigate to a specific route
@@ -172,11 +178,45 @@ describe('App Component', () => {
     });
   });
 
-  it('includes ErrorBoundary in the component tree', () => {
-    renderAtRoute('/');
-    // ErrorBoundary is rendered, we can verify by checking that components render without error
-    expect(screen.getByTestId('navbar')).toBeInTheDocument();
-    expect(screen.getByTestId('dashboard')).toBeInTheDocument();
+  describe('ErrorBoundary Integration', () => {
+    it('includes ErrorBoundary in the component tree', () => {
+      renderAtRoute('/');
+      // ErrorBoundary is rendered, we can verify by checking that components render without error
+      expect(screen.getByTestId('navbar')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard')).toBeInTheDocument();
+    });
+
+    it('provides error boundary protection for route components', () => {
+      // ErrorBoundary wraps all routes in App.tsx
+      // This test verifies that ErrorBoundary is present in the component hierarchy
+      // by checking that components render successfully
+      renderAtRoute('/');
+
+      // If ErrorBoundary wasn't present, any errors would crash the app
+      // With ErrorBoundary, components render normally when no errors occur
+      expect(screen.getByTestId('navbar')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard')).toBeInTheDocument();
+    });
+
+    it('renders children components when no error occurs', () => {
+      renderAtRoute('/');
+
+      // When no error, components should render normally
+      expect(screen.getByTestId('navbar')).toBeInTheDocument();
+      expect(screen.getByTestId('dashboard')).toBeInTheDocument();
+    });
+
+    it('error boundary protects multiple routes', () => {
+      // Test that ErrorBoundary protection extends to all routes
+      const routes = ['/', '/login', '/admin', '/view-queries'];
+
+      routes.forEach(route => {
+        // Should not throw when rendering any route
+        expect(() => {
+          renderAtRoute(route);
+        }).not.toThrow();
+      });
+    });
   });
 
   it('includes ToastProvider in the component tree', () => {

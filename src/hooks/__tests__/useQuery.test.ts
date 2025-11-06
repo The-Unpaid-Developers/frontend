@@ -9,6 +9,7 @@ import {
   updateQueryAPI,
   deleteQueryAPI
 } from '../../services/queryApi';
+import { createQueryList, createQuery } from '../../__tests__/testFactories';
 
 // Mock the API functions
 vi.mock('../../services/queryApi', () => ({
@@ -34,10 +35,7 @@ describe('useQuery', () => {
 
   describe('loadAllQueries', () => {
     it('should load all queries successfully', async () => {
-      const mockQueries = [
-        { id: 1, name: 'test-query-1', sql: 'SELECT * FROM table1' },
-        { id: 2, name: 'test-query-2', sql: 'SELECT * FROM table2' }
-      ];
+      const mockQueries = createQueryList();
       mockedGetAllQueriesAPI.mockResolvedValue(mockQueries);
 
       const { result } = renderHook(() => useQuery());
@@ -108,7 +106,7 @@ describe('useQuery', () => {
   describe('loadSpecificQuery', () => {
     it('should load specific query successfully', async () => {
       const queryName = 'test-query';
-      const mockQuery = { id: 1, name: queryName, sql: 'SELECT * FROM table' };
+      const mockQuery = createQuery({ name: queryName });
       mockedGetSpecificQueryAPI.mockResolvedValue(mockQuery);
 
       const { result } = renderHook(() => useQuery());

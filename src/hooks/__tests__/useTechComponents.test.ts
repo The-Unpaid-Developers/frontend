@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useTechComponents } from '../useTechComponents';
 import { getTechComponentsAPI } from '../../services/lookupApi';
+import { createTechComponentsList } from '../../__tests__/testFactories';
 
 // Mock the API
 vi.mock('../../services/lookupApi');
@@ -26,14 +27,7 @@ describe('useTechComponents', () => {
   });
 
   it('should fetch and process tech components successfully', async () => {
-    const mockComponents = [
-      { productName: 'Spring Boot', productVersion: '3.2' },
-      { productName: 'Spring Boot', productVersion: '3.1' },
-      { productName: 'Spring Boot', productVersion: '2.7' },
-      { productName: 'React', productVersion: '18.x' },
-      { productName: 'React', productVersion: '17.x' },
-      { productName: 'Node.js', productVersion: '20.x' }
-    ];
+    const mockComponents = createTechComponentsList();
     mockedGetTechComponentsAPI.mockResolvedValue(mockComponents);
 
     const { result } = renderHook(() => useTechComponents());
@@ -53,14 +47,8 @@ describe('useTechComponents', () => {
     ]);
   });
 
-  it('should filter version options correctly', async () => {
-    const mockComponents = [
-      { productName: 'Spring Boot', productVersion: '3.2' },
-      { productName: 'Spring Boot', productVersion: '3.1' },
-      { productName: 'Spring Boot', productVersion: '2.7' },
-      { productName: 'React', productVersion: '18.x' },
-      { productName: 'React', productVersion: '17.x' }
-    ];
+  it('should handle version options for specific products correctly', async () => {
+    const mockComponents = createTechComponentsList().slice(0, 5); // Get first 5
     mockedGetTechComponentsAPI.mockResolvedValue(mockComponents);
 
     const { result } = renderHook(() => useTechComponents());
@@ -90,9 +78,7 @@ describe('useTechComponents', () => {
   });
 
   it('should handle empty product name', async () => {
-    const mockComponents = [
-      { productName: 'React', productVersion: '18.x' }
-    ];
+    const mockComponents = createTechComponentsList().slice(3, 4); // Get React component
     mockedGetTechComponentsAPI.mockResolvedValue(mockComponents);
 
     const { result } = renderHook(() => useTechComponents());

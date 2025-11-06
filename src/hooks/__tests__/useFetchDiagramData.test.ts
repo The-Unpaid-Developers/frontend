@@ -8,6 +8,12 @@ import {
   getBusinessCapabilities,
   getSystemBusinessCapabilities
 } from '../../services/diagramApi';
+import {
+  createDiagramFlowData,
+  createOverallSystemFlowData,
+  createSystemPathData,
+  createBusinessCapabilitiesData
+} from '../../__tests__/testFactories';
 
 // Mock the API functions
 vi.mock('../../services/diagramApi', () => ({
@@ -40,10 +46,7 @@ describe('useFetchDiagramData', () => {
   describe('loadSystemFlows', () => {
     it('should load system flows successfully', async () => {
       const systemCode = 'TEST_SYSTEM';
-      const mockFlowData = {
-        nodes: [{ id: 1, name: 'Node 1' }],
-        edges: [{ source: 1, target: 2 }]
-      };
+      const mockFlowData = createDiagramFlowData();
       mockedGetSystemFlowAPI.mockResolvedValue(mockFlowData);
 
       const { result } = renderHook(() => useFetchDiagramData());
@@ -87,7 +90,7 @@ describe('useFetchDiagramData', () => {
 
     it('should set loading state correctly during operation', async () => {
       const systemCode = 'TEST_SYSTEM';
-      const mockFlowData = { nodes: [], edges: [] };
+      const mockFlowData = createDiagramFlowData({ nodes: [], edges: [] });
       mockedGetSystemFlowAPI.mockResolvedValue(mockFlowData);
 
       const { result } = renderHook(() => useFetchDiagramData());
@@ -126,10 +129,7 @@ describe('useFetchDiagramData', () => {
 
   describe('loadOverallSystemFlows', () => {
     it('should load overall system flows successfully', async () => {
-      const mockOverallData = {
-        systems: [{ id: 1, name: 'System 1' }],
-        connections: [{ from: 1, to: 2 }]
-      };
+      const mockOverallData = createOverallSystemFlowData();
       mockedGetOverallSystemsFlowAPI.mockResolvedValue(mockOverallData);
 
       const { result } = renderHook(() => useFetchDiagramData());
@@ -191,9 +191,7 @@ describe('useFetchDiagramData', () => {
     it('should load system paths successfully', async () => {
       const producerSystemCode = 'PRODUCER';
       const consumerSystemCode = 'CONSUMER';
-      const mockPathData = {
-        paths: [{ steps: ['PRODUCER', 'MIDDLE', 'CONSUMER'] }]
-      };
+      const mockPathData = createSystemPathData();
       mockedGetSystemPaths.mockResolvedValue(mockPathData);
 
       const { result } = renderHook(() => useFetchDiagramData());
@@ -257,12 +255,7 @@ describe('useFetchDiagramData', () => {
 
   describe('loadBusinessCapabilities', () => {
     it('should load business capabilities successfully', async () => {
-      const mockCapabilities = {
-        capabilities: [
-          { id: 1, name: 'Customer Management', level: 'L1' },
-          { id: 2, name: 'Payment Processing', level: 'L2' }
-        ]
-      };
+      const mockCapabilities = createBusinessCapabilitiesData();
       mockedGetBusinessCapabilities.mockResolvedValue(mockCapabilities);
 
       const { result } = renderHook(() => useFetchDiagramData());
@@ -376,7 +369,7 @@ describe('useFetchDiagramData', () => {
   describe('error state management', () => {
     it('should clear previous errors on new operations', async () => {
       const mockError = new Error('First error');
-      const mockCapabilities = { capabilities: [] };
+      const mockCapabilities = createBusinessCapabilitiesData();
 
       const { result } = renderHook(() => useFetchDiagramData());
 

@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { Login } from '../Login';
 import { mockApiService } from '../../../services/mockApiUpdated';
+import { createLoginCredentials } from '../../../__tests__/testFactories';
 
 // Mock the navigation
 const mockNavigate = vi.fn();
@@ -94,10 +95,11 @@ describe('Login Component', () => {
     expect(saRadio).not.toBeChecked();
   });
 
-  it('submits form with correct data and navigates on success', async () => {
+  it('should submit form with valid data', async () => {
     const user = userEvent.setup();
     const mockLogin = vi.mocked(mockApiService.login);
     mockLogin.mockResolvedValue({ token: 'mock-token' });
+    const credentials = createLoginCredentials();
     
     renderLogin();
     
@@ -105,11 +107,11 @@ describe('Login Component', () => {
     const roleRadio = screen.getByRole('radio', { name: /solution architect/i });
     const loginButton = screen.getByRole('button', { name: /login/i });
     
-    await user.type(nameInput, 'John Doe');
+    await user.type(nameInput, credentials.username);
     await user.click(roleRadio);
     await user.click(loginButton);
     
-    expect(mockLogin).toHaveBeenCalledWith('John Doe', 'SA');
+    expect(mockLogin).toHaveBeenCalledWith(credentials.username, credentials.role);
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/');
     });
