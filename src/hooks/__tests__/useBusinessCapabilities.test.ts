@@ -111,6 +111,20 @@ describe('useBusinessCapabilities', () => {
     // Note: Console error is logged (visible in stderr), spy assertion removed for coverage focus
   });
 
+  it('should handle non-Error rejection with default message', async () => {
+    // Test when the API rejects with something that's not an Error object
+    mockedGetBusinessCapabilitiesAPI.mockRejectedValue('String error');
+
+    const { result } = renderHook(() => useBusinessCapabilities());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe('Failed to fetch business capabilities');
+    expect(result.current.data).toBe(null);
+  });
+
   it('should handle empty capabilities array', async () => {
     mockedGetBusinessCapabilitiesAPI.mockResolvedValue([]);
 

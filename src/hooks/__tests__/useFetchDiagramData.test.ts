@@ -105,6 +105,23 @@ describe('useFetchDiagramData', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(null);
     });
+
+    it('should handle errors without message property in loadSystemFlows', async () => {
+      const systemCode = 'TEST_SYSTEM';
+      const errorObject = { code: 500 };
+
+      mockedGetSystemFlowAPI.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useFetchDiagramData());
+
+      await act(async () => {
+        try {
+          await result.current.loadSystemFlows(systemCode);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
+    });
   });
 
   describe('loadOverallSystemFlows', () => {
@@ -151,6 +168,22 @@ describe('useFetchDiagramData', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
+    });
+
+    it('should handle errors without message property in loadOverallSystemFlows', async () => {
+      const errorObject = { statusCode: 503 };
+
+      mockedGetOverallSystemsFlowAPI.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useFetchDiagramData());
+
+      await act(async () => {
+        try {
+          await result.current.loadOverallSystemFlows();
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
     });
   });
 
@@ -201,6 +234,24 @@ describe('useFetchDiagramData', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
+    });
+
+    it('should handle errors without message property in loadSystemsPaths', async () => {
+      const producerSystemCode = 'PRODUCER';
+      const consumerSystemCode = 'CONSUMER';
+      const errorObject = { error: 'path_not_found' };
+
+      mockedGetSystemPaths.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useFetchDiagramData());
+
+      await act(async () => {
+        try {
+          await result.current.loadSystemsPaths(producerSystemCode, consumerSystemCode);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
     });
   });
 
@@ -302,6 +353,23 @@ describe('useFetchDiagramData', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe(errorMessage);
+    });
+
+    it('should handle errors without message property in loadSystemBusinessCapabilities', async () => {
+      const systemCode = 'TEST_SYSTEM';
+      const errorObject = 'string error';
+
+      mockedGetSystemBusinessCapabilities.mockRejectedValueOnce(errorObject);
+
+      const { result } = renderHook(() => useFetchDiagramData());
+
+      await act(async () => {
+        try {
+          await result.current.loadSystemBusinessCapabilities(systemCode);
+        } catch {}
+      });
+
+      expect(result.current.error).toBeUndefined();
     });
   });
 

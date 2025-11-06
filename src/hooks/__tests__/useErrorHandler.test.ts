@@ -53,6 +53,21 @@ describe("useErrorHandler Hook", () => {
     expect(result.current.error?.type).toBe(ErrorType.UNKNOWN_ERROR);
   });
 
+  it("converts generic Error without message to APIError with default message", () => {
+    const { result } = renderHook(() => useErrorHandler());
+    const genericError = new Error();
+    // Set message to undefined to cover the ?? branch
+    (genericError as any).message = undefined;
+
+    act(() => {
+      result.current.handleError(genericError);
+    });
+
+    expect(result.current.error).toBeInstanceOf(APIError);
+    expect(result.current.error?.message).toBe("An unexpected error occurred");
+    expect(result.current.error?.type).toBe(ErrorType.UNKNOWN_ERROR);
+  });
+
   it("handles network errors specifically", () => {
     const { result } = renderHook(() => useErrorHandler());
     const networkError = new TypeError("Failed to fetch");
@@ -225,6 +240,21 @@ describe("useErrorHandler Hook", () => {
         "Error caught by useErrorHandler:",
         "Test error"
       );
+    }
+
+    consoleSpy.mockRestore();
+  });
+
+  it("warns when retryLastAction is called without any retry action", async () => {
+    const { result } = renderHook(() => useErrorHandler());
+    const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    if (result.current) {
+      await act(async () => {
+        await result.current.retryLastAction();
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith("No retry action available");
     }
 
     consoleSpy.mockRestore();

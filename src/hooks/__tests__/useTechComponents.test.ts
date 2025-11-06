@@ -156,6 +156,20 @@ describe('useTechComponents', () => {
     // Note: Console error is logged (visible in stderr), spy assertion removed for coverage focus
   });
 
+  it('should handle non-Error rejection with default message', async () => {
+    // Test when the API rejects with something that's not an Error object
+    mockedGetTechComponentsAPI.mockRejectedValue({ code: 500 });
+
+    const { result } = renderHook(() => useTechComponents());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.error).toBe('Failed to fetch tech components');
+    expect(result.current.data).toBe(null);
+  });
+
   it('should handle empty components array', async () => {
     mockedGetTechComponentsAPI.mockResolvedValue([]);
 

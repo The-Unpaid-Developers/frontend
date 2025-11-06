@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '../../test/utils';
+import { render, screen } from '../../test/utils';
 import { Dashboard } from '../Dashboard';
 import { useViewSolutionReview } from '../../hooks/useViewSolutionReview';
 import { useToast } from '../../context/ToastContext';
