@@ -615,7 +615,7 @@ describe('Toast Component', () => {
       });
 
       rerender(
-        <Toast {...defaultProps} type={ErrorType.ERROR} />
+        <Toast {...defaultProps} type={ErrorType.UNKNOWN_ERROR} />
       );
 
       expect(screen.getByText('Error')).toBeInTheDocument();
