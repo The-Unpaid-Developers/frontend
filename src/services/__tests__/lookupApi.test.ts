@@ -6,6 +6,12 @@ import {
   type BusinessCapability,
   type TechComponent
 } from '../lookupApi';
+import { mockBusinessCapabilities, mockTechComponents } from '../../test/fixtures/mockData';
+import { 
+  expectAsyncError, 
+  createApiMockResponses,
+  testAllHttpErrorCodes 
+} from '../../test/helpers/testHelpers';
 
 // Mock axios
 vi.mock('axios');
@@ -21,18 +27,15 @@ describe('lookupApi', () => {
 
   describe('getBusinessCapabilitiesAPI', () => {
     it('should fetch business capabilities successfully', async () => {
-      const mockData: BusinessCapability[] = [
-        { l1: 'Policy Management', l2: 'Policy Admin', l3: 'Policy Issuance' },
-        { l1: 'Claims', l2: 'Claims Processing', l3: 'Claims Review' }
-      ];
-      mockedAxios.get.mockResolvedValue({ data: mockData });
+      // Use shared mock data from fixtures
+      mockedAxios.get.mockResolvedValue({ data: mockBusinessCapabilities.capabilities });
 
       const result = await getBusinessCapabilitiesAPI();
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
         'http://localhost:8080/api/v1/lookups/business-capabilities'
       );
-      expect(result).toEqual(mockData);
+      expect(result).toEqual(mockBusinessCapabilities.capabilities);
     });
 
     it('should handle API errors', async () => {
@@ -40,9 +43,11 @@ describe('lookupApi', () => {
       const error = new Error(errorMessage);
       mockedAxios.get.mockRejectedValue(error);
 
-      await expect(getBusinessCapabilitiesAPI()).rejects.toThrow(errorMessage);
-      
-      // Note: Console error is logged (visible in stderr), spy assertion removed for coverage focus
+      // Use consistent error handling helper
+      await expectAsyncError(
+        () => getBusinessCapabilitiesAPI(),
+        errorMessage
+      );
     });
 
     it('should handle HTTP error responses', async () => {
