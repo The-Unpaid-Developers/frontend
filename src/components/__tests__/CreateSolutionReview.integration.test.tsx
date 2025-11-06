@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '../../test/utils';
+import { render, screen } from '../../test/test-utils';
 
 // Mock component since the actual component might not exist
 const MockCreateSolutionReviewPage = () => {

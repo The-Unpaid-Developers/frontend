@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '../../../../../test/test-utils';
 import BusinessCapabilitiesStep from '../BusinessCapabilitiesStep';
 
 vi.mock('../../../../../hooks/useBusinessCapabilities', () => ({
@@ -17,28 +17,32 @@ vi.mock('../../../../../hooks/useBusinessCapabilities', () => ({
 
 describe('BusinessCapabilitiesStep', () => {
   const mockOnSave = vi.fn();
+  const defaultProps = {
+    onSave: mockOnSave,
+    initialData: { businessCapabilities: [] }
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it('renders the step component', () => {
-    render(<BusinessCapabilitiesStep onSave={mockOnSave} />);
+    render(<BusinessCapabilitiesStep {...defaultProps} />);
     expect(screen.getAllByText(/Business Capabilities/i).length).toBeGreaterThan(0);
   });
 
   it('renders add button', () => {
-    render(<BusinessCapabilitiesStep onSave={mockOnSave} />);
+    render(<BusinessCapabilitiesStep {...defaultProps} />);
     expect(screen.getByText(/Add Capability/i)).toBeInTheDocument();
   });
 
   it('renders save button', () => {
-    render(<BusinessCapabilitiesStep onSave={mockOnSave} />);
+    render(<BusinessCapabilitiesStep {...defaultProps} />);
     expect(screen.getByText(/^Save$/)).toBeInTheDocument();
   });
 
   it('calls onSave when save button clicked', () => {
-    render(<BusinessCapabilitiesStep onSave={mockOnSave} />);
+    render(<BusinessCapabilitiesStep {...defaultProps} />);
     const saveButton = screen.getByText(/^Save$/);
     fireEvent.click(saveButton);
     expect(mockOnSave).toHaveBeenCalled();
@@ -50,18 +54,18 @@ describe('BusinessCapabilitiesStep', () => {
         { id: '1', l1Capability: 'Test L1', l2Capability: 'Test L2', l3Capability: 'Test L3', remarks: 'Test' }
       ],
     };
-    render(<BusinessCapabilitiesStep onSave={mockOnSave} initialData={initialData} />);
+    render(<BusinessCapabilitiesStep {...defaultProps} initialData={initialData} />);
     expect(screen.getByText('Test L1')).toBeInTheDocument();
   });
 
   it('shows isSaving state', () => {
-    render(<BusinessCapabilitiesStep onSave={mockOnSave} isSaving={true} />);
+    render(<BusinessCapabilitiesStep {...defaultProps} isSaving={true} />);
     const saveButton = screen.getByText(/Saving/i);
     expect(saveButton).toBeDisabled();
   });
 
   it('displays empty state initially', () => {
-    render(<BusinessCapabilitiesStep onSave={mockOnSave} />);
+    render(<BusinessCapabilitiesStep {...defaultProps} />);
     expect(screen.getByText(/No business capabilities added/i)).toBeInTheDocument();
   });
 });

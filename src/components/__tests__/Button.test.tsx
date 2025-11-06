@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "../../test/utils";
+import { render, screen, fireEvent } from "../../test/test-utils";
 import { Button } from "../ui/Button";
 
 describe("Button Component", () => {
