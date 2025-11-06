@@ -10,9 +10,6 @@ export const useFetchDiagramData = () => {
     try {
       const responseData = await getSystemFlowAPI(systemCode); // Import or define mock data
       console.log("flow data ", responseData);
-      // if (responseData) {
-      //   setSystems(responseData);
-      // }
       return responseData;
     } 
     catch (error) {
@@ -47,9 +44,6 @@ export const useFetchDiagramData = () => {
     try {
       const responseData = await getSystemPaths(producerSystemCode, consumerSystemCode); // Import or define mock data
       console.log("flow data ", responseData);
-      // if (responseData) {
-      //   setSystems(responseData);
-      // }
       return responseData;
     } 
     catch (error) {

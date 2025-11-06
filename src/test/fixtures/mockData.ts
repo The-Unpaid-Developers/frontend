@@ -1,5 +1,4 @@
-import { DocumentState } from '../../types/solutionReview';
-import { SolutionReview } from '../../types/solutionReview';
+import { DocumentState, SolutionReview } from '../../types/solutionReview';
 
 // Common mock data that can be shared across tests
 export const mockSolutionReviews: SolutionReview[] = [

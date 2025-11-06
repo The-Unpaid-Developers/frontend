@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mockApiService } from "../mockApiUpdated";
-import { DocumentState } from "../../types/solutionReview";
-import { APIError, ErrorType } from "../../types/errors";
+import { APIError } from "../../types/errors";
 
 describe("mockApiService", () => {
   beforeEach(() => {

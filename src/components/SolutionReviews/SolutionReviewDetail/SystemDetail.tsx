@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import type { SolutionReview, SystemGroup } from "../../../types/solutionReview";
-import { DocumentState, STATE_TRANSITIONS } from "../../../types/solutionReview";
+import type { SolutionReview } from "../../../types/solutionReview";
+import { STATE_TRANSITIONS } from "../../../types/solutionReview";
 import { Card, CardHeader, CardTitle, CardContent, Badge, Button } from "../../ui";
 import { useNavigate } from "react-router-dom";
 import { useCreateSolutionOverview } from "../../../hooks/useCreateSolutionOverview";

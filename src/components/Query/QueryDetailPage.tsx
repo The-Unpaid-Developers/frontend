@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../ui/Button';
-import { Input, Textarea } from '../ui/Input';
+import { Textarea } from '../ui/Input';
 import { Card } from '../ui/Card';
 import { Modal } from '../ui/Modal';
 import { useQuery } from '../../hooks/useQuery';
