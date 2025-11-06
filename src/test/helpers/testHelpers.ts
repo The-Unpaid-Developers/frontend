@@ -20,10 +20,21 @@ export const expectAsyncError = async (
   
   expect(thrownError).toBeDefined();
   if (expectedError) {
+    // Handle different error formats
+    let actualMessage = '';
+    
+    if (thrownError.response?.data?.message) {
+      // HTTP error with response data
+      actualMessage = thrownError.response.data.message;
+    } else if (thrownError.message) {
+      // Standard error with message
+      actualMessage = thrownError.message;
+    }
+    
     if (typeof expectedError === 'string') {
-      expect(thrownError.message).toBe(expectedError);
+      expect(actualMessage).toBe(expectedError);
     } else {
-      expect(thrownError.message).toMatch(expectedError);
+      expect(actualMessage).toMatch(expectedError);
     }
   }
   

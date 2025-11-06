@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { vi, beforeEach, afterEach, expect } from 'vitest';
 import type { MockedFunction } from 'vitest';
 
 /**
@@ -149,7 +149,7 @@ export const mockIntersectionObserverEntry = (isIntersecting = true): Intersecti
  * Type-safe matcher for testing objects
  */
 export const expectObjectMatching = <T>(expected: Partial<T>) => 
-  expect.objectContaining(expected);
+  expect.objectContaining(expected as any);
 
 /**
  * Helper for testing async hooks

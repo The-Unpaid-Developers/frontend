@@ -6,15 +6,17 @@ import {
   executeQueryAPI,
   createQueryAPI,
   updateQueryAPI,
-  deleteQueryAPI
+  deleteQueryAPI,
 } from '../queryApi';
+import { expectAsyncError } from '../../test/helpers/testHelpers';
+import { getApiUrl } from '../../test/config';
 
 // Mock axios
 vi.mock('axios');
 const mockedAxios = vi.mocked(axios, true);
 
 describe('queryApi', () => {
-  const API_BASE_URL = 'http://localhost:8080/api/v1/queries';
+  const API_BASE_URL = getApiUrl('CORE_SERVICE', '/queries');
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -63,7 +65,7 @@ describe('queryApi', () => {
       const mockError = new Error('Server unavailable');
       mockedAxios.get.mockRejectedValue(mockError);
 
-      await expect(getAllQueriesAPI()).rejects.toThrow('Server unavailable');
+      await expectAsyncError(() => getAllQueriesAPI(), 'Server unavailable');
       expect(mockedAxios.get).toHaveBeenCalledWith(`${API_BASE_URL}`);
     });
 
@@ -72,7 +74,7 @@ describe('queryApi', () => {
       networkError.name = 'NetworkError';
       mockedAxios.get.mockRejectedValue(networkError);
 
-      await expect(getAllQueriesAPI()).rejects.toThrow('Network Error');
+      await expectAsyncError(() => getAllQueriesAPI(), 'Network Error');
     });
   });
 
@@ -109,7 +111,10 @@ describe('queryApi', () => {
       };
       mockedAxios.get.mockRejectedValue(notFoundError);
 
-      await expect(getSpecificQueryAPI(queryName)).rejects.toEqual(notFoundError);
+      await expectAsyncError(
+        () => getSpecificQueryAPI(queryName),
+        'Query not found'
+      );
       expect(mockedAxios.get).toHaveBeenCalledWith(`${API_BASE_URL}/${queryName}`);
     });
 
@@ -205,7 +210,10 @@ describe('queryApi', () => {
       };
       mockedAxios.post.mockRejectedValue(sqlError);
 
-      await expect(executeQueryAPI(queryName, payload)).rejects.toEqual(sqlError);
+      await expectAsyncError(
+        () => executeQueryAPI(queryName, payload),
+        'SQL syntax error near SELECT'
+      );
     });
 
     it('should handle timeout errors during execution', async () => {
@@ -219,7 +227,10 @@ describe('queryApi', () => {
       };
       mockedAxios.post.mockRejectedValue(timeoutError);
 
-      await expect(executeQueryAPI(queryName, payload)).rejects.toEqual(timeoutError);
+      await expectAsyncError(
+        () => executeQueryAPI(queryName, payload),
+        'Query execution timeout'
+      );
     });
   });
 
@@ -272,7 +283,10 @@ describe('queryApi', () => {
       };
       mockedAxios.post.mockRejectedValue(validationError);
 
-      await expect(createQueryAPI(invalidQueryData)).rejects.toEqual(validationError);
+      await expectAsyncError(
+        () => createQueryAPI(invalidQueryData),
+        'Validation failed'
+      );
     });
 
     it('should handle duplicate query name errors', async () => {

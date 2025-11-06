@@ -7,17 +7,15 @@ import {
   type TechComponent
 } from '../lookupApi';
 import { mockBusinessCapabilities, mockTechComponents } from '../../test/fixtures/mockData';
-import { 
-  expectAsyncError, 
-  createApiMockResponses,
-  testAllHttpErrorCodes 
-} from '../../test/helpers/testHelpers';
+import { expectAsyncError } from '../../test/helpers/testHelpers';
+import { TEST_CONFIG } from '../../test/config';
 
 // Mock axios
 vi.mock('axios');
 const mockedAxios = vi.mocked(axios, true);
 
 describe('lookupApi', () => {
+  const API_BASE_URL = TEST_CONFIG.API_BASE_URLS.CORE_SERVICE;
   const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
   beforeEach(() => {
@@ -33,7 +31,7 @@ describe('lookupApi', () => {
       const result = await getBusinessCapabilitiesAPI();
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        'http://localhost:8080/api/v1/lookups/business-capabilities'
+        `${API_BASE_URL}/lookups/business-capabilities`
       );
       expect(result).toEqual(mockBusinessCapabilities.capabilities);
     });
@@ -84,7 +82,7 @@ describe('lookupApi', () => {
       const result = await getTechComponentsAPI();
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        'http://localhost:8080/api/v1/lookups/tech-components'
+        `${API_BASE_URL}/lookups/tech-components`
       );
       expect(result).toEqual(mockData);
     });
@@ -138,7 +136,7 @@ describe('lookupApi', () => {
       await getBusinessCapabilitiesAPI();
       
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        'http://localhost:8080/api/v1/lookups/business-capabilities'
+        `${API_BASE_URL}/lookups/business-capabilities`
       );
     });
 
@@ -148,7 +146,7 @@ describe('lookupApi', () => {
       await getTechComponentsAPI();
       
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        'http://localhost:8080/api/v1/lookups/tech-components'
+        `${API_BASE_URL}/lookups/tech-components`
       );
     });
   });
