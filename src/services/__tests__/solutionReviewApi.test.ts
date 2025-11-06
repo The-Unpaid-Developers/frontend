@@ -12,13 +12,15 @@ import {
   getSRsByStateAPI,
   addConcernsToSRAPI
 } from '../solutionReviewApi';
+import { expectAsyncError } from '../../test/helpers/testHelpers';
+import { TEST_CONFIG } from '../../test/config';
 
 // Mock axios
 vi.mock('axios');
-const mockedAxios = vi.mocked(axios);
+const mockedAxios = vi.mocked(axios, true);
 
 describe('solutionReviewApi', () => {
-  const API_BASE_URL = 'http://localhost:8080/api/v1';
+  const API_BASE_URL = TEST_CONFIG.API_BASE_URLS.CORE_SERVICE;
   
   beforeEach(() => {
     vi.clearAllMocks();
@@ -52,8 +54,10 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.post.mockRejectedValue(mockError);
 
-      await expect(createSolutionReviewAPI(mockData, systemCode))
-        .rejects.toThrow('API Error');
+      await expectAsyncError(
+        () => createSolutionReviewAPI(mockData, systemCode),
+        'API Error'
+      );
     });
   });
 
@@ -79,8 +83,10 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.put.mockRejectedValue(mockError);
 
-      await expect(saveSolutionReviewDraftAPI(mockData))
-        .rejects.toThrow('Save failed');
+      await expectAsyncError(
+        () => saveSolutionReviewDraftAPI(mockData),
+        'Save failed'
+      );
     });
   });
 
@@ -111,8 +117,10 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.get.mockRejectedValue(mockError);
 
-      await expect(getSolutionReviewByIdAPI(reviewId))
-        .rejects.toThrow('Not found');
+      await expectAsyncError(
+        () => getSolutionReviewByIdAPI(reviewId),
+        'Not found'
+      );
     });
   });
 
@@ -239,8 +247,10 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.post.mockRejectedValue(mockError);
 
-      await expect(transitionSolutionReviewStateAPI(transitionData))
-        .rejects.toThrow('Invalid transition');
+      await expectAsyncError(
+        () => transitionSolutionReviewStateAPI(transitionData),
+        'Invalid transition'
+      );
     });
   });
 
@@ -271,8 +281,10 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.post.mockRejectedValue(mockError);
 
-      await expect(createSRFromExistingAPI(systemCode))
-        .rejects.toThrow('System not found');
+      await expectAsyncError(
+        () => createSRFromExistingAPI(systemCode),
+        'System not found'
+      );
     });
   });
 
@@ -350,8 +362,10 @@ describe('solutionReviewApi', () => {
       
       mockedAxios.put.mockRejectedValue(mockError);
 
-      await expect(addConcernsToSRAPI(concernsData))
-        .rejects.toThrow('Failed to add concerns');
+      await expectAsyncError(
+        () => addConcernsToSRAPI(concernsData),
+        'Failed to add concerns'
+      );
     });
   });
 
@@ -363,16 +377,16 @@ describe('solutionReviewApi', () => {
       mockedAxios.put.mockRejectedValue(networkError);
 
       // Test that all APIs properly propagate network errors
-      await expect(getSolutionReviewByIdAPI('sr-1')).rejects.toThrow('Network Error');
-      await expect(createSolutionReviewAPI({}, 'SYS-001')).rejects.toThrow('Network Error');
-      await expect(saveSolutionReviewDraftAPI({})).rejects.toThrow('Network Error');
-      await expect(getAllSolutionReviewsAPI(0, 10)).rejects.toThrow('Network Error');
-      await expect(getAllSystemsAPI(0, 10)).rejects.toThrow('Network Error');
-      await expect(getSystemSolutionReviewsAPI('SYS-001')).rejects.toThrow('Network Error');
-      await expect(transitionSolutionReviewStateAPI({})).rejects.toThrow('Network Error');
-      await expect(createSRFromExistingAPI('SYS-001')).rejects.toThrow('Network Error');
-      await expect(getSRsByStateAPI('DRAFT', 0, 10)).rejects.toThrow('Network Error');
-      await expect(addConcernsToSRAPI({})).rejects.toThrow('Network Error');
+      await expectAsyncError(() => getSolutionReviewByIdAPI('sr-1'), 'Network Error');
+      await expectAsyncError(() => createSolutionReviewAPI({}, 'SYS-001'), 'Network Error');
+      await expectAsyncError(() => saveSolutionReviewDraftAPI({}), 'Network Error');
+      await expectAsyncError(() => getAllSolutionReviewsAPI(0, 10), 'Network Error');
+      await expectAsyncError(() => getAllSystemsAPI(0, 10), 'Network Error');
+      await expectAsyncError(() => getSystemSolutionReviewsAPI('SYS-001'), 'Network Error');
+      await expectAsyncError(() => transitionSolutionReviewStateAPI({}), 'Network Error');
+      await expectAsyncError(() => createSRFromExistingAPI('SYS-001'), 'Network Error');
+      await expectAsyncError(() => getSRsByStateAPI('DRAFT', 0, 10), 'Network Error');
+      await expectAsyncError(() => addConcernsToSRAPI({}), 'Network Error');
     });
   });
 
