@@ -24,3 +24,20 @@ dist-ssr
 *.sw?
 
 .env
+
+# Test coverage
+coverage/
+*.lcov
+.nyc_output
+junit.xml
+
+# Test results
+test-results/
+test-output/
+.test-cache/
+
+# Jest cache
+.jest/
+
+# Vitest cache
+.vitest/
