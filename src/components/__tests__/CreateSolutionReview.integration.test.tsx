@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '../../test/utils';
+import { render, screen } from '../../test/utils';
 
 // Mock component since the actual component might not exist
 const MockCreateSolutionReviewPage = () => {
@@ -26,7 +26,7 @@ describe('CreateSolutionReview Integration', () => {
   it('should render the create solution review form', () => {
     render(<MockCreateSolutionReviewPage />);
 
-    expect(document.body).toContainHTML('Create Solution Review');
+    expect(screen.getByText('Create Solution Review')).toBeDefined();
   });
 
   it('should have required form fields', () => {
@@ -36,8 +36,8 @@ describe('CreateSolutionReview Integration', () => {
     const descriptionInput = container.querySelector('textarea[aria-label="description"]');
     const submitButton = container.querySelector('button[type="submit"]');
 
-    expect(titleInput).toBeInTheDocument();
-    expect(descriptionInput).toBeInTheDocument();
-    expect(submitButton).toBeInTheDocument();
+    expect(titleInput).not.toBeNull();
+    expect(descriptionInput).not.toBeNull();
+    expect(submitButton).not.toBeNull();
   });
 });

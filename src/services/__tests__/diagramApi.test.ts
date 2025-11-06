@@ -416,13 +416,13 @@ describe('diagramApi', () => {
           name: `Capability ${i}`,
           level: 'L1',
           parentId: null,
-          systemCount: Math.floor(Math.random() * 10) + 1,
+          systemCount: (i % 10) + 1, // Deterministic value 1-10
           children: Array.from({ length: 5 }, (_, j) => ({
             id: `l2-cap-${i}-${j}`,
             name: `Sub Capability ${i}-${j}`,
             level: 'L2',
             parentId: `l1-cap-${i}`,
-            systemCount: Math.floor(Math.random() * 3) + 1
+            systemCount: ((i + j) % 3) + 1 // Deterministic value 1-3
           }))
         }))
       };

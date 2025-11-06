@@ -3,11 +3,6 @@ import { mockApiService } from "../mockApiUpdated";
 import { DocumentState } from "../../types/solutionReview";
 import { APIError, ErrorType } from "../../types/errors";
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { mockApiService } from "../mockApiUpdated";
-import { DocumentState } from "../../types/solutionReview";
-import { APIError, ErrorType } from "../../types/errors";
-
 describe("mockApiService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,7 +36,8 @@ describe("mockApiService", () => {
       const reviews = await mockApiService.getAllSolutionReviews();
       const firstReview = reviews[0];
 
-      const review = await mockApiService.getSolutionReviewById(firstReview.id);
+      expect(firstReview.id).toBeDefined();
+      const review = await mockApiService.getSolutionReviewById(firstReview.id!);
 
       expect(review).toEqual(expect.objectContaining({
         id: firstReview.id,
