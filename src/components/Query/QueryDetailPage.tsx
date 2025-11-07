@@ -34,7 +34,7 @@ export const QueryDetailPage: React.FC = () => {
     const fetchQuery = async () => {
       if (!queryName) {
         showError('Query name is required');
-        navigate('/queries');
+        navigate('/view-queries');
         return;
       }
 
@@ -48,7 +48,7 @@ export const QueryDetailPage: React.FC = () => {
       } catch (error) {
         console.error('Error loading query:', error);
         showError(`Failed to load query: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        navigate('/queries');
+        navigate('/view-queries');
       }
     };
 
@@ -146,7 +146,7 @@ export const QueryDetailPage: React.FC = () => {
     try {
       await deleteQuery(queryName);
       showSuccess('Query deleted successfully!');
-      navigate('/queries');
+      navigate('/view-queries');
     } catch (error) {
       console.error('Failed to delete query:', error);
       showError(
@@ -178,7 +178,7 @@ export const QueryDetailPage: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => navigate('/queries')}
+                  onClick={() => navigate('/view-queries')}
                   aria-label="Back to queries"
                 >
                   <svg

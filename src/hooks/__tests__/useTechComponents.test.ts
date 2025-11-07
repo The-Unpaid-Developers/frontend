@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useTechComponents } from '../useTechComponents';
-import { getTechComponentsAPI } from '../../services/lookupApi';
+import { getTechComponentsAPI } from '../../services/dropdownApi';
 import { createTechComponentsList } from '../../__tests__/testFactories';
 
 // Mock the API
-vi.mock('../../services/lookupApi');
+vi.mock('../../services/dropdownApi');
 const mockedGetTechComponentsAPI = vi.mocked(getTechComponentsAPI);
 
 describe('useTechComponents', () => {

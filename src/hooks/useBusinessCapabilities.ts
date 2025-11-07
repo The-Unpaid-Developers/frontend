@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getBusinessCapabilitiesAPI } from '../services/lookupApi';
-import type { BusinessCapability } from '../services/lookupApi';
+import { getBusinessCapabilitiesAPI } from '../services/dropdownApi';
+import type { BusinessCapability } from '../services/dropdownApi';
 
 export interface Option {
   value: string;

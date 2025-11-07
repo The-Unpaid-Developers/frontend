@@ -4,9 +4,8 @@ import {
   getBusinessCapabilitiesAPI,
   getTechComponentsAPI,
   type TechComponent
-} from '../lookupApi';
+} from '../dropdownApi';
 import { mockBusinessCapabilities } from '../../test/fixtures/mockData';
-import { expectAsyncError } from '../../test/helpers/testHelpers';
 import { TEST_CONFIG } from '../../test/config';
 
 // Mock axios
@@ -30,7 +29,7 @@ describe('lookupApi', () => {
       const result = await getBusinessCapabilitiesAPI();
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        `${API_BASE_URL}/lookups/business-capabilities`
+        `${API_BASE_URL}/dropdowns/business-capabilities`
       );
       expect(result).toEqual(mockBusinessCapabilities.capabilities);
     });
@@ -41,10 +40,7 @@ describe('lookupApi', () => {
       mockedAxios.get.mockRejectedValue(error);
 
       // Use consistent error handling helper
-      await expectAsyncError(
-        () => getBusinessCapabilitiesAPI(),
-        errorMessage
-      );
+      await expect(getBusinessCapabilitiesAPI()).rejects.toThrow(errorMessage);
     });
 
     it('should handle HTTP error responses', async () => {
@@ -81,7 +77,7 @@ describe('lookupApi', () => {
       const result = await getTechComponentsAPI();
 
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        `${API_BASE_URL}/lookups/tech-components`
+        `${API_BASE_URL}/dropdowns/tech-components`
       );
       expect(result).toEqual(mockData);
     });
@@ -132,21 +128,23 @@ describe('lookupApi', () => {
     it('should use correct base URL for business capabilities', async () => {
       mockedAxios.get.mockResolvedValue({ data: [] });
       
-      await getBusinessCapabilitiesAPI();
+      const result = await getBusinessCapabilitiesAPI();
       
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        `${API_BASE_URL}/lookups/business-capabilities`
+        `${API_BASE_URL}/dropdowns/business-capabilities`
       );
+      expect(result).toEqual([]);
     });
 
     it('should use correct base URL for tech components', async () => {
       mockedAxios.get.mockResolvedValue({ data: [] });
       
-      await getTechComponentsAPI();
+      const result = await getTechComponentsAPI();
       
       expect(mockedAxios.get).toHaveBeenCalledWith(
-        `${API_BASE_URL}/lookups/tech-components`
+        `${API_BASE_URL}/dropdowns/tech-components`
       );
+      expect(result).toEqual([]);
     });
   });
 });

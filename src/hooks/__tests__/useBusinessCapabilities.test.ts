@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useBusinessCapabilities } from '../useBusinessCapabilities';
-import { getBusinessCapabilitiesAPI } from '../../services/lookupApi';
+import { getBusinessCapabilitiesAPI } from '../../services/dropdownApi';
 import { createBusinessCapabilitiesList, createBusinessCapability } from '../../__tests__/testFactories';
 
 // Mock the API
-vi.mock('../../services/lookupApi');
+vi.mock('../../services/dropdownApi');
 const mockedGetBusinessCapabilitiesAPI = vi.mocked(getBusinessCapabilitiesAPI);
 
 describe('useBusinessCapabilities', () => {
