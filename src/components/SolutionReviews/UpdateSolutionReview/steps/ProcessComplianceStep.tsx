@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Button, DropDown, Input, Card, CardHeader, CardTitle, CardContent } from "../../../ui";
+import {
+  Button,
+  DropDown,
+  Input,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "../../../ui";
 import type { StepProps } from "./StepProps";
 import type { ProcessCompliance } from "../../../../types/solutionReview";
 import {
@@ -25,7 +33,8 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
   );
   const [row, setRow] = useState<ProcessCompliance>(empty);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingCompliance, setEditingCompliance] = useState<ProcessCompliance | null>(null);
+  const [editingCompliance, setEditingCompliance] =
+    useState<ProcessCompliance | null>(null);
 
   useEffect(() => {
     if (initialData.processCompliances) {
@@ -66,8 +75,11 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
     setEditingCompliance(null);
   };
 
-  const updateEditingCompliance = (field: keyof ProcessCompliance, value: string) => {
-    setEditingCompliance(prev => prev ? { ...prev, [field]: value } : null);
+  const updateEditingCompliance = (
+    field: keyof ProcessCompliance,
+    value: string
+  ) => {
+    setEditingCompliance((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
   const save = async () => {
@@ -86,8 +98,18 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            <svg
+              className="w-5 h-5 mr-2 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+              />
             </svg>
             Add Process Compliance
           </CardTitle>
@@ -136,8 +158,18 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
               disabled={!row.standardGuideline || !row.compliant}
               variant="secondary"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
               Add Compliance
             </Button>
@@ -149,8 +181,18 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            <svg
+              className="w-5 h-5 mr-2 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+              />
             </svg>
             Process Compliances ({list.length})
           </CardTitle>
@@ -158,11 +200,23 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
         <CardContent>
           {list.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 713.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 713.138-3.138z" />
+              <svg
+                className="w-12 h-12 mx-auto mb-4 text-gray-300"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 713.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 713.138-3.138z"
+                />
               </svg>
               <p>No process compliances added yet</p>
-              <p className="text-sm">Add your first compliance requirement above</p>
+              <p className="text-sm">
+                Add your first compliance requirement above
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -185,28 +239,49 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {list.map((compliance, index) => (
-                    <tr key={(compliance as any).id || `compliance-${compliance.standardGuideline}-${compliance.compliant}-${index}`} className="hover:bg-gray-50">
+                    <tr
+                      key={
+                        compliance.id ||
+                        `compliance-${compliance.standardGuideline}-${compliance.compliant}-${index}`
+                      }
+                      className="hover:bg-gray-50"
+                    >
                       {editingIndex === index && editingCompliance ? (
                         // Edit mode
                         <>
                           <td className="px-4 py-3">
                             <DropDown
                               value={editingCompliance.standardGuideline}
-                              onChange={e => updateEditingCompliance('standardGuideline', e.target.value)}
+                              onChange={(e) =>
+                                updateEditingCompliance(
+                                  "standardGuideline",
+                                  e.target.value
+                                )
+                              }
                               options={STANDARD_GUIDELINE_OPTIONS}
                             />
                           </td>
                           <td className="px-4 py-3">
                             <DropDown
                               value={editingCompliance.compliant}
-                              onChange={e => updateEditingCompliance('compliant', e.target.value)}
+                              onChange={(e) =>
+                                updateEditingCompliance(
+                                  "compliant",
+                                  e.target.value
+                                )
+                              }
                               options={COMPLIANT_OPTIONS}
                             />
                           </td>
                           <td className="px-4 py-3">
                             <Input
                               value={editingCompliance.description}
-                              onChange={e => updateEditingCompliance('description', e.target.value)}
+                              onChange={(e) =>
+                                updateEditingCompliance(
+                                  "description",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Description"
                             />
                           </td>
@@ -217,8 +292,18 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                                 className="text-green-600 hover:text-green-900 transition-colors"
                                 title="Save"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M5 13l4 4L19 7"
+                                  />
                                 </svg>
                               </button>
                               <button
@@ -226,8 +311,18 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                                 className="text-gray-600 hover:text-gray-900 transition-colors"
                                 title="Cancel"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -236,13 +331,19 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                       ) : (
                         // Display mode
                         <>
-                          <td className="px-4 py-3 text-sm text-gray-900">{compliance.standardGuideline}</td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-900`}>
+                            {compliance.standardGuideline}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-900`}
+                            >
                               {compliance.compliant}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{compliance.description ?? '—'}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {compliance.description ?? "—"}
+                          </td>
                           <td className="px-4 py-3 text-sm text-right">
                             <div className="flex justify-end space-x-2">
                               <button
@@ -250,8 +351,18 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                                 className="text-blue-600 hover:text-blue-900 transition-colors"
                                 title="Edit"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
                                 </svg>
                               </button>
                               <button
@@ -259,8 +370,18 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                                 className="text-red-600 hover:text-red-900 transition-colors"
                                 title="Delete"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
                                 </svg>
                               </button>
                             </div>
@@ -278,23 +399,44 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
 
       {/* Save Button */}
       <div className="flex justify-end pt-4">
-        <Button 
-          disabled={isSaving} 
-          onClick={save}
-          className="min-w-[120px]"
-        >
+        <Button disabled={isSaving} onClick={save} className="min-w-[120px]">
           {isSaving ? (
             <>
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               Saving...
             </>
           ) : (
             <>
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               Save
             </>

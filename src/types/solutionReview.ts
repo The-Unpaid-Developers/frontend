@@ -23,8 +23,8 @@ export interface SolutionOverview {
   reviewType?: string | null; // dropdown list
   businessUnit?: string | null; // dropdown list
   businessDriver?: string | null; // dropdown list
-  valueOutcome?: string | null; 
-  applicationUsers?: string[]; // multi select 
+  valueOutcome?: string | null;
+  applicationUsers?: string[]; // multi select
   concerns?: Concern[];
 }
 
@@ -37,13 +37,14 @@ export interface BusinessCapability {
 }
 
 export interface DataAsset {
+  id?: string;
   componentName?: string | null; // dropdown list based on system components
   solutionOverviewId?: string | null;
   dataDomain?: string | null; // dropdown list
   dataClassification?: string | null; // dropdown of PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED
   dataOwnedBy?: string | null; // dropdown list??
   dataEntities?: string[]; // dropdown list multi select
-  masteredIn?: string | null; // dropdown list of the systems 
+  masteredIn?: string | null; // dropdown list of the systems
 }
 
 export interface Tool {
@@ -52,10 +53,11 @@ export interface Tool {
 }
 
 export interface EnterpriseTool {
+  id?: string;
   tool?: Tool;
   onboarded?: string | null; // dropdown list
   integrationDetails?: string | null; // dropdown list
-  issues?: string | null; 
+  issues?: string | null;
 }
 
 export interface IntegrationFlow {
@@ -124,12 +126,13 @@ export interface SystemComponent {
 
 export interface TechnologyComponent {
   componentName?: string | null; // dropdown list based on system components
-  productName?: string | null; 
-  productVersion?: string | null; 
+  productName?: string | null;
+  productVersion?: string | null;
   usage?: string | null;
 }
 
 export interface ProcessCompliance {
+  id?: string;
   standardGuideline?: string | null; // dropdown list
   compliant?: string | null; // dropdown list
   description?: string | null;
@@ -151,15 +154,15 @@ export interface UpdateSolutionReviewData {
 }
 
 // Step navigation
-export type StepKey = 
-  | 'solutionOverview'
-  | 'businessCapabilities' 
-  | 'dataAsset'
-  | 'enterpriseTools'
-  | 'integrationFlow'
-  | 'systemComponent'
-  | 'technologyComponent'
-  | 'processCompliance';
+export type StepKey =
+  | "solutionOverview"
+  | "businessCapabilities"
+  | "dataAsset"
+  | "enterpriseTools"
+  | "integrationFlow"
+  | "systemComponent"
+  | "technologyComponent"
+  | "processCompliance";
 
 export interface StepConfig {
   key: StepKey;
@@ -207,7 +210,8 @@ const DocumentStateFilter = {
   APPROVED: "APPROVED",
   ACTIVE: "ACTIVE",
 } as const;
-export type DocumentStateFilter = (typeof DocumentStateFilter)[keyof typeof DocumentStateFilter];
+export type DocumentStateFilter =
+  (typeof DocumentStateFilter)[keyof typeof DocumentStateFilter];
 
 export type DocumentState = (typeof DocumentState)[keyof typeof DocumentState];
 
@@ -224,7 +228,7 @@ const StateOperation = {
 export type StateOperation =
   (typeof StateOperation)[keyof typeof StateOperation];
 
-  export { DocumentState, StateOperation, DocumentStateFilter };
+export { DocumentState, StateOperation, DocumentStateFilter };
 
 export interface SolutionReview {
   id?: string;
@@ -244,117 +248,115 @@ export interface SolutionReview {
   lastModifiedBy: string;
 }
 
-  export interface DocumentStateTransition {
-    from: string;
-    to: string;
-    operation: StateOperation;
-    operationName: string;
-    description: string;
-  }
-  
-  export const STATE_TRANSITIONS: Record<
-    string,
-    DocumentStateTransition[]
-  > = {
-    ["DRAFT"]: [
-      {
-        from: "DRAFT",
-        to: "SUBMITTED",
-        operation: "SUBMIT",
-        operationName: "Submit for Review",
-        description: "Submit document for review and approval",
-      },
-    ],
-    ["SUBMITTED"]: [
-      {
-        from: "SUBMITTED",
-        to: "CURRENT",
-        operation: "APPROVE",
-        operationName: "Approve",
-        description: "Approve document as current version",
-      },
-      {
-        from: "SUBMITTED",
-        to: "DRAFT",
-        operation: "REMOVE_SUBMISSION",
-        operationName: "Return to Draft",
-        description: "Return document to draft state",
-      },
-    ],
-    ["APPROVED"]: [
-      {
-        from: "APPROVED",
-        to: "SUBMITTED",
-        operation: "UNAPPROVE",
-        operationName: "Unapprove",
-        description: "Remove approval and return to review",
-      },
-      {
-        from: "APPROVED",
-        to: "ACTIVE",
-        operation: "ACTIVATE",
-        operationName: "Activate",
-        description: "Mark document as active version",
-      }
-    ],
-    ["ACTIVE"]: [
-      {
-        from: "ACTIVE",
-        to: "OUTDATED",
-        operation: "MARK_OUTDATED",
-        operationName: "Mark as Outdated",
-        description: "Mark document as outdated",
-      }], 
-    // ["OUTDATED"]: [
-    //   {
-    //     from: "OUTDATED",
-    //     to: "CURRENT",
-    //     operation: "RESET_CURRENT",
-    //     operationName: "Reset as Current",
-    //     description: "Reset document as current version",
-    //   },
-    // ],
-  };
-  
-  export const getStateColor = (state: string): string => {
-    switch (state) {
-      case "DRAFT":
-        return "bg-gray-100 text-gray-800 border-gray-300";
-      case "SUBMITTED":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
-      case "APPROVED":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300";
-      case "ACTIVE":
-        return "bg-green-100 text-green-800 border-green-300";
-      case "OUTDATED":
-        return "bg-red-100 text-red-800 border-red-300";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300";
-    }
-  };
-  
-  export const getStateDescription = (state: string): string => {
-    switch (state) {
-      case "DRAFT":
-        return "Document is being edited and is not ready for review";
-      case "SUBMITTED":
-        return "Document has been submitted for review and approval";
-      case "CURRENT":
-        return "Document is approved and represents the current active version";
-      case "OUTDATED":
-        return "Document was previously current but has been superseded";
-      default:
-        return "Unknown state";
-    }
-  };
+export interface DocumentStateTransition {
+  from: string;
+  to: string;
+  operation: StateOperation;
+  operationName: string;
+  description: string;
+}
 
-  export interface SystemGroup {
-    systemid?: string;
-    systemName: string;
-    description: string;
-    category: string;
-    reviews: SolutionReview[];
-    latestVersion: number;
-    currentReview?: SolutionReview;
-    totalReviews: number;
+export const STATE_TRANSITIONS: Record<string, DocumentStateTransition[]> = {
+  ["DRAFT"]: [
+    {
+      from: "DRAFT",
+      to: "SUBMITTED",
+      operation: "SUBMIT",
+      operationName: "Submit for Review",
+      description: "Submit document for review and approval",
+    },
+  ],
+  ["SUBMITTED"]: [
+    {
+      from: "SUBMITTED",
+      to: "CURRENT",
+      operation: "APPROVE",
+      operationName: "Approve",
+      description: "Approve document as current version",
+    },
+    {
+      from: "SUBMITTED",
+      to: "DRAFT",
+      operation: "REMOVE_SUBMISSION",
+      operationName: "Return to Draft",
+      description: "Return document to draft state",
+    },
+  ],
+  ["APPROVED"]: [
+    {
+      from: "APPROVED",
+      to: "SUBMITTED",
+      operation: "UNAPPROVE",
+      operationName: "Unapprove",
+      description: "Remove approval and return to review",
+    },
+    {
+      from: "APPROVED",
+      to: "ACTIVE",
+      operation: "ACTIVATE",
+      operationName: "Activate",
+      description: "Mark document as active version",
+    },
+  ],
+  ["ACTIVE"]: [
+    {
+      from: "ACTIVE",
+      to: "OUTDATED",
+      operation: "MARK_OUTDATED",
+      operationName: "Mark as Outdated",
+      description: "Mark document as outdated",
+    },
+  ],
+  // ["OUTDATED"]: [
+  //   {
+  //     from: "OUTDATED",
+  //     to: "CURRENT",
+  //     operation: "RESET_CURRENT",
+  //     operationName: "Reset as Current",
+  //     description: "Reset document as current version",
+  //   },
+  // ],
+};
+
+export const getStateColor = (state: string): string => {
+  switch (state) {
+    case "DRAFT":
+      return "bg-gray-100 text-gray-800 border-gray-300";
+    case "SUBMITTED":
+      return "bg-yellow-100 text-yellow-800 border-yellow-300";
+    case "APPROVED":
+      return "bg-yellow-100 text-yellow-800 border-yellow-300";
+    case "ACTIVE":
+      return "bg-green-100 text-green-800 border-green-300";
+    case "OUTDATED":
+      return "bg-red-100 text-red-800 border-red-300";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-300";
   }
+};
+
+export const getStateDescription = (state: string): string => {
+  switch (state) {
+    case "DRAFT":
+      return "Document is being edited and is not ready for review";
+    case "SUBMITTED":
+      return "Document has been submitted for review and approval";
+    case "CURRENT":
+      return "Document is approved and represents the current active version";
+    case "OUTDATED":
+      return "Document was previously current but has been superseded";
+    default:
+      return "Unknown state";
+  }
+};
+
+export interface SystemGroup {
+  systemid?: string;
+  systemName: string;
+  description: string;
+  category: string;
+  reviews: SolutionReview[];
+  latestVersion: number;
+  currentReview?: SolutionReview;
+  totalReviews: number;
+}
