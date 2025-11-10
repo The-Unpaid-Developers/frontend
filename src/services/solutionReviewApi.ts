@@ -1,9 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
+import { API_CONFIG, buildApiUrl } from "../config/api.config";
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const API_BASE_URL = buildApiUrl(API_CONFIG.CORE_SERVICE_URL, "/api/v1");
 
-export const createSolutionReviewAPI = async (data: any, systemCode: string) => {
-  const response = await axios.post(`${API_BASE_URL}/solution-review/${systemCode}`, data);
+export const createSolutionReviewAPI = async (
+  data: any,
+  systemCode: string
+) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/solution-review/${systemCode}`,
+    data
+  );
   return response.data;
 };
 
@@ -18,36 +25,56 @@ export const getSolutionReviewByIdAPI = async (id: string) => {
 };
 
 export const getAllSolutionReviewsAPI = async (page: number, size: number) => {
-  const response = await axios.get(`${API_BASE_URL}/solution-review/paging?page=${page}&size=${size}`);
+  const response = await axios.get(
+    `${API_BASE_URL}/solution-review/paging?page=${page}&size=${size}`
+  );
   return response.data;
 };
 
 export const getAllSystemsAPI = async (page: number, size: number) => {
-  const response = await axios.get(`${API_BASE_URL}/solution-review/system-view?page=${page}&size=${size}`);
+  const response = await axios.get(
+    `${API_BASE_URL}/solution-review/system-view?page=${page}&size=${size}`
+  );
   return response.data;
 };
 
 export const getSystemSolutionReviewsAPI = async (systemCode: string) => {
-  const response = await axios.get(`${API_BASE_URL}/solution-review/system?systemCode=${systemCode}`);
+  const response = await axios.get(
+    `${API_BASE_URL}/solution-review/system?systemCode=${systemCode}`
+  );
   return response.data;
 };
 
 export const transitionSolutionReviewStateAPI = async (data: any) => {
-  const response = await axios.post(`${API_BASE_URL}/lifecycle/transition`, data);
+  const response = await axios.post(
+    `${API_BASE_URL}/lifecycle/transition`,
+    data
+  );
   return response.data;
 };
 
 export const createSRFromExistingAPI = async (systemCode: string) => {
-  const response = await axios.post(`${API_BASE_URL}/solution-review/existing/${systemCode}`);
+  const response = await axios.post(
+    `${API_BASE_URL}/solution-review/existing/${systemCode}`
+  );
   return response.data;
-}
+};
 
-export const getSRsByStateAPI = async (state: string, page: number, size: number) => {
-  const response = await axios.get(`${API_BASE_URL}/solution-review/by-state?documentState=${state}&page=${page}&size=${size}`);
+export const getSRsByStateAPI = async (
+  state: string,
+  page: number,
+  size: number
+) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/solution-review/by-state?documentState=${state}&page=${page}&size=${size}`
+  );
   return response.data;
-}
+};
 
-export const addConcernsToSRAPI = async (data:any) => {
-  const response = await axios.put(`${API_BASE_URL}/solution-review/concerns`, data);
+export const addConcernsToSRAPI = async (data: any) => {
+  const response = await axios.put(
+    `${API_BASE_URL}/solution-review/concerns`,
+    data
+  );
   return response.data;
-}
+};
