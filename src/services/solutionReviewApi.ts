@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_CONFIG, buildApiUrl } from "../config/api.config";
 
-const API_BASE_URL = buildApiUrl(API_CONFIG.CORE_SERVICE_URL, "/api/v1");
+const API_BASE_URL = buildApiUrl(API_CONFIG.PROXY_SERVICE_URL, "/api/v1");
 
 export const createSolutionReviewAPI = async (
   data: any,
