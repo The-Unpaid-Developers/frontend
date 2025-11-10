@@ -1,6 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
+import { API_CONFIG, buildApiUrl } from "../config/api.config";
 
-const API_BASE_URL = 'http://localhost:8081/api/v1';
+const API_BASE_URL = buildApiUrl(API_CONFIG.DIAGRAM_SERVICE_URL, "/api/v1");
 
 // const mockSystemFlowData = {
 //     "nodes": [
@@ -206,232 +207,226 @@ const API_BASE_URL = 'http://localhost:8081/api/v1';
 //         "generatedDate": "2025-07-25"
 //     }
 // };
-const mockSystemFlowData = 
-{
-    "nodes": [
-        {
-            "id": "sys-001",
-            "name": "NextGen Platform",
-            "type": "Core System",
-            "criticality": "Major",
-            "url": "sys-001.json"
-        },
-        {
-            "id": "sys-002-P",
-            "name": "Test2",
-            "type": "IncomeSystem",
-            "criticality": "Major",
-            "url": "sys-002.json"
-        },
-        {
-            "id": "OSB-P",
-            "name": "OSB",
-            "type": "Middleware",
-            "criticality": "Standard-2",
-            "url": "OSB.json"
-        },
-        {
-            "id": "sys-003-C",
-            "name": "Test3",
-            "type": "IncomeSystem",
-            "criticality": "Major",
-            "url": "sys-003.json"
-        },
-        {
-            "id": "OSB-C",
-            "name": "OSB",
-            "type": "Middleware",
-            "criticality": "Standard-2",
-            "url": "OSB.json"
-        },
-        {
-            "id": "sys-004-P",
-            "name": "Test4",
-            "type": "IncomeSystem",
-            "criticality": "Major",
-            "url": "sys-004.json"
-        },
-        {
-            "id": "sys-005-P",
-            "name": "Test5",
-            "type": "IncomeSystem",
-            "criticality": "Major",
-            "url": "sys-005.json"
-        },
-        {
-            "id": "sys-005-C",
-            "name": "Test5",
-            "type": "IncomeSystem",
-            "criticality": "Major",
-            "url": "sys-005.json"
-        },
-        {
-            "id": "API_GATEWAY-P",
-            "name": "API_GATEWAY",
-            "type": "Middleware",
-            "criticality": "Standard-2",
-            "url": "API_GATEWAY.json"
-        },
-        {
-            "id": "sys-002-C",
-            "name": "Test2",
-            "type": "IncomeSystem",
-            "criticality": "Major",
-            "url": "sys-002.json"
-        },
-        {
-            "id": "API_GATEWAY-C",
-            "name": "API_GATEWAY",
-            "type": "Middleware",
-            "criticality": "Standard-2",
-            "url": "API_GATEWAY.json"
-        },
-        {
-            "id": "external-C",
-            "name": "external",
-            "type": "External",
-            "criticality": "Major",
-            "url": "external.json"
-        }
-    ],
-    "links": [
-        {
-            "source": "sys-002-P",
-            "target": "OSB-P",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Producer"
-        },
-        {
-            "source": "OSB-P",
-            "target": "sys-001",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Consumer"
-        },
-        {
-            "source": "sys-001",
-            "target": "OSB-C",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Producer"
-        },
-        {
-            "source": "OSB-C",
-            "target": "sys-003-C",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Consumer"
-        },
-        {
-            "source": "sys-004-P",
-            "target": "sys-001",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "CONSUMER"
-        },
-        {
-            "source": "sys-005-P",
-            "target": "OSB-P",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Producer"
-        },
-        {
-            "source": "OSB-P",
-            "target": "sys-001",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Consumer"
-        },
-        {
-            "source": "sys-001",
-            "target": "OSB-C",
-            "pattern": "BATCH",
-            "frequency": "DAILY",
-            "role": "Producer"
-        },
-        {
-            "source": "OSB-C",
-            "target": "sys-005-C",
-            "pattern": "BATCH",
-            "frequency": "DAILY",
-            "role": "Consumer"
-        },
-        {
-            "source": "sys-005-P",
-            "target": "API_GATEWAY-P",
-            "pattern": "BATCH",
-            "frequency": "WEEKLY",
-            "role": "Producer"
-        },
-        {
-            "source": "API_GATEWAY-P",
-            "target": "sys-001",
-            "pattern": "BATCH",
-            "frequency": "WEEKLY",
-            "role": "Consumer"
-        },
-        {
-            "source": "sys-001",
-            "target": "sys-005-C",
-            "pattern": "FILE",
-            "frequency": "WEEKLY",
-            "role": "PRODUCER"
-        },
-        {
-            "source": "sys-001",
-            "target": "API_GATEWAY-C",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Producer"
-        },
-        {
-            "source": "API_GATEWAY-C",
-            "target": "sys-002-C",
-            "pattern": "API",
-            "frequency": "DAILY",
-            "role": "Consumer"
-        },
-        {
-            "source": "sys-001",
-            "target": "OSB-C",
-            "pattern": "EVENT",
-            "frequency": "WEEKLY",
-            "role": "Producer"
-        },
-        {
-            "source": "OSB-C",
-            "target": "external-C",
-            "pattern": "EVENT",
-            "frequency": "WEEKLY",
-            "role": "Consumer"
-        }
-    ],
-    "metadata": {
-        "code": "sys-001",
-        "review": "AWG-2025-001",
-        "integrationMiddleware": [
-            "OSB-P",
-            "OSB-C",
-            "API_GATEWAY-P",
-            "API_GATEWAY-C"
-        ],
-        "generatedDate": "2025-09-30"
-    }
+const mockSystemFlowData = {
+  nodes: [
+    {
+      id: "sys-001",
+      name: "NextGen Platform",
+      type: "Core System",
+      criticality: "Major",
+      url: "sys-001.json",
+    },
+    {
+      id: "sys-002-P",
+      name: "Test2",
+      type: "IncomeSystem",
+      criticality: "Major",
+      url: "sys-002.json",
+    },
+    {
+      id: "OSB-P",
+      name: "OSB",
+      type: "Middleware",
+      criticality: "Standard-2",
+      url: "OSB.json",
+    },
+    {
+      id: "sys-003-C",
+      name: "Test3",
+      type: "IncomeSystem",
+      criticality: "Major",
+      url: "sys-003.json",
+    },
+    {
+      id: "OSB-C",
+      name: "OSB",
+      type: "Middleware",
+      criticality: "Standard-2",
+      url: "OSB.json",
+    },
+    {
+      id: "sys-004-P",
+      name: "Test4",
+      type: "IncomeSystem",
+      criticality: "Major",
+      url: "sys-004.json",
+    },
+    {
+      id: "sys-005-P",
+      name: "Test5",
+      type: "IncomeSystem",
+      criticality: "Major",
+      url: "sys-005.json",
+    },
+    {
+      id: "sys-005-C",
+      name: "Test5",
+      type: "IncomeSystem",
+      criticality: "Major",
+      url: "sys-005.json",
+    },
+    {
+      id: "API_GATEWAY-P",
+      name: "API_GATEWAY",
+      type: "Middleware",
+      criticality: "Standard-2",
+      url: "API_GATEWAY.json",
+    },
+    {
+      id: "sys-002-C",
+      name: "Test2",
+      type: "IncomeSystem",
+      criticality: "Major",
+      url: "sys-002.json",
+    },
+    {
+      id: "API_GATEWAY-C",
+      name: "API_GATEWAY",
+      type: "Middleware",
+      criticality: "Standard-2",
+      url: "API_GATEWAY.json",
+    },
+    {
+      id: "external-C",
+      name: "external",
+      type: "External",
+      criticality: "Major",
+      url: "external.json",
+    },
+  ],
+  links: [
+    {
+      source: "sys-002-P",
+      target: "OSB-P",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Producer",
+    },
+    {
+      source: "OSB-P",
+      target: "sys-001",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Consumer",
+    },
+    {
+      source: "sys-001",
+      target: "OSB-C",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Producer",
+    },
+    {
+      source: "OSB-C",
+      target: "sys-003-C",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Consumer",
+    },
+    {
+      source: "sys-004-P",
+      target: "sys-001",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "CONSUMER",
+    },
+    {
+      source: "sys-005-P",
+      target: "OSB-P",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Producer",
+    },
+    {
+      source: "OSB-P",
+      target: "sys-001",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Consumer",
+    },
+    {
+      source: "sys-001",
+      target: "OSB-C",
+      pattern: "BATCH",
+      frequency: "DAILY",
+      role: "Producer",
+    },
+    {
+      source: "OSB-C",
+      target: "sys-005-C",
+      pattern: "BATCH",
+      frequency: "DAILY",
+      role: "Consumer",
+    },
+    {
+      source: "sys-005-P",
+      target: "API_GATEWAY-P",
+      pattern: "BATCH",
+      frequency: "WEEKLY",
+      role: "Producer",
+    },
+    {
+      source: "API_GATEWAY-P",
+      target: "sys-001",
+      pattern: "BATCH",
+      frequency: "WEEKLY",
+      role: "Consumer",
+    },
+    {
+      source: "sys-001",
+      target: "sys-005-C",
+      pattern: "FILE",
+      frequency: "WEEKLY",
+      role: "PRODUCER",
+    },
+    {
+      source: "sys-001",
+      target: "API_GATEWAY-C",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Producer",
+    },
+    {
+      source: "API_GATEWAY-C",
+      target: "sys-002-C",
+      pattern: "API",
+      frequency: "DAILY",
+      role: "Consumer",
+    },
+    {
+      source: "sys-001",
+      target: "OSB-C",
+      pattern: "EVENT",
+      frequency: "WEEKLY",
+      role: "Producer",
+    },
+    {
+      source: "OSB-C",
+      target: "external-C",
+      pattern: "EVENT",
+      frequency: "WEEKLY",
+      role: "Consumer",
+    },
+  ],
+  metadata: {
+    code: "sys-001",
+    review: "AWG-2025-001",
+    integrationMiddleware: ["OSB-P", "OSB-C", "API_GATEWAY-P", "API_GATEWAY-C"],
+    generatedDate: "2025-09-30",
+  },
 };
 
 // {
 //     "nodes": [
 //         // Core System
 //         { "id": "A", "name": "System A", "type": "Core System", "criticality": "Major", "url": "A.json" },
-        
+
 //         // Middleware Systems (reduced from 6 to 4)
 //         { "id": "M-P", "name": "Message Queue", "type": "Middleware", "criticality": "Standard-2", "url": "M.json" },
 //         { "id": "M-C", "name": "Message Queue", "type": "Middleware", "criticality": "Standard-2", "url": "M.json" },
 //         { "id": "N-P", "name": "API Gateway", "type": "Middleware", "criticality": "Standard-2", "url": "N.json" },
 //         { "id": "N-C", "name": "API Gateway", "type": "Middleware", "criticality": "Standard-2", "url": "N.json" },
-        
+
 //         // External Systems (reduced from 60 to 20)
 //         { "id": "SYS1-P", "name": "Payment System", "type": "External", "criticality": "Major", "url": "SYS1.json" },
 //         { "id": "SYS1-C", "name": "Payment System", "type": "External", "criticality": "Major", "url": "SYS1.json" },
@@ -515,167 +510,180 @@ const mockSystemFlowData =
 */
 
 export const getSystemFlowAPI = async (systemCode: string) => {
-  const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/${systemCode}`);
+  const response = await axios.get(
+    `${API_BASE_URL}/diagram/system-dependencies/${systemCode}`
+  );
   return response.data;
   // return mockSystemFlowData;
 };
 
 export const getOverallSystemsFlowAPI = async () => {
-  const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/all`);
+  const response = await axios.get(
+    `${API_BASE_URL}/diagram/system-dependencies/all`
+  );
   return response.data;
-//   return mockSystemFlowData;
+  //   return mockSystemFlowData;
 };
 
-export const getSystemPaths = async (producerSystemCode: string, consumerSystemCode: string) => {
-  const response = await axios.get(`${API_BASE_URL}/diagram/system-dependencies/path?start=${producerSystemCode}&end=${consumerSystemCode}`);
+export const getSystemPaths = async (
+  producerSystemCode: string,
+  consumerSystemCode: string
+) => {
+  const response = await axios.get(
+    `${API_BASE_URL}/diagram/system-dependencies/path?start=${producerSystemCode}&end=${consumerSystemCode}`
+  );
   return response.data;
-}
+};
 
 const mockBCData = {
-    "capabilities": [
-        {
-            "id": "l1-unknown1",
-            "name": "UNKNOWN1",
-            "level": "L1",
-            "parentId": null,
-            "systemCount": 1
-        },
-        {
-            "id": "l1-unknown2",
-            "name": "UNKNOWN2",
-            "level": "L1",
-            "parentId": null,
-            "systemCount": 1
-        },
-        {
-            "id": "l2-unknown1",
-            "name": "UNKNOWN1",
-            "level": "L2",
-            "parentId": "l1-unknown1",
-            "systemCount": 1
-        },
-        {
-            "id": "l2-unknown2",
-            "name": "UNKNOWN2",
-            "level": "L2",
-            "parentId": "l1-unknown1",
-            "systemCount": 1
-        },
-        {
-            "id": "l2-unknown3",
-            "name": "UNKNOWN3",
-            "level": "L2",
-            "parentId": "l1-unknown2",
-            "systemCount": 1
-        },
-        {
-            "id": "l2-unknown4",
-            "name": "UNKNOWN4",
-            "level": "L2",
-            "parentId": "l1-unknown2",
-            "systemCount": 1
-        },
-        {
-            "id": "l3-unknown1",
-            "name": "UNKNOWN1",
-            "level": "L3",
-            "parentId": "l2-unknown1",
-            "systemCount": 9
-        },
-        {
-            "id": "l3-unknown2",
-            "name": "UNKNOWN2",
-            "level": "L3",
-            "parentId": "l2-unknown1",
-            "systemCount": 9
-        },
-        {
-            "id": "l3-unknown3",
-            "name": "UNKNOWN3",
-            "level": "L3",
-            "parentId": "l2-unknown2",
-            "systemCount": 9
-        },
-        {
-            "id": "l3-unknown4",
-            "name": "UNKNOWN4",
-            "level": "L3",
-            "parentId": "l2-unknown2",
-            "systemCount": 9
-        },
-        {
-            "id": "sys-002",
-            "name": "Test2",
-            "level": "System",
-            "parentId": "l3-unknown1",
-            "systemCount": null
-        },
-        {
-            "id": "sys-003",
-            "name": "Test3",
-            "level": "System",
-            "parentId": "l3-unknown1",
-            "systemCount": null
-        },
-        {
-            "id": "sys-004",
-            "name": "Test4",
-            "level": "System",
-            "parentId": "l3-unknown2",
-            "systemCount": null
-        },
-        {
-            "id": "sys-005",
-            "name": "Test5",
-            "level": "System",
-            "parentId": "l3-unknown2",
-            "systemCount": null
-        },
-        {
-            "id": "sys-001",
-            "name": "NextGen Platform",
-            "level": "System",
-            "parentId": "l3-unknown3",
-            "systemCount": null
-        },
-        {
-            "id": "sys-006",
-            "name": "Test6",
-            "level": "System",
-            "parentId": "l3-unknown3",
-            "systemCount": null
-        },
-        {
-            "id": "sys-007",
-            "name": "Test7",
-            "level": "System",
-            "parentId": "l3-unknown4",
-            "systemCount": null
-        },
-        {
-            "id": "sys-008",
-            "name": "Test8",
-            "level": "System",
-            "parentId": "l3-unknown4",
-            "systemCount": null
-        },
-        {
-            "id": "sys-009",
-            "name": "Solution9",
-            "level": "System",
-            "parentId": "l3-unknown1",
-            "systemCount": null
-        }
-    ]
+  capabilities: [
+    {
+      id: "l1-unknown1",
+      name: "UNKNOWN1",
+      level: "L1",
+      parentId: null,
+      systemCount: 1,
+    },
+    {
+      id: "l1-unknown2",
+      name: "UNKNOWN2",
+      level: "L1",
+      parentId: null,
+      systemCount: 1,
+    },
+    {
+      id: "l2-unknown1",
+      name: "UNKNOWN1",
+      level: "L2",
+      parentId: "l1-unknown1",
+      systemCount: 1,
+    },
+    {
+      id: "l2-unknown2",
+      name: "UNKNOWN2",
+      level: "L2",
+      parentId: "l1-unknown1",
+      systemCount: 1,
+    },
+    {
+      id: "l2-unknown3",
+      name: "UNKNOWN3",
+      level: "L2",
+      parentId: "l1-unknown2",
+      systemCount: 1,
+    },
+    {
+      id: "l2-unknown4",
+      name: "UNKNOWN4",
+      level: "L2",
+      parentId: "l1-unknown2",
+      systemCount: 1,
+    },
+    {
+      id: "l3-unknown1",
+      name: "UNKNOWN1",
+      level: "L3",
+      parentId: "l2-unknown1",
+      systemCount: 9,
+    },
+    {
+      id: "l3-unknown2",
+      name: "UNKNOWN2",
+      level: "L3",
+      parentId: "l2-unknown1",
+      systemCount: 9,
+    },
+    {
+      id: "l3-unknown3",
+      name: "UNKNOWN3",
+      level: "L3",
+      parentId: "l2-unknown2",
+      systemCount: 9,
+    },
+    {
+      id: "l3-unknown4",
+      name: "UNKNOWN4",
+      level: "L3",
+      parentId: "l2-unknown2",
+      systemCount: 9,
+    },
+    {
+      id: "sys-002",
+      name: "Test2",
+      level: "System",
+      parentId: "l3-unknown1",
+      systemCount: null,
+    },
+    {
+      id: "sys-003",
+      name: "Test3",
+      level: "System",
+      parentId: "l3-unknown1",
+      systemCount: null,
+    },
+    {
+      id: "sys-004",
+      name: "Test4",
+      level: "System",
+      parentId: "l3-unknown2",
+      systemCount: null,
+    },
+    {
+      id: "sys-005",
+      name: "Test5",
+      level: "System",
+      parentId: "l3-unknown2",
+      systemCount: null,
+    },
+    {
+      id: "sys-001",
+      name: "NextGen Platform",
+      level: "System",
+      parentId: "l3-unknown3",
+      systemCount: null,
+    },
+    {
+      id: "sys-006",
+      name: "Test6",
+      level: "System",
+      parentId: "l3-unknown3",
+      systemCount: null,
+    },
+    {
+      id: "sys-007",
+      name: "Test7",
+      level: "System",
+      parentId: "l3-unknown4",
+      systemCount: null,
+    },
+    {
+      id: "sys-008",
+      name: "Test8",
+      level: "System",
+      parentId: "l3-unknown4",
+      systemCount: null,
+    },
+    {
+      id: "sys-009",
+      name: "Solution9",
+      level: "System",
+      parentId: "l3-unknown1",
+      systemCount: null,
+    },
+  ],
 };
 
 export const getBusinessCapabilities = async () => {
-  const response = await axios.get(`${API_BASE_URL}/diagram/business-capabilities/all`);
+  const response = await axios.get(
+    `${API_BASE_URL}/diagram/business-capabilities/all`
+  );
   return response.data;
-    // return mockBCData;
-}
+  // return mockBCData;
+};
 
 export const getSystemBusinessCapabilities = async (systemCode: string) => {
-  const response = await axios.get(`${API_BASE_URL}/diagram/business-capabilities/${systemCode}`);
+  const response = await axios.get(
+    `${API_BASE_URL}/diagram/business-capabilities/${systemCode}`
+  );
   return response.data;
-}
+};
