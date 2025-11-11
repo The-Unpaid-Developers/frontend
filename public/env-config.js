@@ -3,5 +3,6 @@
 // In production, this file is generated at runtime by Docker
 
 window._env_ = {
-  PROXY_SERVICE_URL: "http://localhost:8000",
+  CORE_SERVICE_URL: "http://localhost:8080",
+  DIAGRAM_SERVICE_URL: "http://localhost:8081",
 };
