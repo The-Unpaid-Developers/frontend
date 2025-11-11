@@ -65,21 +65,21 @@ export const createTechComponentsList = (): TechComponent[] => [
  * Query Factory
  */
 export interface QueryData {
-  id?: number;
   name: string;
-  sql?: string;
+  mongoQuery: string;
+  description: string;
 }
 
 export const createQuery = (overrides?: Partial<QueryData>): QueryData => ({
-  id: 1,
   name: 'test-query',
-  sql: 'SELECT * FROM table',
+  mongoQuery: '[{"$match": {"status": "active"}}]',
+  description: 'Test query description',
   ...overrides,
 });
 
 export const createQueryList = (count: number = 2): QueryData[] => [
-  createQuery({ id: 1, name: 'test-query-1', sql: 'SELECT * FROM table1' }),
-  createQuery({ id: 2, name: 'test-query-2', sql: 'SELECT * FROM table2' }),
+  createQuery({ name: 'test-query-1', mongoQuery: '[{"$match": {"status": "active"}}]', description: 'Test query 1 description' }),
+  createQuery({ name: 'test-query-2', mongoQuery: '[{"$match": {"status": "pending"}}]', description: 'Test query 2 description' }),
 ].slice(0, count);
 
 /**
