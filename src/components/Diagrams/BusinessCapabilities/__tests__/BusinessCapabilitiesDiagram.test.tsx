@@ -73,4 +73,73 @@ describe('BusinessCapabilitiesDiagram', () => {
     const svg = container.querySelector('svg');
     expect(svg).toBeInTheDocument();
   });
+
+  it('renders with multiple capabilities', () => {
+    const multipleData = [
+      {
+        id: '1',
+        name: 'Capability 1',
+        level: 'L1',
+        systemCode: 'SYS-001',
+        parentId: null,
+      },
+      {
+        id: '2',
+        name: 'Capability 2',
+        level: 'L2',
+        systemCode: 'SYS-001',
+        parentId: '1',
+      },
+      {
+        id: '3',
+        name: 'Capability 3',
+        level: 'L3',
+        systemCode: 'SYS-001',
+        parentId: '2',
+      },
+    ];
+    const { container } = render(<BusinessCapabilitiesDiagram data={multipleData} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('renders with different system codes', () => {
+    const mixedData = [
+      {
+        id: '1',
+        name: 'Capability 1',
+        level: 'L1',
+        systemCode: 'SYS-001',
+        parentId: null,
+      },
+      {
+        id: '2',
+        name: 'Capability 2',
+        level: 'L1',
+        systemCode: 'SYS-002',
+        parentId: null,
+      },
+    ];
+    const { container } = render(<BusinessCapabilitiesDiagram data={mixedData} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('handles null parentId', () => {
+    const dataWithNullParent = [
+      {
+        id: '1',
+        name: 'Root Capability',
+        level: 'L1',
+        systemCode: 'SYS-001',
+        parentId: null,
+      },
+    ];
+    const { container } = render(<BusinessCapabilitiesDiagram data={dataWithNullParent} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('renders container with correct class', () => {
+    const { container } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+    const diagramContainer = container.firstChild;
+    expect(diagramContainer).toHaveClass('w-full');
+  });
 });
