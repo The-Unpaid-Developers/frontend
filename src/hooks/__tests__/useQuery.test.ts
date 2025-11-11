@@ -192,7 +192,7 @@ describe('useQuery', () => {
     it('should handle execution errors', async () => {
       const queryName = 'test-query';
       const payload = { param1: 'value1' };
-      const errorMessage = 'SQL syntax error';
+      const errorMessage = 'MongoDB query execution error';
       const mockError = new Error(errorMessage);
       mockedExecuteQueryAPI.mockRejectedValue(mockError);
 
@@ -234,7 +234,7 @@ describe('useQuery', () => {
 
   describe('createQuery', () => {
     it('should create query successfully', async () => {
-      const queryData = { name: 'new-query', sql: 'SELECT * FROM table' };
+      const queryData = { name: 'new-query', mongoQuery: '[{"$match": {"status": "active"}}]', description: 'Test MongoDB query' };
       const mockResponse = { id: 1, ...queryData };
       mockedCreateQueryAPI.mockResolvedValue(mockResponse);
 
@@ -255,7 +255,7 @@ describe('useQuery', () => {
     });
 
     it('should handle creation errors', async () => {
-      const queryData = { name: 'new-query', sql: 'SELECT * FROM table' };
+      const queryData = { name: 'new-query', mongoQuery: '[{"$match": {"status": "active"}}]', description: 'Test MongoDB query' };
       const errorMessage = 'Validation failed';
       const mockError = new Error(errorMessage);
       mockedCreateQueryAPI.mockRejectedValue(mockError);
@@ -278,7 +278,7 @@ describe('useQuery', () => {
     });
 
     it('should handle errors without message property in createQuery', async () => {
-      const queryData = { name: 'new-query', sql: 'SELECT * FROM table' };
+      const queryData = { name: 'new-query', mongoQuery: '[{"$match": {"status": "active"}}]', description: 'Test MongoDB query' };
       const errorObject = { validationErrors: ['field required'] };
 
       mockedCreateQueryAPI.mockRejectedValueOnce(errorObject);

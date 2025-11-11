@@ -113,6 +113,98 @@ describe('SolutionReviewDetail', () => {
 
   it('displays edit button', () => {
     render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
-    expect(screen.getAllByText(/Edit/i).length).toBeGreaterThan(0);
+    const editButtons = screen.queryAllByText(/Edit/i);
+    expect(editButtons.length).toBeGreaterThan(0);
+  });
+
+  it('displays dates in review', () => {
+    const { container } = render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(container.textContent).toContain('2023');
+  });
+
+  it('displays review information', () => {
+    const { container } = render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('renders all sections', () => {
+    const { container } = render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(screen.getAllByText('Test Solution').length).toBeGreaterThan(0);
+  });
+
+  it('renders with null business capabilities', () => {
+    const reviewWithNullCapabilities = createSolutionReview({
+      businessCapabilities: null,
+    });
+    const { container } = render(<SolutionReviewDetail review={reviewWithNullCapabilities} onClose={mockOnClose} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('renders with null system components', () => {
+    const reviewWithNullComponents = createSolutionReview({
+      systemComponents: null,
+    });
+    const { container } = render(<SolutionReviewDetail review={reviewWithNullComponents} onClose={mockOnClose} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('renders with null integration flows', () => {
+    const reviewWithNullFlows = createSolutionReview({
+      integrationFlows: null,
+    });
+    const { container } = render(<SolutionReviewDetail review={reviewWithNullFlows} onClose={mockOnClose} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('renders with null data assets', () => {
+    const reviewWithNullAssets = createSolutionReview({
+      dataAssets: null,
+    });
+    const { container } = render(<SolutionReviewDetail review={reviewWithNullAssets} onClose={mockOnClose} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('renders with rejected state', () => {
+    const rejectedReview = createSolutionReview({
+      documentState: 'REJECTED',
+    });
+    render(<SolutionReviewDetail review={rejectedReview} onClose={mockOnClose} />);
+    expect(screen.getAllByText('REJECTED').length).toBeGreaterThan(0);
+  });
+
+  it('displays delivery project manager name', () => {
+    render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(screen.getAllByText(/Jane Smith/).length).toBeGreaterThan(0);
+  });
+
+  it('displays IT business partner', () => {
+    render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(screen.getAllByText(/Bob Johnson/).length).toBeGreaterThan(0);
+  });
+
+  it('handles missing optional fields gracefully', () => {
+    const minimalReview = createSolutionReview({
+      solutionOverview: {
+        ...mockReview.solutionOverview,
+        reviewedBy: null,
+        conditions: null,
+      },
+    });
+    const { container } = render(<SolutionReviewDetail review={minimalReview} onClose={mockOnClose} />);
+    expect(container).toBeInTheDocument();
+  });
+
+  it('displays review information including ID', () => {
+    const { container } = render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(container.textContent).toContain('ID');
+    expect(container.textContent).toContain('1');
+  });
+
+  it('renders with active state', () => {
+    const activeReview = createSolutionReview({
+      documentState: 'ACTIVE',
+    });
+    render(<SolutionReviewDetail review={activeReview} onClose={mockOnClose} />);
+    expect(screen.getAllByText('ACTIVE').length).toBeGreaterThan(0);
   });
 });

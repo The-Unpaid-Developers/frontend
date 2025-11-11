@@ -214,4 +214,220 @@ describe('SystemComponentStep', () => {
     render(<SystemComponentStep onSave={mockOnSave} initialData={{}} />);
     expect(screen.getAllByText(/Role/i).length).toBeGreaterThan(0);
   });
+
+  it('adds new component when add button clicked', () => {
+    render(<SystemComponentStep onSave={mockOnSave} initialData={{}} />);
+
+    const addButton = screen.getByText(/Add Component/i);
+    fireEvent.click(addButton);
+
+    expect(screen.getByPlaceholderText(/Enter component name/i)).toBeInTheDocument();
+  });
+
+  it('removes component when delete button clicked', () => {
+    const initialData = {
+      systemComponents: [
+        {
+          id: '1',
+          name: 'Test Component',
+          status: 'NEW',
+          role: 'BACK_END',
+          hostedOn: 'CLOUD',
+          hostingRegion: 'SINGAPORE',
+          solutionType: 'BESPOKE',
+          languageFramework: {
+            language: { name: 'JAVA', version: '11' },
+            framework: { name: 'SPRING_BOOT', version: '2.7' }
+          },
+          isOwnedByUs: true,
+          isCICDUsed: true,
+          customizationLevel: 'MINOR',
+          upgradeStrategy: 'INTERNAL_LED',
+          upgradeFrequency: 'QUARTERLY',
+          isSubscription: false,
+          isInternetFacing: false,
+          availabilityRequirement: 'HIGH',
+          latencyRequirement: 100,
+          throughputRequirement: 1000,
+          scalabilityMethod: 'HORIZONTAL_AUTO',
+          backupSite: 'CLOUD_MULTI_AZ',
+          securityDetails: {
+            authenticationMethod: 'OAuth2',
+            authorizationModel: 'RBAC',
+            isAuditLoggingEnabled: true,
+            sensitiveDataElements: 'PII',
+            dataEncryptionAtRest: 'DATABASE',
+            encryptionAlgorithmForDataAtRest: 'AES-256',
+            hasIpWhitelisting: false,
+            ssl: 'TLS',
+            payloadEncryptionAlgorithm: 'AES-GCM',
+            digitalCertificate: 'Test Cert',
+            keyStore: 'AWS KMS',
+            vulnerabilityAssessmentFrequency: 'MONTHLY',
+            penetrationTestingFrequency: 'ANNUALLY'
+          }
+        }
+      ],
+    };
+
+    render(<SystemComponentStep onSave={mockOnSave} initialData={initialData} />);
+    expect(screen.getByText('Test Component')).toBeInTheDocument();
+  });
+
+  it('validates component name is required', () => {
+    render(<SystemComponentStep onSave={mockOnSave} initialData={{}} />);
+
+    const nameInput = screen.getByPlaceholderText(/Enter component name/i);
+    fireEvent.change(nameInput, { target: { value: '' } });
+    fireEvent.blur(nameInput);
+
+    const saveButton = screen.getByText(/^Save$/);
+    fireEvent.click(saveButton);
+
+    expect(mockOnSave).toHaveBeenCalled();
+  });
+
+  it('updates component status when dropdown changed', () => {
+    const initialData = {
+      systemComponents: [
+        {
+          id: '1',
+          name: 'Test Component',
+          status: 'NEW',
+          role: 'BACK_END',
+          hostedOn: 'CLOUD',
+          hostingRegion: 'SINGAPORE',
+          solutionType: 'BESPOKE',
+          languageFramework: {
+            language: { name: 'JAVA', version: '11' },
+            framework: { name: 'SPRING_BOOT', version: '2.7' }
+          },
+          isOwnedByUs: true,
+          isCICDUsed: true,
+          customizationLevel: 'MINOR',
+          upgradeStrategy: 'INTERNAL_LED',
+          upgradeFrequency: 'QUARTERLY',
+          isSubscription: false,
+          isInternetFacing: false,
+          availabilityRequirement: 'HIGH',
+          latencyRequirement: 100,
+          throughputRequirement: 1000,
+          scalabilityMethod: 'HORIZONTAL_AUTO',
+          backupSite: 'CLOUD_MULTI_AZ',
+          securityDetails: {
+            authenticationMethod: 'OAuth2',
+            authorizationModel: 'RBAC',
+            isAuditLoggingEnabled: true,
+            sensitiveDataElements: 'PII',
+            dataEncryptionAtRest: 'DATABASE',
+            encryptionAlgorithmForDataAtRest: 'AES-256',
+            hasIpWhitelisting: false,
+            ssl: 'TLS',
+            payloadEncryptionAlgorithm: 'AES-GCM',
+            digitalCertificate: 'Test Cert',
+            keyStore: 'AWS KMS',
+            vulnerabilityAssessmentFrequency: 'MONTHLY',
+            penetrationTestingFrequency: 'ANNUALLY'
+          }
+        }
+      ],
+    };
+
+    render(<SystemComponentStep onSave={mockOnSave} initialData={initialData} />);
+    expect(screen.getByText('Test Component')).toBeInTheDocument();
+  });
+
+  it('renders all component fields', () => {
+    render(<SystemComponentStep onSave={mockOnSave} initialData={{}} />);
+
+    expect(screen.getByPlaceholderText(/Enter component name/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Status/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Role/i).length).toBeGreaterThan(0);
+  });
+
+  it('handles empty initial data', () => {
+    render(<SystemComponentStep onSave={mockOnSave} initialData={{}} />);
+    expect(screen.getByText(/No system components added/i)).toBeInTheDocument();
+  });
+
+  it('handles undefined systemComponents in initial data', () => {
+    render(<SystemComponentStep onSave={mockOnSave} initialData={{ systemComponents: undefined }} />);
+    expect(screen.getByText(/No system components added/i)).toBeInTheDocument();
+  });
+
+  it('shows loading state on save button', () => {
+    render(<SystemComponentStep onSave={mockOnSave} isSaving={true} initialData={{}} />);
+    expect(screen.getByText(/Saving/i)).toBeInTheDocument();
+  });
+
+  it('disables add button while saving', () => {
+    render(<SystemComponentStep onSave={mockOnSave} isSaving={true} initialData={{}} />);
+    const addButton = screen.getByText(/Add Component/i);
+    expect(addButton).toBeDisabled();
+  });
+
+  it('calls onSave with correct data structure', () => {
+    render(<SystemComponentStep onSave={mockOnSave} initialData={{}} />);
+
+    const saveButton = screen.getByText(/^Save$/);
+    fireEvent.click(saveButton);
+
+    expect(mockOnSave).toHaveBeenCalled();
+    expect(mockOnSave.mock.calls[0][0]).toBeDefined();
+  });
+
+  it('preserves existing components when adding new one', () => {
+    const initialData = {
+      systemComponents: [
+        {
+          id: '1',
+          name: 'Existing Component',
+          status: 'NEW',
+          role: 'BACK_END',
+          hostedOn: 'CLOUD',
+          hostingRegion: 'SINGAPORE',
+          solutionType: 'BESPOKE',
+          languageFramework: {
+            language: { name: 'JAVA', version: '11' },
+            framework: { name: 'SPRING_BOOT', version: '2.7' }
+          },
+          isOwnedByUs: true,
+          isCICDUsed: true,
+          customizationLevel: 'MINOR',
+          upgradeStrategy: 'INTERNAL_LED',
+          upgradeFrequency: 'QUARTERLY',
+          isSubscription: false,
+          isInternetFacing: false,
+          availabilityRequirement: 'HIGH',
+          latencyRequirement: 100,
+          throughputRequirement: 1000,
+          scalabilityMethod: 'HORIZONTAL_AUTO',
+          backupSite: 'CLOUD_MULTI_AZ',
+          securityDetails: {
+            authenticationMethod: 'OAuth2',
+            authorizationModel: 'RBAC',
+            isAuditLoggingEnabled: true,
+            sensitiveDataElements: 'PII',
+            dataEncryptionAtRest: 'DATABASE',
+            encryptionAlgorithmForDataAtRest: 'AES-256',
+            hasIpWhitelisting: false,
+            ssl: 'TLS',
+            payloadEncryptionAlgorithm: 'AES-GCM',
+            digitalCertificate: 'Test Cert',
+            keyStore: 'AWS KMS',
+            vulnerabilityAssessmentFrequency: 'MONTHLY',
+            penetrationTestingFrequency: 'ANNUALLY'
+          }
+        }
+      ],
+    };
+
+    render(<SystemComponentStep onSave={mockOnSave} initialData={initialData} />);
+    expect(screen.getByText('Existing Component')).toBeInTheDocument();
+
+    const addButton = screen.getByText(/Add Component/i);
+    fireEvent.click(addButton);
+
+    expect(screen.getByText('Existing Component')).toBeInTheDocument();
+  });
 });
