@@ -69,7 +69,6 @@ const SystemComponentStep: React.FC<StepProps> = ({
   const [list, setList] = useState<SystemComponent[]>(() => initialList ?? []);
   const [row, setRow] = useState<SystemComponent>(empty);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingComponent, setEditingComponent] = useState<SystemComponent | null>(null);
 
   useEffect(() => {
     if (initialData.systemComponents) {
@@ -108,8 +107,17 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
   const addComponent = () => {
     if (!row.name || !row.status || !row.role) return;
-    
-    setList([...list, { ...row }]);
+
+    if (editingIndex !== null) {
+      // Update existing component
+      const updated = [...list];
+      updated[editingIndex] = { ...row };
+      setList(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new component
+      setList([...list, { ...row }]);
+    }
     setRow(empty);
   };
 
@@ -119,55 +127,14 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditingComponent({ ...list[index] });
-  };
-
-  const saveEdit = () => {
-    if (editingIndex !== null && editingComponent) {
-      const updated = [...list];
-      updated[editingIndex] = editingComponent;
-      setList(updated);
-      setEditingIndex(null);
-      setEditingComponent(null);
-    }
+    setRow({ ...list[index] });
+    // Scroll to top of the form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingComponent(null);
-  };
-
-  const updateEditingComponent = (field: keyof SystemComponent, value: any) => {
-    setEditingComponent(prev => prev ? { ...prev, [field]: value } : null);
-  };
-
-  const updateEditingSecurityDetails = (
-    k: keyof SystemComponent["securityDetails"],
-    v: any
-  ) => {
-    if (!editingComponent) return;
-    setEditingComponent(prev => prev ? {
-      ...prev,
-      securityDetails: { ...prev.securityDetails, [k]: v },
-    } : null);
-  };
-
-  const updateEditingLanguageFramework = (
-    section: "language" | "framework",
-    key: "name" | "version",
-    value: string
-  ) => {
-    if (!editingComponent) return;
-    setEditingComponent(prev => prev ? {
-      ...prev,
-      languageFramework: {
-        ...prev.languageFramework,
-        [section]: {
-          ...prev.languageFramework[section],
-          [key]: value,
-        },
-      },
-    } : null);
+    setRow(empty);
   };
 
   const save = async () => {
@@ -182,14 +149,21 @@ const SystemComponentStep: React.FC<StepProps> = ({
         <p className="text-gray-600">Define the system components that make up your solution architecture</p>
       </div> */}
 
-      {/* Add New System Component Form */}
+      {/* Add/Edit System Component Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7l-7 7-7-7m14 14l-7-7-7 7" />
-            </svg>
-            Add System Component
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14-7l-7 7-7-7m14 14l-7-7-7 7" />
+              </svg>
+              {editingIndex !== null ? 'Edit System Component' : 'Add System Component'}
+            </div>
+            {editingIndex !== null && (
+              <span className="text-sm text-blue-600 font-normal">
+                Editing component #{editingIndex + 1}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -235,7 +209,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hosted On
+                    Hosted On <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select hosting platform"
                       value={row.hostedOn}
@@ -247,7 +221,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Hosting Region
+                    Hosting Region <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select region"
                       value={row.hostingRegion}
@@ -259,7 +233,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Solution Type
+                    Solution Type <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select type"
                       value={row.solutionType}
@@ -277,7 +251,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Language
+                    Language <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select language"
                       value={row.languageFramework.language.name}
@@ -289,7 +263,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Language Version
+                    Language Version <span className="text-red-500">*</span>
                     <Input
                       placeholder="Enter version"
                       value={row.languageFramework.language.version}
@@ -300,7 +274,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Framework
+                    Framework <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select framework"
                       value={row.languageFramework.framework.name}
@@ -312,7 +286,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Framework Version
+                    Framework Version <span className="text-red-500">*</span>
                     <Input
                       placeholder="Enter version"
                       value={row.languageFramework.framework.version}
@@ -383,7 +357,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Customization Level
+                    Customization Level <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select level"
                       value={row.customizationLevel}
@@ -395,7 +369,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Upgrade Strategy
+                    Upgrade Strategy <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select strategy"
                       value={row.upgradeStrategy}
@@ -407,7 +381,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Upgrade Frequency
+                    Upgrade Frequency <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select frequency"
                       value={row.upgradeFrequency}
@@ -425,7 +399,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Availability Requirement
+                    Availability Requirement <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select availability"
                       value={row.availabilityRequirement}
@@ -437,7 +411,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Latency Requirement (ms)
+                    Latency Requirement (ms) <span className="text-red-500">*</span>
                     <Input
                       type="number"
                       placeholder="Enter latency"
@@ -449,7 +423,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Throughput Requirement
+                    Throughput Requirement (requests/sec) <span className="text-red-500">*</span>
                     <Input
                       type="number"
                       placeholder="Enter throughput"
@@ -461,7 +435,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Scalability Method
+                    Scalability Method <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select method"
                       value={row.scalabilityMethod}
@@ -473,7 +447,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Backup Site
+                    Backup Site <span className="text-red-500">*</span>
                     <DropDown
                       placeholder="Select backup site"
                       value={row.backupSite}
@@ -491,7 +465,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Authentication Method
+                    Authentication Method <span className="text-red-500">*</span>
                     <Input
                       placeholder="Enter auth method"
                       value={row.securityDetails.authenticationMethod}
@@ -502,7 +476,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Authorization Model
+                    Authorization Model <span className="text-red-500">*</span>
                     <Input
                       placeholder="Enter authorization model"
                       value={row.securityDetails.authorizationModel}
@@ -539,7 +513,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Sensitive Data Elements
+                    Sensitive Data Elements <span className="text-red-500">*</span>
                     <Input
                       placeholder="Enter sensitive data"
                       value={row.securityDetails.sensitiveDataElements}
@@ -550,7 +524,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Data Encryption At Rest
+                    Data Encryption At Rest <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select encryption"
                     value={row.securityDetails.dataEncryptionAtRest}
@@ -562,7 +536,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    SSL Type
+                    SSL Type <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select SSL type"
                     value={row.securityDetails.ssl}
@@ -574,7 +548,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Vulnerability Assessment Frequency
+                    Vulnerability Assessment Frequency <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select frequency"
                     value={row.securityDetails.vulnerabilityAssessmentFrequency}
@@ -586,7 +560,7 @@ const SystemComponentStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Penetration Testing Frequency
+                    Penetration Testing Frequency <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select frequency"
                     value={row.securityDetails.penetrationTestingFrequency}
@@ -598,461 +572,29 @@ const SystemComponentStep: React.FC<StepProps> = ({
               </div>
             </div>
 
-            <div className="mt-6 flex justify-end">
-              <Button
-                onClick={addComponent}
-                disabled={!row.name || !row.status || !row.role}
-                variant="secondary"
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Add Component
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Edit Modal */}
-      {editingIndex !== null && editingComponent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium text-gray-900">Edit System Component</h3>
-                <button
-                  onClick={cancelEdit}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                {/* Basic Information */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Basic Information</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Component Name <span className="text-red-500">*</span>
-                        <Input
-                          placeholder="Enter component name"
-                          value={editingComponent.name}
-                          onChange={(e) => updateEditingComponent("name", e.target.value)}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Status <span className="text-red-500">*</span>
-                        <DropDown
-                          placeholder="Select status"
-                          value={editingComponent.status}
-                          onChange={(e) => updateEditingComponent("status", e.target.value)}
-                          options={COMPONENT_STATUS_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Role <span className="text-red-500">*</span>
-                        <DropDown
-                          placeholder="Select role"
-                          value={editingComponent.role}
-                          onChange={(e) => updateEditingComponent("role", e.target.value)}
-                          options={COMPONENT_ROLE_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Hosted On
-                        <DropDown
-                          placeholder="Select hosting platform"
-                          value={editingComponent.hostedOn}
-                          onChange={(e) => updateEditingComponent("hostedOn", e.target.value)}
-                          options={LOCATION_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Hosting Region
-                        <DropDown
-                          placeholder="Select region"
-                          value={editingComponent.hostingRegion}
-                          onChange={(e) => updateEditingComponent("hostingRegion", e.target.value)}
-                          options={HOSTING_REGION_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Solution Type
-                        <DropDown
-                          placeholder="Select type"
-                          value={editingComponent.solutionType}
-                          onChange={(e) => updateEditingComponent("solutionType", e.target.value)}
-                          options={SOLUTION_TYPE_OPTIONS}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Technology Stack */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Technology Stack</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Language
-                        <DropDown
-                          placeholder="Select language"
-                          value={editingComponent.languageFramework.language.name}
-                          onChange={(e) => updateEditingLanguageFramework("language", "name", e.target.value)}
-                          options={LANGUAGE_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Language Version
-                        <Input
-                          placeholder="Enter version"
-                          value={editingComponent.languageFramework.language.version}
-                          onChange={(e) => updateEditingLanguageFramework("language", "version", e.target.value)}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Framework
-                        <DropDown
-                          placeholder="Select framework"
-                          value={editingComponent.languageFramework.framework.name}
-                          onChange={(e) => updateEditingLanguageFramework("framework", "name", e.target.value)}
-                          options={FRAMEWORK_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Framework Version
-                        <Input
-                          placeholder="Enter version"
-                          value={editingComponent.languageFramework.framework.version}
-                          onChange={(e) => updateEditingLanguageFramework("framework", "version", e.target.value)}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Configuration & Management */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Configuration & Management</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="editIsOwnedByUs"
-                        checked={editingComponent.isOwnedByUs}
-                        onChange={(e) => updateEditingComponent("isOwnedByUs", e.target.checked)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="editIsOwnedByUs" className="text-sm font-medium text-gray-700">
-                        Owned By Us
-                      </label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="editIsCICDUsed"
-                        checked={editingComponent.isCICDUsed}
-                        onChange={(e) => updateEditingComponent("isCICDUsed", e.target.checked)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="editIsCICDUsed" className="text-sm font-medium text-gray-700">
-                        CI/CD Used
-                      </label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="editIsSubscription"
-                        checked={editingComponent.isSubscription}
-                        onChange={(e) => updateEditingComponent("isSubscription", e.target.checked)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="editIsSubscription" className="text-sm font-medium text-gray-700">
-                        Subscription
-                      </label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="editIsInternetFacing"
-                        checked={editingComponent.isInternetFacing}
-                        onChange={(e) => updateEditingComponent("isInternetFacing", e.target.checked)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="editIsInternetFacing" className="text-sm font-medium text-gray-700">
-                        Internet Facing
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Customization Level
-                        <DropDown
-                          placeholder="Select level"
-                          value={editingComponent.customizationLevel}
-                          onChange={(e) => updateEditingComponent("customizationLevel", e.target.value)}
-                          options={CUSTOMIZATION_LEVEL_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Upgrade Strategy
-                        <DropDown
-                          placeholder="Select strategy"
-                          value={editingComponent.upgradeStrategy}
-                          onChange={(e) => updateEditingComponent("upgradeStrategy", e.target.value)}
-                          options={UPGRADE_STRATEGY_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Upgrade Frequency
-                        <DropDown
-                          placeholder="Select frequency"
-                          value={editingComponent.upgradeFrequency}
-                          onChange={(e) => updateEditingComponent("upgradeFrequency", e.target.value)}
-                          options={FREQUENCY_OPTIONS}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Performance & Availability */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Performance & Availability</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Availability Requirement
-                        <DropDown
-                          placeholder="Select availability"
-                          value={editingComponent.availabilityRequirement}
-                          onChange={(e) => updateEditingComponent("availabilityRequirement", e.target.value)}
-                          options={AVAILABILITY_REQUIREMENT_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Latency Requirement (ms)
-                        <Input
-                          type="number"
-                          placeholder="Enter latency"
-                          value={editingComponent.latencyRequirement ?? ""}
-                          onChange={(e) => updateEditingComponent("latencyRequirement", (Number(e.target.value) ?? 0))}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Throughput Requirement
-                        <Input
-                          type="number"
-                          placeholder="Enter throughput"
-                          value={editingComponent.throughputRequirement ?? ""}
-                          onChange={(e) => updateEditingComponent("throughputRequirement", (Number(e.target.value) ?? 0))}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Scalability Method
-                        <DropDown
-                          placeholder="Select method"
-                          value={editingComponent.scalabilityMethod}
-                          onChange={(e) => updateEditingComponent("scalabilityMethod", e.target.value)}
-                          options={SCALABILITY_METHOD_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Backup Site
-                        <DropDown
-                          placeholder="Select backup site"
-                          value={editingComponent.backupSite}
-                          onChange={(e) => updateEditingComponent("backupSite", e.target.value)}
-                          options={BACKUP_SITE_OPTIONS}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Security Details */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Security Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Authentication Method
-                        <Input
-                          placeholder="Enter auth method"
-                          value={editingComponent.securityDetails.authenticationMethod}
-                          onChange={(e) => updateEditingSecurityDetails("authenticationMethod", e.target.value)}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Authorization Model
-                        <Input
-                          placeholder="Enter authorization model"
-                          value={editingComponent.securityDetails.authorizationModel}
-                          onChange={(e) => updateEditingSecurityDetails("authorizationModel", e.target.value)}
-                        />
-                      </label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="editIsAuditLoggingEnabled"
-                        checked={editingComponent.securityDetails.isAuditLoggingEnabled}
-                        onChange={(e) => updateEditingSecurityDetails("isAuditLoggingEnabled", e.target.checked)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="editIsAuditLoggingEnabled" className="text-sm font-medium text-gray-700">
-                        Audit Logging Enabled
-                      </label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id="editHasIpWhitelisting"
-                        checked={editingComponent.securityDetails.hasIpWhitelisting}
-                        onChange={(e) => updateEditingSecurityDetails("hasIpWhitelisting", e.target.checked)}
-                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="editHasIpWhitelisting" className="text-sm font-medium text-gray-700">
-                        IP Whitelisting
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Sensitive Data Elements
-                        <Input
-                          placeholder="Enter sensitive data"
-                          value={editingComponent.securityDetails.sensitiveDataElements}
-                          onChange={(e) => updateEditingSecurityDetails("sensitiveDataElements", e.target.value)}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Data Encryption At Rest
-                        <DropDown
-                          placeholder="Select encryption"
-                          value={editingComponent.securityDetails.dataEncryptionAtRest}
-                          onChange={(e) => updateEditingSecurityDetails("dataEncryptionAtRest", e.target.value)}
-                          options={DATA_ENCRYPTION_AT_REST_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        SSL Type
-                        <DropDown
-                          placeholder="Select SSL type"
-                          value={editingComponent.securityDetails.ssl}
-                          onChange={(e) => updateEditingSecurityDetails("ssl", e.target.value)}
-                          options={SSL_TYPE_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Vulnerability Assessment Frequency
-                        <DropDown
-                          placeholder="Select frequency"
-                          value={editingComponent.securityDetails.vulnerabilityAssessmentFrequency}
-                          onChange={(e) => updateEditingSecurityDetails("vulnerabilityAssessmentFrequency", e.target.value)}
-                          options={FREQUENCY_OPTIONS}
-                        />
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Penetration Testing Frequency
-                        <DropDown
-                          placeholder="Select frequency"
-                          value={editingComponent.securityDetails.penetrationTestingFrequency}
-                          onChange={(e) => updateEditingSecurityDetails("penetrationTestingFrequency", e.target.value)}
-                          options={FREQUENCY_OPTIONS}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+            <div className="mt-6 flex justify-end gap-2">
+              {editingIndex !== null && (
                 <Button
                   onClick={cancelEdit}
                   variant="ghost"
                 >
                   Cancel
                 </Button>
-                <Button
-                  onClick={saveEdit}
-                  disabled={!editingComponent.name || !editingComponent.status || !editingComponent.role}
-                >
-                  Save Changes
-                </Button>
-              </div>
+              )}
+              <Button
+                onClick={addComponent}
+                disabled={!row.name || !row.status || !row.role}
+                variant="secondary"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={editingIndex !== null ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} />
+                </svg>
+                {editingIndex !== null ? 'Update Component' : 'Add Component'}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
       {/* Current System Components */}
       <Card>

@@ -78,3 +78,11 @@ export const addConcernsToSRAPI = async (data: any) => {
   );
   return response.data;
 };
+
+export const searchSRAPI = async (data: any) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/solution-review/search`,
+    data
+  );
+  return response.data;
+}

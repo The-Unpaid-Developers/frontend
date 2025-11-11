@@ -152,7 +152,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Delivery Project Manager
+                    Delivery Project Manager <span className="text-red-500">*</span>
                   <Input 
                     placeholder="Enter delivery PM name" 
                     value={data.solutionDetails.deliveryProjectManagerName} 
@@ -163,7 +163,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    IT Business Partner
+                    IT Business Partner <span className="text-red-500">*</span>
                   <Input 
                     placeholder="Enter IT business partner name" 
                     value={data.solutionDetails.itBusinessPartner} 
@@ -225,7 +225,7 @@ export const CreateSolutionReviewPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Value Outcomes
+                    Value Outcomes <span className="text-red-500">*</span>
                  <Input 
                     placeholder="Describe expected value outcomes" 
                     value={data.valueOutcome} 

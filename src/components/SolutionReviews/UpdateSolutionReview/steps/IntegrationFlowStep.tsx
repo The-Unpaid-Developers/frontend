@@ -27,7 +27,6 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
   const [list, setList] = useState<IntegrationFlow[]>(() => initialList ?? []);
   const [row, setRow] = useState<IntegrationFlow>(empty);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingFlow, setEditingFlow] = useState<IntegrationFlow | null>(null);
 
   useEffect(() => {
     if (initialData.integrationFlows) {
@@ -40,8 +39,17 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
   const addFlow = () => {
     if (!row.componentName || !row.counterpartSystemCode) return;
-    
-    setList([...list, { ...row }]);
+
+    if (editingIndex !== null) {
+      // Update existing flow
+      const updated = [...list];
+      updated[editingIndex] = { ...row };
+      setList(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new flow
+      setList([...list, { ...row }]);
+    }
     setRow(empty);
   };
 
@@ -51,26 +59,13 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditingFlow({ ...list[index] });
-  };
-
-  const saveEdit = () => {
-    if (editingIndex !== null && editingFlow) {
-      const updated = [...list];
-      updated[editingIndex] = editingFlow;
-      setList(updated);
-      setEditingIndex(null);
-      setEditingFlow(null);
-    }
+    setRow({ ...list[index] });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingFlow(null);
-  };
-
-  const updateEditingFlow = (field: keyof IntegrationFlow, value: string) => {
-    setEditingFlow(prev => prev ? { ...prev, [field]: value } : null);
+    setRow(empty);
   };
 
   const save = async () => {
@@ -79,14 +74,21 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Add Integration Flow Form */}
+      {/* Add/Edit Integration Flow Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-            </svg>
-            Add Integration Flow
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+              </svg>
+              {editingIndex !== null ? 'Edit Integration Flow' : 'Add Integration Flow'}
+            </div>
+            {editingIndex !== null && (
+              <span className="text-sm text-blue-600 font-normal">
+                Editing flow #{editingIndex + 1}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -116,7 +118,7 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Counterpart System Role
+                  Counterpart System Role <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select system role"
                     value={row.counterpartSystemRole}
@@ -128,7 +130,7 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Integration Method
+                  Integration Method <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select integration method"
                     value={row.integrationMethod}
@@ -140,7 +142,7 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Middleware
+                  Middleware <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select middleware"
                     value={(row as any).middleware || ""}
@@ -152,7 +154,7 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Frequency
+                  Frequency <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select frequency"
                     value={row.frequency}
@@ -174,16 +176,24 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {editingIndex !== null && (
+                <Button
+                  onClick={cancelEdit}
+                  variant="ghost"
+                >
+                  Cancel
+                </Button>
+              )}
               <Button
                 onClick={addFlow}
                 disabled={!row.componentName || !row.counterpartSystemCode}
                 variant="secondary"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={editingIndex !== null ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} />
                 </svg>
-                Add Flow
+                {editingIndex !== null ? 'Update Flow' : 'Add Flow'}
               </Button>
             </div>
           </div>
@@ -243,139 +253,59 @@ const IntegrationFlowStep: React.FC<StepProps> = ({
                 <tbody className="divide-y divide-gray-200">
                   {list.map((flow, index) => (
                     <tr key={index} className="hover:bg-gray-50">
-                      {editingIndex === index && editingFlow ? (
-                        // Edit mode
-                        <>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingFlow.componentName}
-                              onChange={e => updateEditingFlow('componentName', e.target.value)}
-                              placeholder="Component name"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingFlow.counterpartSystemCode}
-                              onChange={e => updateEditingFlow('counterpartSystemCode', e.target.value)}
-                              placeholder="Counterpart system"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingFlow.counterpartSystemRole}
-                              onChange={e => updateEditingFlow('counterpartSystemRole', e.target.value)}
-                              options={COUNTERPART_SYSTEM_ROLE_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingFlow.integrationMethod}
-                              onChange={e => updateEditingFlow('integrationMethod', e.target.value)}
-                              options={INTEGRATION_METHOD_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={(editingFlow as any).middleware || ""}
-                              onChange={e => setEditingFlow(prev => prev ? { ...prev, middleware: e.target.value } as any : null)}
-                              options={MIDDLEWARE_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingFlow.frequency}
-                              onChange={e => updateEditingFlow('frequency', e.target.value)}
-                              options={FREQUENCY_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingFlow.purpose}
-                              onChange={e => updateEditingFlow('purpose', e.target.value)}
-                              placeholder="Purpose"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={saveEdit}
-                                className="text-green-600 hover:text-green-900 transition-colors"
-                                title="Save"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="text-gray-600 hover:text-gray-900 transition-colors"
-                                title="Cancel"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        // Display mode
-                        <>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{flow.componentName}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{flow.counterpartSystemCode}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {flow.counterpartSystemRole ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                {flow.counterpartSystemRole}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {flow.integrationMethod ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {flow.integrationMethod}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {(flow as any).middleware ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                {(flow as any).middleware}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {flow.frequency ? (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {flow.frequency}
-                              </span>
-                            ) : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{flow.purpose ?? '—'}</td>
-                          <td className="px-4 py-3 text-sm text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => startEdit(index)}
-                                className="text-blue-600 hover:text-blue-900 transition-colors"
-                                title="Edit"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => removeFlow(index)}
-                                className="text-red-600 hover:text-red-900 transition-colors"
-                                title="Delete"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{flow.componentName}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{flow.counterpartSystemCode}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {flow.counterpartSystemRole ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {flow.counterpartSystemRole}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {flow.integrationMethod ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {flow.integrationMethod}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {(flow as any).middleware ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            {(flow as any).middleware}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {flow.frequency ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {flow.frequency}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{flow.purpose ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => startEdit(index)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => removeFlow(index)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

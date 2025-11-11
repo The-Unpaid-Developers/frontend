@@ -23,7 +23,6 @@ const DataAssetStep: React.FC<StepProps> = ({
   const [row, setRow] = useState<DataAsset>(empty);
   const [entity, setEntity] = useState("");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingAsset, setEditingAsset] = useState<DataAsset | null>(null);
 
   useEffect(() => {
     if (initialData.dataAssets) {
@@ -49,8 +48,17 @@ const DataAssetStep: React.FC<StepProps> = ({
 
   const addAsset = () => {
     if (!row.componentName || !row.dataDomain || !row.dataClassification) return;
-    
-    setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+
+    if (editingIndex !== null) {
+      // Update existing asset
+      const updated = [...list];
+      updated[editingIndex] = { ...row };
+      setList(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new asset
+      setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+    }
     setRow(empty);
     setEntity("");
   };
@@ -61,40 +69,14 @@ const DataAssetStep: React.FC<StepProps> = ({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditingAsset({ ...list[index] });
-  };
-
-  const saveEdit = () => {
-    if (editingIndex !== null && editingAsset) {
-      const updated = [...list];
-      updated[editingIndex] = editingAsset;
-      setList(updated);
-      setEditingIndex(null);
-      setEditingAsset(null);
-    }
+    setRow({ ...list[index] });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingAsset(null);
-  };
-
-  const updateEditingAsset = (field: keyof DataAsset, value: any) => {
-    setEditingAsset(prev => prev ? { ...prev, [field]: value } : null);
-  };
-
-  const addEntityToEditingAsset = () => {
-    if (!entity.trim() || !editingAsset) return;
-    updateEditingAsset("dataEntities", [...editingAsset.dataEntities, entity.trim()]);
+    setRow(empty);
     setEntity("");
-  };
-
-  const removeEntityFromEditingAsset = (e: string) => {
-    if (!editingAsset) return;
-    updateEditingAsset(
-      "dataEntities",
-      editingAsset.dataEntities.filter((x) => x !== e)
-    );
   };
 
   const save = async () => {
@@ -107,11 +89,18 @@ const DataAssetStep: React.FC<StepProps> = ({
       {/* Add New Data Asset Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
-            </svg>
-            Add Data Asset
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+              </svg>
+              {editingIndex !== null ? 'Edit Data Asset' : 'Add Data Asset'}
+            </div>
+            {editingIndex !== null && (
+              <span className="text-sm text-blue-600 font-normal">
+                Editing asset #{editingIndex + 1}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -156,7 +145,7 @@ const DataAssetStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Data Owned By
+                    Data Owned By <span className="text-red-500">*</span>
                     <Input
                       placeholder="Enter data owner"
                       value={row.dataOwnedBy}
@@ -167,7 +156,7 @@ const DataAssetStep: React.FC<StepProps> = ({
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Mastered In
+                    Mastered In <span className="text-red-500">*</span>
                     <Input
                       placeholder="Enter mastered system"
                       value={row.masteredIn}
@@ -180,7 +169,7 @@ const DataAssetStep: React.FC<StepProps> = ({
 
             {/* Data Entities */}
             <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Data Entities</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Data Entities <span className="text-red-500">*</span></h3>
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <div className="flex-1">
@@ -232,16 +221,24 @@ const DataAssetStep: React.FC<StepProps> = ({
               </div>
             </div>
 
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex justify-end gap-2">
+              {editingIndex !== null && (
+                <Button
+                  onClick={cancelEdit}
+                  variant="ghost"
+                >
+                  Cancel
+                </Button>
+              )}
               <Button
                 onClick={addAsset}
                 disabled={!row.componentName || !row.dataDomain || !row.dataClassification}
                 variant="secondary"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={editingIndex !== null ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} />
                 </svg>
-                Add Asset
+                {editingIndex !== null ? 'Update Asset' : 'Add Asset'}
               </Button>
             </div>
           </div>
@@ -298,164 +295,65 @@ const DataAssetStep: React.FC<StepProps> = ({
                 <tbody className="divide-y divide-gray-200">
                   {list.map((asset, index) => (
                     <tr key={(asset as any).id || `asset-${asset.componentName}-${asset.dataDomain}-${index}`} className="hover:bg-gray-50">
-                      {editingIndex === index && editingAsset ? (
-                        // Edit mode
-                        <>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingAsset.componentName}
-                              onChange={e => updateEditingAsset('componentName', e.target.value)}
-                              placeholder="Component name"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingAsset.dataDomain}
-                              onChange={e => updateEditingAsset('dataDomain', e.target.value)}
-                              placeholder="Data domain"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingAsset.dataClassification}
-                              onChange={e => updateEditingAsset('dataClassification', e.target.value)}
-                              options={CLASSIFICATION_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingAsset.dataOwnedBy}
-                              onChange={e => updateEditingAsset('dataOwnedBy', e.target.value)}
-                              placeholder="Data owner"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingAsset.masteredIn}
-                              onChange={e => updateEditingAsset('masteredIn', e.target.value)}
-                              placeholder="Mastered in"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="space-y-2">
-                              <div className="flex gap-1">
-                                <Input
-                                  value={entity}
-                                  onChange={(e) => setEntity(e.target.value)}
-                                  placeholder="Add entity"
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={addEntityToEditingAsset}
-                                  disabled={!entity.trim()}
-                                >
-                                  +
-                                </Button>
-                              </div>
-                              {editingAsset.dataEntities.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {editingAsset.dataEntities.map((e, idx) => (
-                                    <span key={e} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
-                                      {e}
-                                      <button
-                                        onClick={() => removeEntityFromEditingAsset(e)}
-                                        className="ml-1 text-blue-600 hover:text-blue-800"
-                                      >
-                                        ×
-                                      </button>
-                                    </span>
-                                  ))}
-                                </div>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        {asset.componentName}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {asset.dataDomain}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800`}>
+                          {asset.dataClassification}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {asset.dataOwnedBy ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {asset.masteredIn ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {asset.dataEntities.length > 0 ? (
+                          <div className="max-w-xs">
+                            <div className="flex flex-wrap gap-1">
+                              {asset.dataEntities.slice(0, 2).map((entity, idx) => (
+                                <span key={entity} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
+                                  {entity}
+                                </span>
+                              ))}
+                              {asset.dataEntities.length > 2 && (
+                                <span className="text-xs text-gray-500">
+                                  +{asset.dataEntities.length - 2} more
+                                </span>
                               )}
                             </div>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={saveEdit}
-                                className="text-green-600 hover:text-green-900 transition-colors"
-                                title="Save"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="text-gray-600 hover:text-gray-900 transition-colors"
-                                title="Cancel"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        // Display mode
-                        <>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                            {asset.componentName}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {asset.dataDomain}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800`}>
-                              {asset.dataClassification}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {asset.dataOwnedBy ?? '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {asset.masteredIn ?? '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {asset.dataEntities.length > 0 ? (
-                              <div className="max-w-xs">
-                                <div className="flex flex-wrap gap-1">
-                                  {asset.dataEntities.slice(0, 2).map((entity, idx) => (
-                                    <span key={entity} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800">
-                                      {entity}
-                                    </span>
-                                  ))}
-                                  {asset.dataEntities.length > 2 && (
-                                    <span className="text-xs text-gray-500">
-                                      +{asset.dataEntities.length - 2} more
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ) : (
-                              '—'
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => startEdit(index)}
-                                className="text-blue-600 hover:text-blue-900 transition-colors"
-                                title="Edit"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => removeAsset(index)}
-                                className="text-red-600 hover:text-red-900 transition-colors"
-                                title="Delete"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
+                          </div>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => startEdit(index)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => removeAsset(index)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

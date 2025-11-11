@@ -5,7 +5,9 @@ import {
   getSolutionReviewByIdAPI,
   getAllSolutionReviewsAPI,
   getAllSystemsAPI,
+  searchSRAPI,
 } from "../services/solutionReviewApi";
+import { data } from "react-router-dom";
 
 interface PageMeta {
   page: number;
@@ -139,6 +141,29 @@ export const useViewSolutionReview = () => {
     }
   };
 
+  const searchSR = async (data: any) => {
+    setIsLoading(true);
+    try {
+      const responseData = await searchSRAPI(data);
+      if (responseData && Array.isArray(responseData)) {
+        setSolutionReviews(responseData);
+        // Set page meta for non-paginated results (frontend pagination will handle this)
+        setPageMeta({
+          page: 0,
+          size: responseData.length,
+          totalPages: 1,
+          totalElements: responseData.length,
+        });
+      }
+    } catch (error) {
+      setError(error.message);
+      console.error("Error searching solution reviews:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     solutionReviews,
     setSolutionReviews,
@@ -146,7 +171,9 @@ export const useViewSolutionReview = () => {
     loadSolutionReviewById,
     loadSolutionReviews,
     loadSystems,
+    searchSR,
     pageMeta,
+    setPageMeta,
     isLoading,
     error,
   };
