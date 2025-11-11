@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { DocumentState } from "../types/solutionReview";
 import type { SolutionReview } from "../types/solutionReview";
@@ -12,44 +12,120 @@ export const Dashboard: React.FC = () => {
   const [viewMode, setViewMode] = useState<"systems" | "reviews">("systems");
   const [searchTerm, setSearchTerm] = useState("");
   const [stateFilter] = useState<DocumentState | "ALL">("ALL");
-  const { isLoading, solutionReviews, loadSolutionReviews, pageMeta, loadSystems } =
-    useViewSolutionReview();
+  const {
+    isLoading,
+    solutionReviews,
+    loadSolutionReviews,
+    pageMeta,
+    setPageMeta,
+    loadSystems,
+    searchSR
+  } = useViewSolutionReview();
 
   const [pageSize, setPageSize] = useState<number>(10);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [allSearchResults, setAllSearchResults] = useState<SolutionReview[]>([]);
+  const [searchPage, setSearchPage] = useState(0);
 
-  const currentPage = pageMeta.page;
-  const totalPages = pageMeta.totalPages;
-  const totalElements = pageMeta.totalElements;
+  const currentPage = isSearchMode ? searchPage : pageMeta.page;
+  const totalPages = isSearchMode
+    ? Math.ceil(allSearchResults.length / pageSize)
+    : pageMeta.totalPages;
+  const totalElements = isSearchMode ? allSearchResults.length : pageMeta.totalElements;
 
   const { showError } = useToast();
 
   useEffect(() => {
-    const run = async () => {
-      try {
-        if (viewMode === "systems") {
-          await loadSystems(currentPage, pageSize);
-        } else {
-          await loadSolutionReviews(currentPage, pageSize);
+    if (!isSearchMode) {
+      const run = async () => {
+        try {
+          if (viewMode === "systems") {
+            await loadSystems(pageMeta.page, pageSize);
+          } else {
+            await loadSolutionReviews(pageMeta.page, pageSize);
+          }
+        } catch (e) {
+          console.log('in catch');
+          console.error("Error loading review data:", e);
+          showError("Failed to load data: " + e.message);
         }
-      } catch (e) {
-        console.log('in catch');
-        console.error("Error loading review data:", e);
-        showError("Failed to load data: " + e.message);
-      }
-    };
-    run();
+      };
+      run();
+    }
     // console.log(filteredReviews);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageSize, currentPage, viewMode]);
+  }, [pageSize, pageMeta.page, viewMode, isSearchMode]);
+
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      showError("Please enter a search term");
+      return;
+    }
+
+    try {
+      await searchSR({ searchQuery: searchTerm });
+      setIsSearchMode(true);
+      setSearchPage(0);
+    } catch (e) {
+      console.error("Error searching:", e);
+      showError("Failed to search: " + e.message);
+    }
+  };
+
+  // Update search results when solution reviews change after search
+  useEffect(() => {
+    if (isSearchMode && solutionReviews.length > 0) {
+      setAllSearchResults(solutionReviews);
+    }
+  }, [isSearchMode, solutionReviews]);
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const clearSearch = async () => {
+    setSearchTerm("");
+    setIsSearchMode(false);
+    setSearchPage(0);
+    setAllSearchResults([]);
+    // Reload the original data
+    try {
+      if (viewMode === "systems") {
+        await loadSystems(0, pageSize);
+      } else {
+        await loadSolutionReviews(0, pageSize);
+      }
+    } catch (e) {
+      console.error("Error reloading data:", e);
+      showError("Failed to reload data: " + e.message);
+    }
+  };
 
   const goToPage = async (p: number) => {
     if (p < 0 || (totalPages > 0 && p >= totalPages)) return;
-    if (viewMode === "systems") {
-      await loadSystems(p, pageSize);
+
+    if (isSearchMode) {
+      setSearchPage(p);
     } else {
-      await loadSolutionReviews(p, pageSize);
+      if (viewMode === "systems") {
+        await loadSystems(p, pageSize);
+      } else {
+        await loadSolutionReviews(p, pageSize);
+      }
     }
   };
+
+  // Compute displayed reviews based on search mode
+  const displayedReviews = useMemo(() => {
+    if (isSearchMode && allSearchResults.length > 0) {
+      const start = searchPage * pageSize;
+      const end = start + pageSize;
+      return allSearchResults.slice(start, end);
+    }
+    return solutionReviews;
+  }, [isSearchMode, allSearchResults, searchPage, pageSize, solutionReviews]);
 
   const onViewCard = (r: SolutionReview) => {
     if (viewMode === "systems") {
@@ -62,48 +138,54 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      {/* <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              {/* <div className="flex items-center space-x-4 mb-2">
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Solution Review Dashboard
-                </h1>
-                <div className="flex bg-gray-200 rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode("systems")}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === "systems"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Systems View
-                  </button>
-                  <button
-                    onClick={() => setViewMode("reviews")}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === "reviews"
-                        ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-600 hover:text-gray-900"
-                    }`}
-                  >
-                    Reviews View
-                  </button>
-                </div>
-                <p className="text-gray-600">
-                {viewMode === "systems"
-                  ? "System-level view; click to open system details"
-                  : "Individual solution architecture reviews"}
-              </p>
-              </div> 
-              
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Search Bar */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 flex gap-2">
+              <Input
+                placeholder="Search using natural language (e.g., 'show me all draft reviews for banking systems')..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="flex-1"
+              />
+              <Button
+                onClick={handleSearch}
+                disabled={isLoading || !searchTerm.trim()}
+                variant="primary"
+                className="whitespace-nowrap"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                Search
+              </Button>
+              {isSearchMode && (
+                <Button
+                  onClick={clearSearch}
+                  variant="secondary"
+                  className="whitespace-nowrap"
+                >
+                  Clear
+                </Button>
+              )}
             </div>
-            {/* <Button onClick={() => navigate("/create-solution-review")}>
+          </div>
+          {isSearchMode && (
+            <div className="mt-3 flex items-center text-sm text-primary-600">
               <svg
-                className="w-4 h-4 mr-2"
+                className="w-4 h-4 mr-1"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -112,111 +194,54 @@ export const Dashboard: React.FC = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 4v16m8-8H4"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              New Solution Review
-            </Button>
-          </div>
-        </div>
-      </div> */}
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-            <div className="text-2xl font-bold text-gray-900">
-              {totalElements}
+              Showing search results for "{searchTerm}"
             </div>
-            <div className="text-sm text-gray-600">Total Reviews</div>
-          </div>
-          {Object.values(DocumentState).map((ds) => (
-            <div
-              key={ds}
-              className="bg-white rounded-lg p-4 shadow-sm border border-gray-200"
-            >
-              <div className="text-2xl font-bold text-gray-900">
-                {stateCounts[ds] || 0}
-              </div>
-              <div className="text-sm text-gray-600">{ds}</div>
-            </div>
-          ))}
-        </div> */}
-
-        {/* Filters */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <Input
-                placeholder={
-                  viewMode === "systems"
-                    ? "Search systems by solution name, project, or business unit..."
-                    : "Search reviews by solution name, project, business unit, or system code..."
-                }
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            {/* <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setStateFilter("ALL")}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  stateFilter === "ALL"
-                    ? "bg-primary-100 text-primary-700 border border-primary-300"
-                    : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
-                }`}
-              >
-                All ({solutionReviews.length})
-              </button>
-              {Object.values(DocumentStateFilter).map((docState) => (
-                <button
-                  key={docState}
-                  onClick={() => setStateFilter(docState)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    stateFilter === docState
-                      ? "bg-primary-100 text-primary-700 border border-primary-300"
-                      : "bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200"
-                  }`}
-                >
-                  {docState} ({stateCounts[docState] || 0})
-                </button>
-              ))}
-            </div> */}
-          </div>
+          )}
         </div>
 
-        {/* Pagination */}
+        {/* Pagination and View Switcher */}
 
         {!isLoading && totalElements > 0 && (
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div className="flex bg-gray-200 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("systems")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === "systems"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                  }`}
-              >
-                Systems View
-              </button>
-              <button
-                onClick={() => setViewMode("reviews")}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === "reviews"
-                    ? "bg-white text-gray-900 shadow-sm"
-                    : "text-gray-600 hover:text-gray-900"
-                  }`}
-              >
-                Reviews View
-              </button>
-            </div>
+            {!isSearchMode && (
+              <div className="flex bg-gray-200 rounded-lg p-1">
+                <button
+                  onClick={() => {
+                    setViewMode("systems");
+                    if (isSearchMode) clearSearch();
+                  }}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === "systems"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                    }`}
+                >
+                  Systems View
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode("reviews");
+                    if (isSearchMode) clearSearch();
+                  }}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${viewMode === "reviews"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                    }`}
+                >
+                  Reviews View
+                </button>
+              </div>
+            )}
             <div className="text-sm text-gray-600">
               Showing{" "}
               <span className="font-medium">
                 {totalElements === 0 ? 0 : currentPage * pageSize + 1}-
                 {Math.min((currentPage + 1) * pageSize, totalElements)}
               </span>{" "}
-              of <span className="font-medium">{totalElements}</span> reviews
+              of <span className="font-medium">{totalElements}</span>{" "}
+              {isSearchMode ? "results" : "reviews"}
             </div>
             <div className="flex items-center gap-3">
               <select
@@ -280,7 +305,7 @@ export const Dashboard: React.FC = () => {
         {/* Content: always SolutionReview cards */}
         {!isLoading && (
           <>
-            {solutionReviews.length === 0 ? (
+            {displayedReviews.length === 0 ? (
               <div className="text-center py-12">
                 <svg
                   className="w-12 h-12 text-gray-400 mx-auto mb-4"
@@ -296,22 +321,28 @@ export const Dashboard: React.FC = () => {
                   />
                 </svg>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No solution reviews found
+                  {isSearchMode ? "No results found" : "No solution reviews found"}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  {searchTerm || stateFilter !== "ALL"
+                  {isSearchMode
+                    ? "Try adjusting your search terms or clear the search to see all reviews."
+                    : searchTerm || stateFilter !== "ALL"
                     ? "Try adjusting your search or filter criteria."
                     : "Get started by creating your first solution review."}
                 </p>
-                {!searchTerm && stateFilter === "ALL" && (
+                {isSearchMode ? (
+                  <Button variant="secondary" onClick={clearSearch}>
+                    Clear Search
+                  </Button>
+                ) : !searchTerm && stateFilter === "ALL" ? (
                   <Button onClick={() => navigate("/create-solution-review")}>
                     Create Your First Solution Review
                   </Button>
-                )}
+                ) : null}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {solutionReviews.map((review) => (
+                {displayedReviews.map((review) => (
                   <SolutionReviewCard
                     key={review.id}
                     review={review}
