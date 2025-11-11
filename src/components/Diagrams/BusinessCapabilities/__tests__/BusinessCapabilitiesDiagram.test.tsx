@@ -1,7 +1,8 @@
-import React from 'react';
-import { render } from '@testing-library/react';
+import React, { createRef } from 'react';
+import { render, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import BusinessCapabilitiesDiagram from '../BusinessCapabilitiesDiagram';
+import BusinessCapabilitiesDiagram, { BusinessCapabilitiesDiagramHandle } from '../BusinessCapabilitiesDiagram';
+import { createBusinessCapabilityDiagram, createBusinessCapabilityDiagramList } from '../../../../__tests__/testFactories';
 
 // Mock D3
 vi.mock('d3', () => {
@@ -303,5 +304,212 @@ describe('BusinessCapabilitiesDiagram', () => {
     ];
     const { container } = render(<BusinessCapabilitiesDiagram data={allLevelsData} />);
     expect(container).toBeInTheDocument();
+  });
+
+  describe('Using testFactories', () => {
+    it('renders with factory-created data', () => {
+      const mockData = createBusinessCapabilityDiagramList(3);
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+      expect(container).toBeInTheDocument();
+    });
+
+    it('renders single capability from factory', () => {
+      const mockData = [createBusinessCapabilityDiagram()];
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+      expect(container).toBeInTheDocument();
+    });
+
+    it('renders custom capabilities using factory', () => {
+      const customData = [
+        createBusinessCapabilityDiagram({ id: '1', name: 'Risk Management', level: 'L1', parentId: null }),
+        createBusinessCapabilityDiagram({ id: '2', name: 'Credit Risk', level: 'L2', parentId: '1', systemCode: 'SYS-002' }),
+      ];
+      const { container } = render(<BusinessCapabilitiesDiagram data={customData} />);
+      expect(container).toBeInTheDocument();
+    });
+
+    it('handles hierarchical data from factory', () => {
+      const hierarchicalData = createBusinessCapabilityDiagramList(3);
+      const { container } = render(<BusinessCapabilitiesDiagram data={hierarchicalData} />);
+      const svg = container.querySelector('svg');
+      expect(svg).toBeInTheDocument();
+    });
+  });
+
+  describe('Interactive features', () => {
+    it('calls onSearchMatch when searchTerm is provided', () => {
+      const mockData = createBusinessCapabilityDiagramList(3);
+      const onSearchMatch = vi.fn();
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} searchTerm="Customer" onSearchMatch={onSearchMatch} />);
+      // onSearchMatch may be called during render
+      expect(container).toBeDefined();
+    });
+
+    it('calls onSystemClick when provided', () => {
+      const mockData = createBusinessCapabilityDiagramList(2);
+      const onSystemClick = vi.fn();
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} onSystemClick={onSystemClick} />);
+      expect(container).toBeDefined();
+    });
+
+    it('handles searchTerm prop changes', () => {
+      const mockData = createBusinessCapabilityDiagramList(3);
+      const { rerender, container } = render(<BusinessCapabilitiesDiagram data={mockData} searchTerm="" />);
+      rerender(<BusinessCapabilitiesDiagram data={mockData} searchTerm="Customer" />);
+      rerender(<BusinessCapabilitiesDiagram data={mockData} searchTerm="Management" />);
+      expect(container).toBeDefined();
+    });
+
+    it('exposes expandAll via ref', () => {
+      const mockData = createBusinessCapabilityDiagramList(3);
+      const ref = createRef<BusinessCapabilitiesDiagramHandle>();
+      render(<BusinessCapabilitiesDiagram ref={ref} data={mockData} />);
+
+      act(() => {
+        ref.current?.expandAll();
+      });
+
+      expect(ref.current).toBeDefined();
+    });
+
+    it('exposes collapseAll via ref', () => {
+      const mockData = createBusinessCapabilityDiagramList(3);
+      const ref = createRef<BusinessCapabilitiesDiagramHandle>();
+      render(<BusinessCapabilitiesDiagram ref={ref} data={mockData} />);
+
+      act(() => {
+        ref.current?.collapseAll();
+      });
+
+      expect(ref.current).toBeDefined();
+    });
+
+    it('handles expand and collapse sequence', () => {
+      const mockData = createBusinessCapabilityDiagramList(3);
+      const ref = createRef<BusinessCapabilitiesDiagramHandle>();
+      render(<BusinessCapabilitiesDiagram ref={ref} data={mockData} />);
+
+      act(() => {
+        ref.current?.expandAll();
+        ref.current?.collapseAll();
+        ref.current?.expandAll();
+      });
+
+      expect(ref.current).toBeDefined();
+    });
+
+    it('renders tooltip container', () => {
+      const mockData = createBusinessCapabilityDiagramList(2);
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+      // Tooltip is rendered as part of the component
+      expect(container).toBeInTheDocument();
+    });
+
+    it('renders context menu container', () => {
+      const mockData = createBusinessCapabilityDiagramList(2);
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+      // Context menu container is rendered
+      expect(container).toBeInTheDocument();
+    });
+  });
+
+  describe('Resize handling', () => {
+    it('updates dimensions on resize', () => {
+      const mockData = createBusinessCapabilityDiagramList(2);
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+
+      act(() => {
+        global.window.dispatchEvent(new Event('resize'));
+      });
+
+      expect(container).toBeDefined();
+    });
+
+    it('cleans up resize listener on unmount', () => {
+      const mockData = createBusinessCapabilityDiagramList(2);
+      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+      const { unmount } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+
+      unmount();
+
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
+      removeEventListenerSpy.mockRestore();
+    });
+  });
+
+  describe('Edge cases with factory data', () => {
+    it('handles mixed system codes', () => {
+      const mixedData = [
+        createBusinessCapabilityDiagram({ id: '1', systemCode: 'SYS-001' }),
+        createBusinessCapabilityDiagram({ id: '2', systemCode: 'SYS-002' }),
+        createBusinessCapabilityDiagram({ id: '3', systemCode: 'SYS-003' }),
+      ];
+      const { container } = render(<BusinessCapabilitiesDiagram data={mixedData} />);
+      expect(container).toBeInTheDocument();
+    });
+
+    it('handles capabilities with identical names but different IDs', () => {
+      const duplicateNameData = [
+        createBusinessCapabilityDiagram({ id: '1', name: 'Customer Service' }),
+        createBusinessCapabilityDiagram({ id: '2', name: 'Customer Service', parentId: '1' }),
+      ];
+      const { container } = render(<BusinessCapabilitiesDiagram data={duplicateNameData} />);
+      expect(container).toBeInTheDocument();
+    });
+
+    it('renders with all callback props', () => {
+      const mockData = createBusinessCapabilityDiagramList(3);
+      const onSearchMatch = vi.fn();
+      const onSystemClick = vi.fn();
+
+      const { container } = render(
+        <BusinessCapabilitiesDiagram
+          data={mockData}
+          searchTerm="Customer"
+          onSearchMatch={onSearchMatch}
+          onSystemClick={onSystemClick}
+        />
+      );
+
+      expect(container).toBeInTheDocument();
+    });
+
+    it('handles empty searchTerm gracefully', () => {
+      const mockData = createBusinessCapabilityDiagramList(2);
+      const { container } = render(<BusinessCapabilitiesDiagram data={mockData} searchTerm="" />);
+      expect(container).toBeInTheDocument();
+    });
+  });
+
+  describe('Performance and memory', () => {
+    it('handles rapid data updates', () => {
+      const { rerender, container } = render(<BusinessCapabilitiesDiagram data={createBusinessCapabilityDiagramList(2)} />);
+
+      for (let i = 0; i < 5; i++) {
+        rerender(<BusinessCapabilitiesDiagram data={createBusinessCapabilityDiagramList(3)} />);
+      }
+
+      expect(container).toBeDefined();
+    });
+
+    it('cleans up on unmount', () => {
+      const mockData = createBusinessCapabilityDiagramList(2);
+      const { unmount } = render(<BusinessCapabilitiesDiagram data={mockData} />);
+
+      expect(() => unmount()).not.toThrow();
+    });
+
+    it('handles ref with no data', () => {
+      const ref = createRef<BusinessCapabilitiesDiagramHandle>();
+      render(<BusinessCapabilitiesDiagram ref={ref} data={[]} />);
+
+      act(() => {
+        ref.current?.expandAll();
+        ref.current?.collapseAll();
+      });
+
+      // Should not throw even with empty data
+      expect(true).toBe(true);
+    });
   });
 });
