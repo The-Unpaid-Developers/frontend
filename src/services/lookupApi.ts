@@ -2,8 +2,8 @@ import axios from "axios";
 import { API_CONFIG, buildApiUrl } from "../config/api.config";
 
 const API_BASE_URL = buildApiUrl(
-  API_CONFIG.PROXY_SERVICE_URL,
-  "/api/v1/lookups"
+  API_CONFIG.CORE_BASE_URL,
+  "/lookups"
 );
 
 export const getAllLookupsAPI = async () => {

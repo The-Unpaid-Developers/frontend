@@ -3,7 +3,8 @@
 
 cat <<EOF > /usr/share/nginx/html/env-config.js
 window._env_ = {
-  PROXY_SERVICE_URL: "${PROXY_SERVICE_URL}"
+  CORE_BASE_URL: "${CORE_BASE_URL}",
+  DIAGRAM_BASE_URL: "${DIAGRAM_BASE_URL}"
 };
 EOF
 

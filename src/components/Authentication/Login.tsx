@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { mockApiService } from "../../services/mockApiUpdated";
+import { login } from "../../services/authApi";
 import { Button, Input } from "../ui";
 
 const roles = [
@@ -23,7 +23,7 @@ export const Login: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      await mockApiService.login(username.trim(), role);
+      await login(username.trim(), role);
       navigate("/"); // adjust route if needed
     } catch (err: any) {
       setError(err?.message ?? "Login failed");

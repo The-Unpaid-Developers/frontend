@@ -16,8 +16,14 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY generate-env-config.sh /generate-env-config.sh
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
-# Make scripts executable
+# Fix line endings and make scripts executable
+# RUN apk add --no-cache dos2unix && \
+#     dos2unix /generate-env-config.sh /docker-entrypoint.sh && \
+#     chmod +x /generate-env-config.sh /docker-entrypoint.sh && \
+#     apk del dos2unix
 RUN chmod +x /generate-env-config.sh /docker-entrypoint.sh
+
+RUN ls /
 
 EXPOSE 80
 
