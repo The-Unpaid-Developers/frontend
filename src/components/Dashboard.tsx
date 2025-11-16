@@ -74,7 +74,7 @@ export const Dashboard: React.FC = () => {
 
   // Update search results when solution reviews change after search
   useEffect(() => {
-    if (isSearchMode && solutionReviews.length > 0) {
+    if (isSearchMode && solutionReviews.length >= 0) {
       setAllSearchResults(solutionReviews);
     }
   }, [isSearchMode, solutionReviews]);
