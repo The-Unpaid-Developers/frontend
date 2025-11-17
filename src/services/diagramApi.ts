@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_CONFIG, buildApiUrl } from "../config/api.config";
 
-const API_BASE_URL = buildApiUrl(API_CONFIG.DIAGRAM_BASE_URL, "/diagram");
+const API_BASE_URL = buildApiUrl(API_CONFIG.DIAGRAM_SERVICE_URL, "/api/v1/diagram");
 
 export const getSystemFlowAPI = async (systemCode: string) => {
   const response = await axios.get(

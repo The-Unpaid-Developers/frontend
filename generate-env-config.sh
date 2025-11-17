@@ -3,8 +3,8 @@
 
 cat <<EOF > /usr/share/nginx/html/env-config.js
 window._env_ = {
-  CORE_BASE_URL: "${CORE_BASE_URL}",
-  DIAGRAM_BASE_URL: "${DIAGRAM_BASE_URL}"
+  CORE_SERVICE_URL: "${CORE_SERVICE_URL}",
+  DIAGRAM_SERVICE_URL: "${DIAGRAM_SERVICE_URL}"
 };
 EOF
 
