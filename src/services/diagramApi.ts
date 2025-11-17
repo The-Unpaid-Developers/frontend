@@ -5,10 +5,9 @@ const API_BASE_URL = buildApiUrl(API_CONFIG.DIAGRAM_SERVICE_URL, "/api/v1/diagra
 
 export const getSystemFlowAPI = async (systemCode: string) => {
   const response = await axios.get(
-    `${API_BASE_URL}/diagram/system-dependencies/${systemCode}`
+    `${API_BASE_URL}/system-dependencies/${systemCode}`
   );
   return response.data;
-  // return mockSystemFlowData;
 };
 
 export const getOverallSystemsFlowAPI = async () => {
@@ -16,7 +15,6 @@ export const getOverallSystemsFlowAPI = async () => {
     `${API_BASE_URL}/system-dependencies/all`
   );
   return response.data;
-  //   return mockSystemFlowData;
 };
 
 export const getSystemPaths = async (
@@ -34,7 +32,6 @@ export const getBusinessCapabilities = async () => {
     `${API_BASE_URL}/business-capabilities/all`
   );
   return response.data;
-  // return mockBCData;
 };
 
 export const getSystemBusinessCapabilities = async (systemCode: string) => {

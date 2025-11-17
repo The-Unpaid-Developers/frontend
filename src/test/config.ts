@@ -2,8 +2,8 @@
 export const TEST_CONFIG = {
   // API Base URLs - use environment variables or fallback to localhost
   API_BASE_URLS: {
-    CORE_SERVICE: process.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1',
-    DIAGRAM_SERVICE: process.env.VITE_DIAGRAM_API_BASE_URL || 'http://localhost:8000/api/v1',
+    CORE_SERVICE: process.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1',
+    DIAGRAM_SERVICE: process.env.VITE_DIAGRAM_API_BASE_URL || 'http://localhost:8081/api/v1',
   },
   
   // Test timeouts

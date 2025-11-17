@@ -65,21 +65,21 @@ export const createTechComponentsList = (): TechComponent[] => [
  * Query Factory
  */
 export interface QueryData {
-  id?: number;
   name: string;
-  sql?: string;
+  mongoQuery: string;
+  description: string;
 }
 
 export const createQuery = (overrides?: Partial<QueryData>): QueryData => ({
-  id: 1,
   name: 'test-query',
-  sql: 'SELECT * FROM table',
+  mongoQuery: '[{"$match": {"status": "active"}}]',
+  description: 'Test query description',
   ...overrides,
 });
 
 export const createQueryList = (count: number = 2): QueryData[] => [
-  createQuery({ id: 1, name: 'test-query-1', sql: 'SELECT * FROM table1' }),
-  createQuery({ id: 2, name: 'test-query-2', sql: 'SELECT * FROM table2' }),
+  createQuery({ name: 'test-query-1', mongoQuery: '[{"$match": {"status": "active"}}]', description: 'Test query 1 description' }),
+  createQuery({ name: 'test-query-2', mongoQuery: '[{"$match": {"status": "pending"}}]', description: 'Test query 2 description' }),
 ].slice(0, count);
 
 /**
@@ -122,6 +122,32 @@ export const createOverallSystemFlowData = () => ({
   systems: [{ id: 1, name: 'System 1' }],
   connections: [{ from: 1, to: 2 }],
 });
+
+/**
+ * Business Capability Diagram Factory
+ */
+export interface BusinessCapabilityDiagram {
+  id: string;
+  name: string;
+  level: string;
+  systemCode: string;
+  parentId: string | null;
+}
+
+export const createBusinessCapabilityDiagram = (overrides?: Partial<BusinessCapabilityDiagram>): BusinessCapabilityDiagram => ({
+  id: '1',
+  name: 'Customer Management',
+  level: 'L1',
+  systemCode: 'SYS-001',
+  parentId: null,
+  ...overrides,
+});
+
+export const createBusinessCapabilityDiagramList = (count: number = 3): BusinessCapabilityDiagram[] => [
+  createBusinessCapabilityDiagram({ id: '1', name: 'Customer Management', level: 'L1', parentId: null }),
+  createBusinessCapabilityDiagram({ id: '2', name: 'Customer Onboarding', level: 'L2', parentId: '1' }),
+  createBusinessCapabilityDiagram({ id: '3', name: 'Digital Registration', level: 'L3', parentId: '2' }),
+].slice(0, count);
 
 export const createSystemPathData = () => ({
   paths: [{ steps: ['PRODUCER', 'MIDDLE', 'CONSUMER'] }],
@@ -238,6 +264,254 @@ export const createSolutionReview = (overrides?: any) => ({
   lastModifiedBy: 'admin',
   ...overrides,
 });
+
+/**
+ * Step Component Factories for UpdateSolutionReview
+ */
+
+// Step Props Factory
+export interface StepProps {
+  onSave: (data: any) => Promise<void>;
+  isSaving?: boolean;
+  initialData: any;
+  showSuccess?: (message: string) => void;
+  showError?: (message: string) => void;
+}
+
+export const createMockStepProps = (overrides?: Partial<StepProps>): StepProps => ({
+  onSave: async () => {},
+  isSaving: false,
+  initialData: {},
+  showSuccess: () => {},
+  showError: () => {},
+  ...overrides,
+});
+
+// Business Capability Factory for UpdateSolutionReview
+export interface BusinessCapabilityStep {
+  id: string;
+  l1Capability: string;
+  l2Capability: string;
+  l3Capability: string;
+  remarks: string;
+}
+
+export const createMockBusinessCapability = (overrides?: Partial<BusinessCapabilityStep>): BusinessCapabilityStep => ({
+  id: `bc-${Date.now()}`,
+  l1Capability: 'Customer Management',
+  l2Capability: 'Customer Onboarding',
+  l3Capability: 'Digital Registration',
+  remarks: 'Test remarks',
+  ...overrides,
+});
+
+// Data Asset Factory
+export interface DataAsset {
+  id?: string;
+  componentName: string;
+  dataDomain: string;
+  dataClassification: string;
+  dataOwnedBy: string;
+  dataEntities: string[];
+  masteredIn: string;
+}
+
+export const createMockDataAsset = (overrides?: Partial<DataAsset>): DataAsset => ({
+  id: `da-${Date.now()}`,
+  componentName: 'Test Component',
+  dataDomain: 'Customer Data',
+  dataClassification: 'Confidential',
+  dataOwnedBy: 'Data Team',
+  dataEntities: ['Customer', 'Address'],
+  masteredIn: 'CRM System',
+  ...overrides,
+});
+
+// System Component Factory
+export interface SystemComponent {
+  name?: string | null;
+  status?: string | null;
+  role?: string | null;
+  hostedOn?: string | null;
+  hostingRegion?: string | null;
+  solutionType?: string | null;
+  languageFramework?: {
+    language?: { name?: string | null; version?: string | null };
+    framework?: { name?: string | null; version?: string | null };
+  };
+  isOwnedByUs?: boolean;
+  isCICDUsed?: boolean;
+  customizationLevel?: string | null;
+  upgradeStrategy?: string | null;
+  upgradeFrequency?: string | null;
+  isSubscription?: boolean;
+  isInternetFacing?: boolean;
+  availabilityRequirement?: string | null;
+  latencyRequirement?: number;
+  throughputRequirement?: number;
+  scalabilityMethod?: string | null;
+  backupSite?: string | null;
+  securityDetails?: {
+    authenticationMethod?: string | null;
+    authorizationModel?: string | null;
+    isAuditLoggingEnabled?: boolean;
+    sensitiveDataElements?: string | null;
+    dataEncryptionAtRest?: string | null;
+    encryptionAlgorithmForDataAtRest?: string | null;
+    hasIpWhitelisting?: boolean;
+    ssl?: string | null;
+    payloadEncryptionAlgorithm?: string | null;
+    digitalCertificate?: string | null;
+    keyStore?: string | null;
+    vulnerabilityAssessmentFrequency?: string | null;
+    penetrationTestingFrequency?: string | null;
+  };
+}
+
+export const createMockSystemComponent = (overrides: Partial<SystemComponent> = {}): SystemComponent => ({
+  name: 'Test System Component',
+  status: 'Active',
+  role: 'Primary',
+  hostedOn: 'On-Premise',
+  hostingRegion: 'North America',
+  solutionType: 'Custom Application',
+  languageFramework: {
+    language: { name: 'Java', version: '11' },
+    framework: { name: 'Spring Boot', version: '2.7.0' }
+  },
+  isOwnedByUs: true,
+  isCICDUsed: true,
+  customizationLevel: 'Medium',
+  upgradeStrategy: 'Rolling',
+  upgradeFrequency: 'Quarterly',
+  isSubscription: false,
+  isInternetFacing: true,
+  availabilityRequirement: '99.9%',
+  latencyRequirement: 100,
+  throughputRequirement: 1000,
+  scalabilityMethod: 'Horizontal',
+  backupSite: 'Secondary Data Center',
+  securityDetails: {
+    authenticationMethod: 'OAuth 2.0',
+    authorizationModel: 'RBAC',
+    isAuditLoggingEnabled: true,
+    sensitiveDataElements: 'PII, Financial Data',
+    dataEncryptionAtRest: 'AES-256',
+    encryptionAlgorithmForDataAtRest: 'AES-256-GCM',
+    hasIpWhitelisting: true,
+    ssl: 'TLS 1.3',
+    payloadEncryptionAlgorithm: 'RSA-2048',
+    digitalCertificate: 'X.509',
+    keyStore: 'Java KeyStore',
+    vulnerabilityAssessmentFrequency: 'Monthly',
+    penetrationTestingFrequency: 'Quarterly'
+  },
+  ...overrides,
+});
+
+export interface EnterpriseTool {
+  id?: string;
+  tool?: {
+    name?: string | null;
+    type?: string | null;
+  };
+  onboarded?: string | null;
+  integrationDetails?: string | null;
+  issues?: string | null;
+}
+
+export const createMockEnterpriseTool = (overrides: Partial<EnterpriseTool> = {}): EnterpriseTool => ({
+  id: 'enterprise-tool-1',
+  tool: {
+    name: 'Test Enterprise Tool',
+    type: 'MONITORING'
+  },
+  onboarded: 'FULLY_ONBOARDED',
+  integrationDetails: 'Integrated via REST API with OAuth authentication',
+  issues: 'No known issues',
+  ...overrides,
+});
+
+/**
+ * Integration Flow Factory
+ */
+export interface IntegrationFlow {
+  componentName?: string | null;
+  counterpartSystemCode?: string | null;
+  counterpartSystemRole?: string | null;
+  integrationMethod?: string | null;
+  middleware?: string | null;
+  frequency?: string | null;
+  purpose?: string | null;
+}
+
+export const createMockIntegrationFlow = (overrides: Partial<IntegrationFlow> = {}): IntegrationFlow => ({
+  componentName: 'Test Component',
+  counterpartSystemCode: 'SYS-001',
+  counterpartSystemRole: 'CONSUMER',
+  integrationMethod: 'REST_API',
+  middleware: 'API_GATEWAY',
+  frequency: 'REAL_TIME',
+  purpose: 'Data synchronization for real-time processing',
+  ...overrides,
+});
+
+/**
+ * Technology Component Factory
+ */
+export interface TechnologyComponent {
+  componentName?: string | null;
+  productName?: string | null;
+  productVersion?: string | null;
+  usage?: string | null;
+}
+
+export const createMockTechnologyComponent = (overrides: Partial<TechnologyComponent> = {}): TechnologyComponent => ({
+  componentName: 'Test Technology Component',
+  productName: 'Java',
+  productVersion: '17',
+  usage: 'BACKEND',
+  ...overrides,
+});
+
+// Business Capabilities Hook Mock Factory
+export const createMockBusinessCapabilitiesHook = () => ({
+  data: {
+    l1Options: [
+      { label: 'Customer Management', value: 'Customer Management' },
+      { label: 'Product Management', value: 'Product Management' },
+      { label: 'Risk Management', value: 'Risk Management' }
+    ],
+    getL2OptionsForL1: (l1: string) => {
+      if (l1 === 'Customer Management') {
+        return [
+          { label: 'Customer Onboarding', value: 'Customer Onboarding' },
+          { label: 'Customer Service', value: 'Customer Service' }
+        ];
+      }
+      return [{ label: 'Default L2', value: 'Default L2' }];
+    },
+    getL3OptionsForL1AndL2: (l1: string, l2: string) => {
+      if (l1 === 'Customer Management' && l2 === 'Customer Onboarding') {
+        return [
+          { label: 'Digital Registration', value: 'Digital Registration' },
+          { label: 'Document Verification', value: 'Document Verification' }
+        ];
+      }
+      return [{ label: 'Default L3', value: 'Default L3' }];
+    }
+  },
+  loading: false,
+  error: null as string | null
+});
+
+// Mock Classification Options
+export const MOCK_CLASSIFICATION_OPTIONS = [
+  { label: 'Public', value: 'Public' },
+  { label: 'Internal', value: 'Internal' },
+  { label: 'Confidential', value: 'Confidential' },
+  { label: 'Restricted', value: 'Restricted' }
+];
 
 /**
  * Pagination Factory

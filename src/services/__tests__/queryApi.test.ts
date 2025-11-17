@@ -83,7 +83,7 @@ describe('queryApi', () => {
       const mockQuery = {
         id: '1',
         name: queryName,
-        sql: 'SELECT * FROM users WHERE active = true',
+        mongoQuery: '[{"$match": {"active": true}}]',
         description: 'Get all active users',
         parameters: [
           { name: 'active', type: 'boolean', defaultValue: true }
@@ -192,22 +192,22 @@ describe('queryApi', () => {
       expect(result).toEqual(mockResult);
     });
 
-    it('should handle SQL execution errors', async () => {
+    it('should handle MongoDB execution errors', async () => {
       const queryName = 'invalid-query';
       const payload = { parameters: {} };
-      const sqlError = {
+      const mongoError = {
         response: {
           status: 400,
           data: {
-            message: 'SQL syntax error near SELECT',
-            sqlState: '42000',
-            errorCode: 1064
+            message: 'MongoDB query syntax error in aggregation pipeline',
+            errorCode: 168,
+            codeName: 'InvalidPipelineOperator'
           }
         }
       };
-      mockedAxios.post.mockRejectedValue(sqlError);
+      mockedAxios.post.mockRejectedValue(mongoError);
 
-      await expect(executeQueryAPI(queryName, payload)).rejects.toEqual(sqlError);
+      await expect(executeQueryAPI(queryName, payload)).rejects.toEqual(mongoError);
     });
 
     it('should handle timeout errors during execution', async () => {
@@ -229,7 +229,7 @@ describe('queryApi', () => {
     it('should create a new query successfully', async () => {
       const queryData = {
         name: 'new-query',
-        sql: 'SELECT * FROM products WHERE category = ?',
+        mongoQuery: '[{"$match": {"category": "$category"}}]',
         description: 'Get products by category',
         parameters: [
           { name: 'category', type: 'string', required: true }
@@ -256,7 +256,7 @@ describe('queryApi', () => {
     it('should handle validation errors when creating query', async () => {
       const invalidQueryData = {
         name: '', // Invalid: empty name
-        sql: 'INVALID SQL SYNTAX',
+        mongoQuery: 'INVALID MONGODB SYNTAX',
         description: ''
       };
       const validationError = {
@@ -266,7 +266,7 @@ describe('queryApi', () => {
             message: 'Validation failed',
             errors: [
               'Query name is required',
-              'SQL syntax is invalid',
+              'MongoDB query syntax is invalid',
               'Description is required'
             ]
           }
@@ -280,7 +280,7 @@ describe('queryApi', () => {
     it('should handle duplicate query name errors', async () => {
       const queryData = {
         name: 'existing-query',
-        sql: 'SELECT 1',
+        mongoQuery: '[{"$project": {"_id": 1}}]',
         description: 'Test query'
       };
       const duplicateError = {
@@ -297,7 +297,7 @@ describe('queryApi', () => {
     it('should handle large query data', async () => {
       const largeQueryData = {
         name: 'large-query',
-        sql: 'SELECT * FROM table1 JOIN table2 ON table1.id = table2.id'.repeat(100),
+        mongoQuery: '[{"$lookup": {"from": "table2", "localField": "id", "foreignField": "id", "as": "joined"}}]'.repeat(100),
         description: 'Very long description'.repeat(50)
       };
       const mockResponse = { data: { id: '4', ...largeQueryData } };
@@ -305,7 +305,7 @@ describe('queryApi', () => {
 
       const result = await createQueryAPI(largeQueryData);
 
-      expect(result.sql).toBe(largeQueryData.sql);
+      expect(result.mongoQuery).toBe(largeQueryData.mongoQuery);
       expect(result.description).toBe(largeQueryData.description);
     });
   });
@@ -314,7 +314,7 @@ describe('queryApi', () => {
     it('should update an existing query successfully', async () => {
       const queryName = 'existing-query';
       const updateData = {
-        sql: 'SELECT * FROM users WHERE department = ? AND active = ?',
+        mongoQuery: '[{"$match": {"department": "$department", "active": "$active"}}]',
         description: 'Updated description for user query',
         parameters: [
           { name: 'department', type: 'string', required: true },
