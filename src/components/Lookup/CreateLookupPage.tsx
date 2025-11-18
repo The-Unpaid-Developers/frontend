@@ -389,7 +389,10 @@ export const CreateLookupPage: React.FC = () => {
                     <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
                       <li>File must be in CSV format</li>
                       <li>First row should contain column headers</li>
+                      <li>Column headers should be unique and clear</li>
+                      <li>Column headers should not contain any spaces</li>
                       <li>Ensure data is properly formatted and validated</li>
+                      <li>Please keep a copy of the uploaded file as it is not stored (only the data is saved)</li>
                     </ul>
                   </div>
                 </div>
