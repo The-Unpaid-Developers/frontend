@@ -568,12 +568,9 @@ describe('SystemComponentStep', () => {
       // Modal should be open
       expect(screen.getByText('Edit System Component')).toBeInTheDocument();
       
-      // Find and click X button (close button in modal header)
-      const closeButtons = screen.getAllByRole('button').filter(button => 
-        button.querySelector('svg path[d*="M6 18L18 6M6 6l12 12"]')
-      );
-      expect(closeButtons.length).toBeGreaterThan(0);
-      fireEvent.click(closeButtons[0]);
+      // Click Cancel button to close edit mode
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+      fireEvent.click(cancelButton);
       
       // Modal should be closed
       expect(screen.queryByText('Edit System Component')).not.toBeInTheDocument();
@@ -727,7 +724,7 @@ describe('SystemComponentStep', () => {
       fireEvent.change(nameInput, { target: { value: 'Updated Save Test' } });
       
       // Save changes
-      const saveButton = screen.getByText('Save Changes');
+      const saveButton = screen.getByRole('button', { name: /Update Component/i });
       fireEvent.click(saveButton);
       
       // Modal should close
@@ -761,7 +758,7 @@ describe('SystemComponentStep', () => {
       fireEvent.change(nameInput, { target: { value: '' } });
       
       // Save button should be disabled
-      const saveButton = screen.getByText('Save Changes');
+      const saveButton = screen.getByRole('button', { name: /Update Component/i });
       expect(saveButton).toBeDisabled();
     });
 

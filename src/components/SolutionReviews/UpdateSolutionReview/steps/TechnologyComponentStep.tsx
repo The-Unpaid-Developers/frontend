@@ -25,11 +25,12 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
   );
   const [row, setRow] = useState<TechnologyComponent>(empty);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingComponent, setEditingComponent] = useState<TechnologyComponent | null>(null);
 
-  // Get version options based on current product selection
+  // Determine if we should use fallback mode (text inputs instead of dropdowns)
+  const useFallbackMode = !!error;
+
+  // Get version options based on current product selection (only if data is available)
   const versionOptionsForNew = data?.getVersionOptionsForProduct(row.productName) || [];
-  const versionOptionsForEdit = editingComponent && data ? data.getVersionOptionsForProduct(editingComponent.productName) : [];
   const productNameOptions = data?.productNameOptions || [];
 
   useEffect(() => {
@@ -41,8 +42,8 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
   const update = (k: keyof TechnologyComponent, v: any) => {
     setRow((r) => {
       const updated = { ...r, [k]: v };
-      // Reset product version when product name changes
-      if (k === 'productName') {
+      // Reset product version when product name changes (only in dropdown mode)
+      if (!useFallbackMode && k === 'productName') {
         updated.productVersion = '';
       }
       return updated;
@@ -51,8 +52,17 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
 
   const addComponent = () => {
     if (!row.componentName || !row.productName || !row.usage) return;
-    
-    setList([...list, { ...row }]);
+
+    if (editingIndex !== null) {
+      // Update existing component
+      const updated = [...list];
+      updated[editingIndex] = { ...row };
+      setList(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new component
+      setList([...list, { ...row }]);
+    }
     setRow(empty);
   };
 
@@ -62,56 +72,93 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditingComponent({ ...list[index] });
-  };
-
-  const saveEdit = () => {
-    if (editingIndex !== null && editingComponent) {
-      const updated = [...list];
-      updated[editingIndex] = editingComponent;
-      setList(updated);
-      setEditingIndex(null);
-      setEditingComponent(null);
-    }
+    setRow({ ...list[index] });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingComponent(null);
-  };
-
-  const updateEditingComponent = (field: keyof TechnologyComponent, value: string) => {
-    setEditingComponent(prev => {
-      if (!prev) return null;
-      const updated = { ...prev, [field]: value };
-      // Reset product version when product name changes
-      if (field === 'productName') {
-        updated.productVersion = '';
-      }
-      return updated;
-    });
+    setRow(empty);
   };
 
   const save = async () => {
     await onSave(list);
   };
 
+  // Render input field based on mode (dropdown or text input)
+  const renderProductNameInput = (
+    value: string,
+    onChange: (value: string) => void,
+    disabled: boolean = false
+  ) => {
+    if (useFallbackMode) {
+      return (
+        <Input
+          placeholder="Enter product name"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+        />
+      );
+    } else {
+      return (
+        <DropDown
+          placeholder="Select product"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          options={productNameOptions}
+          disabled={disabled}
+        />
+      );
+    }
+  };
+
+  const renderProductVersionInput = (
+    value: string,
+    onChange: (value: string) => void,
+    productName: string,
+    disabled: boolean = false
+  ) => {
+    if (useFallbackMode) {
+      return (
+        <Input
+          placeholder="Enter product version"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+        />
+      );
+    } else {
+      const options = productName && data ? data.getVersionOptionsForProduct(productName) : [];
+      return (
+        <DropDown
+          placeholder="Select version"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          options={options}
+          disabled={disabled || !productName}
+        />
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      {/* <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Technology Components</h2>
-        <p className="text-gray-600">Define the technology components and products used in your solution</p>
-      </div> */}
-
-      {/* Add Technology Component Form */}
+      {/* Add/Edit Technology Component Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-            </svg>
-            Add Technology Component
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+              </svg>
+              {editingIndex !== null ? 'Edit Technology Component' : 'Add Technology Component'}
+            </div>
+            {editingIndex !== null && (
+              <span className="text-sm text-blue-600 font-normal">
+                Editing component #{editingIndex + 1}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -125,73 +172,87 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
           )}
           
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              Error loading tech components: {error}
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="font-medium">Could not load tech components from server</p>
+                  <p className="text-sm mt-1">You can still enter product information manually using text input fields.</p>
+                </div>
+              </div>
             </div>
           )}
           
-          {!loading && !error && (
+          {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Component Name <span className="text-red-500">*</span>
-                  <Input
-                    placeholder="Enter component name"
-                    value={row.componentName}
-                    onChange={(e) => update("componentName", e.target.value)}
-                  />
                 </label>
+                <Input
+                  placeholder="Enter component name"
+                  value={row.componentName}
+                  onChange={(e) => update("componentName", e.target.value)}
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Product Name <span className="text-red-500">*</span>
-                  <DropDown
-                    placeholder="Select product"
-                    value={row.productName}
-                    onChange={(e) => update("productName", e.target.value)}
-                    options={productNameOptions}
-                  />
+                  {useFallbackMode && <span className="ml-1 text-xs text-gray-500">(Manual entry)</span>}
                 </label>
+                {renderProductNameInput(
+                  row.productName,
+                  (value) => update("productName", value)
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Version
-                  <DropDown
-                    placeholder="Select version"
-                    value={row.productVersion}
-                    onChange={(e) => update("productVersion", e.target.value)}
-                    options={versionOptionsForNew}
-                    disabled={!row.productName}
-                  />
+                  Product Version <span className="text-red-500">*</span>
+                  {useFallbackMode && <span className="ml-1 text-xs text-gray-500">(Manual entry)</span>}
                 </label>
+                {renderProductVersionInput(
+                  row.productVersion,
+                  (value) => update("productVersion", value),
+                  row.productName
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Usage <span className="text-red-500">*</span>
-                  <DropDown
-                    placeholder="Select usage"
-                    value={row.usage}
-                    onChange={(e) => update("usage", e.target.value)}
-                    options={USAGE_OPTIONS}
-                  />
                 </label>
+                <DropDown
+                  placeholder="Select usage"
+                  value={row.usage}
+                  onChange={(e) => update("usage", e.target.value)}
+                  options={USAGE_OPTIONS}
+                />
               </div>
             </div>
           )}
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end gap-2">
+            {editingIndex !== null && (
+              <Button
+                onClick={cancelEdit}
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               onClick={addComponent}
               disabled={!row.componentName || !row.productName || !row.usage}
               variant="secondary"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={editingIndex !== null ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} />
               </svg>
-              Add Component
+              {editingIndex !== null ? 'Update Component' : 'Add Component'}
             </Button>
           </div>
         </CardContent>
@@ -241,98 +302,36 @@ const TechnologyComponentStep: React.FC<StepProps> = ({
                 <tbody className="divide-y divide-gray-200">
                   {list.map((component, index) => (
                     <tr key={(component as any).id || `tech-${component.componentName}-${component.productName}-${index}`} className="hover:bg-gray-50">
-                      {editingIndex === index && editingComponent ? (
-                        // Edit mode
-                        <>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingComponent.componentName}
-                              onChange={e => updateEditingComponent('componentName', e.target.value)}
-                              placeholder="Component name"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingComponent.productName}
-                              onChange={e => updateEditingComponent('productName', e.target.value)}
-                              options={productNameOptions}
-                              placeholder="Select product"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingComponent.productVersion}
-                              onChange={e => updateEditingComponent('productVersion', e.target.value)}
-                              options={versionOptionsForEdit}
-                              placeholder="Select version"
-                              disabled={!editingComponent.productName}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingComponent.usage}
-                              onChange={e => updateEditingComponent('usage', e.target.value)}
-                              options={USAGE_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={saveEdit}
-                                className="text-green-600 hover:text-green-900 transition-colors"
-                                title="Save"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="text-gray-600 hover:text-gray-900 transition-colors"
-                                title="Cancel"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        // Display mode
-                        <>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">{component.componentName}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{component.productName}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">{component.productVersion || '—'}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {component.usage}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => startEdit(index)}
-                                className="text-blue-600 hover:text-blue-900 transition-colors"
-                                title="Edit"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => removeComponent(index)}
-                                className="text-red-600 hover:text-red-900 transition-colors"
-                                title="Delete"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{component.componentName}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{component.productName}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{component.productVersion || '—'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {component.usage}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => startEdit(index)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => removeComponent(index)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -22,6 +22,12 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
 }));
 
+// Mock window.scrollTo
+Object.defineProperty(window, 'scrollTo', {
+  writable: true,
+  value: vi.fn(),
+});
+
 // Suppress console.error for cleaner test output
 const originalError = console.error;
 console.error = (...args: unknown[]) => {

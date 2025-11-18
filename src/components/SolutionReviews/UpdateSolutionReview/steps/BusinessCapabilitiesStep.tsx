@@ -26,15 +26,14 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
     remarks: "",
   });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingCapability, setEditingCapability] = useState<BusinessCapability | null>(null);
+
+  // Determine if we should use fallback mode (text inputs instead of dropdowns)
+  const useFallbackMode = !!error;
 
   // Get filtered options based on current selections (only if data is available)
   const l1Options = data?.l1Options || [];
-  const l2OptionsForNew = data?.getL2OptionsForL1(newCapability.l1Capability) || [];
-  const l3OptionsForNew = data?.getL3OptionsForL1AndL2(newCapability.l1Capability, newCapability.l2Capability) || [];
-  
-  const l2OptionsForEdit = editingCapability && data ? data.getL2OptionsForL1(editingCapability.l1Capability) : [];
-  const l3OptionsForEdit = editingCapability && data ? data.getL3OptionsForL1AndL2(editingCapability.l1Capability, editingCapability.l2Capability) : [];
+  const l2Options = data?.getL2OptionsForL1(newCapability.l1Capability) || [];
+  const l3Options = data?.getL3OptionsForL1AndL2(newCapability.l1Capability, newCapability.l2Capability) || [];
 
   useEffect(() => {
     if (initialData?.businessCapabilities) {
@@ -46,8 +45,17 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
     if (!newCapability.l1Capability || !newCapability.l2Capability || !newCapability.l3Capability) {
       return;
     }
-    
-    setCapabilities([...capabilities, { ...newCapability, id: `temp-${Date.now()}` }]);
+
+    if (editingIndex !== null) {
+      // Update existing capability
+      const updated = [...capabilities];
+      updated[editingIndex] = { ...newCapability };
+      setCapabilities(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new capability
+      setCapabilities([...capabilities, { ...newCapability, id: `temp-${Date.now()}` }]);
+    }
     setNewCapability({
       l1Capability: "",
       l2Capability: "",
@@ -62,48 +70,31 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditingCapability({ ...capabilities[index] });
-  };
-
-  const saveEdit = () => {
-    if (editingIndex !== null && editingCapability) {
-      const updated = [...capabilities];
-      updated[editingIndex] = editingCapability;
-      setCapabilities(updated);
-      setEditingIndex(null);
-      setEditingCapability(null);
-    }
+    setNewCapability({ ...capabilities[index] });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingCapability(null);
+    setNewCapability({
+      l1Capability: "",
+      l2Capability: "",
+      l3Capability: "",
+      remarks: "",
+    });
   };
 
   const updateNewCapability = (field: keyof BusinessCapability, value: string) => {
     setNewCapability(prev => {
       const updated = { ...prev, [field]: value };
-      // Reset dependent dropdowns when parent changes
-      if (field === 'l1Capability') {
-        updated.l2Capability = '';
-        updated.l3Capability = '';
-      } else if (field === 'l2Capability') {
-        updated.l3Capability = '';
-      }
-      return updated;
-    });
-  };
-
-  const updateEditingCapability = (field: keyof BusinessCapability, value: string) => {
-    setEditingCapability(prev => {
-      if (!prev) return null;
-      const updated = { ...prev, [field]: value };
-      // Reset dependent dropdowns when parent changes
-      if (field === 'l1Capability') {
-        updated.l2Capability = '';
-        updated.l3Capability = '';
-      } else if (field === 'l2Capability') {
-        updated.l3Capability = '';
+      // Reset dependent dropdowns when parent changes (only in dropdown mode)
+      if (!useFallbackMode) {
+        if (field === 'l1Capability') {
+          updated.l2Capability = '';
+          updated.l3Capability = '';
+        } else if (field === 'l2Capability') {
+          updated.l3Capability = '';
+        }
       }
       return updated;
     });
@@ -113,17 +104,57 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
     await onSave(capabilities);
   };
 
+  // Render input field based on mode (dropdown or text input)
+  const renderCapabilityInput = (
+    label: string,
+    value: string,
+    onChange: (value: string) => void,
+    options: Array<{ value: string; label: string }>,
+    disabled: boolean = false,
+    placeholder: string = ""
+  ) => {
+    if (useFallbackMode) {
+      // Fallback to text input
+      return (
+        <Input
+          placeholder={placeholder}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          disabled={disabled}
+        />
+      );
+    } else {
+      // Use dropdown
+      return (
+        <DropDown
+          placeholder={placeholder}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          options={options}
+          disabled={disabled}
+        />
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
 
       {/* Add New Capability Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Business Capability
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              {editingIndex !== null ? 'Edit Business Capability' : 'Add Business Capability'}
+            </div>
+            {editingIndex !== null && (
+              <span className="text-sm text-blue-600 font-normal">
+                Editing capability #{editingIndex + 1}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -137,49 +168,64 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
           )}
           
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              Error loading business capabilities: {error}
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4">
+              <div className="flex items-start">
+                <svg className="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="font-medium">Could not load business capabilities from server</p>
+                  <p className="text-sm mt-1">You can still enter capabilities manually using text input fields.</p>
+                </div>
+              </div>
             </div>
           )}
           
-          {!loading && !error && (
+          {!loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   L1 Capability <span className="text-red-500">*</span>
+                  {useFallbackMode && <span className="ml-1 text-xs text-gray-500">(Manual entry)</span>}
                 </label>
-                <DropDown
-                  placeholder="Select L1 capability"
-                  value={newCapability.l1Capability}
-                  onChange={e => updateNewCapability('l1Capability', e.target.value)}
-                  options={l1Options}
-                />
+                {renderCapabilityInput(
+                  "L1 Capability",
+                  newCapability.l1Capability,
+                  (value) => updateNewCapability('l1Capability', value),
+                  l1Options,
+                  false,
+                  useFallbackMode ? "Enter L1 capability" : "Select L1 capability"
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   L2 Capability <span className="text-red-500">*</span>
+                  {useFallbackMode && <span className="ml-1 text-xs text-gray-500">(Manual entry)</span>}
                 </label>
-                <DropDown
-                  placeholder="Select L2 capability"
-                  value={newCapability.l2Capability}
-                  onChange={e => updateNewCapability('l2Capability', e.target.value)}
-                  options={l2OptionsForNew}
-                  disabled={!newCapability.l1Capability}
-                />
+                {renderCapabilityInput(
+                  "L2 Capability",
+                  newCapability.l2Capability,
+                  (value) => updateNewCapability('l2Capability', value),
+                  l2Options,
+                  !useFallbackMode && !newCapability.l1Capability,
+                  useFallbackMode ? "Enter L2 capability" : "Select L2 capability"
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   L3 Capability <span className="text-red-500">*</span>
+                  {useFallbackMode && <span className="ml-1 text-xs text-gray-500">(Manual entry)</span>}
                 </label>
-                <DropDown
-                  placeholder="Select L3 capability"
-                  value={newCapability.l3Capability}
-                  onChange={e => updateNewCapability('l3Capability', e.target.value)}
-                  options={l3OptionsForNew}
-                  disabled={!newCapability.l1Capability || !newCapability.l2Capability}
-                />
+                {renderCapabilityInput(
+                  "L3 Capability",
+                  newCapability.l3Capability,
+                  (value) => updateNewCapability('l3Capability', value),
+                  l3Options,
+                  !useFallbackMode && (!newCapability.l1Capability || !newCapability.l2Capability),
+                  useFallbackMode ? "Enter L3 capability" : "Select L3 capability"
+                )}
               </div>
 
               <div>
@@ -195,16 +241,24 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
             </div>
           )}
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end gap-2">
+            {editingIndex !== null && (
+              <Button
+                onClick={cancelEdit}
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               onClick={addCapability}
               disabled={!newCapability.l1Capability || !newCapability.l2Capability || !newCapability.l3Capability}
               variant="secondary"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={editingIndex !== null ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} />
               </svg>
-              Add Capability
+              {editingIndex !== null ? 'Update Capability' : 'Add Capability'}
             </Button>
           </div>
         </CardContent>
@@ -255,112 +309,34 @@ const BusinessCapabilitiesStep: React.FC<StepProps> = ({
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {capabilities.map((capability, index) => (
-                    editingIndex === index && editingCapability ? (
-                      // Edit mode
-                      <tr key={capability.id || index}>
-                        <td colSpan={5} className="px-4 py-6 bg-gray-50">
-                          <div className="space-y-4">
-                            <h4 className="text-sm font-medium text-gray-900 mb-3">Edit Business Capability</h4>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  L1 Capability <span className="text-red-500">*</span>
-                                </label>
-                                <DropDown
-                                  placeholder="Select L1 capability"
-                                  value={editingCapability.l1Capability}
-                                  onChange={e => updateEditingCapability('l1Capability', e.target.value)}
-                                  options={l1Options}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  L2 Capability <span className="text-red-500">*</span>
-                                </label>
-                                <DropDown
-                                  placeholder="Select L2 capability"
-                                  value={editingCapability.l2Capability}
-                                  onChange={e => updateEditingCapability('l2Capability', e.target.value)}
-                                  options={l2OptionsForEdit}
-                                  disabled={!editingCapability.l1Capability}
-                                />
-                              </div>
-
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  L3 Capability <span className="text-red-500">*</span>
-                                </label>
-                                <DropDown
-                                  placeholder="Select L3 capability"
-                                  value={editingCapability.l3Capability}
-                                  onChange={e => updateEditingCapability('l3Capability', e.target.value)}
-                                  options={l3OptionsForEdit}
-                                  disabled={!editingCapability.l1Capability || !editingCapability.l2Capability}
-                                />
-                              </div>
-                            </div>
-                            
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Remarks
-                              </label>
-                              <Input
-                                value={editingCapability.remarks}
-                                onChange={e => updateEditingCapability('remarks', e.target.value)}
-                                placeholder="Enter remarks"
-                              />
-                            </div>
-                            
-                            <div className="flex justify-end space-x-2 pt-3">
-                              <button
-                                onClick={saveEdit}
-                                className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                              >
-                                Save
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="px-3 py-1 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    ) : (
-                      // Display mode
-                      <tr key={capability.id || index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm text-gray-900">{capability.l1Capability}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{capability.l2Capability}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{capability.l3Capability}</td>
-                        <td className="px-4 py-3 text-sm text-gray-900">{capability.remarks ?? '—'}</td>
-                        <td className="px-4 py-3 text-sm text-right">
-                          <div className="flex justify-end space-x-2">
-                            <button
-                              onClick={() => startEdit(index)}
-                              className="text-blue-600 hover:text-blue-900 transition-colors"
-                              title="Edit"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => removeCapability(index)}
-                              className="text-red-600 hover:text-red-900 transition-colors"
-                              title="Delete"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
+                    <tr key={capability.id || index} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm text-gray-900">{capability.l1Capability}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{capability.l2Capability}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{capability.l3Capability}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{capability.remarks ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => startEdit(index)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => removeCapability(index)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

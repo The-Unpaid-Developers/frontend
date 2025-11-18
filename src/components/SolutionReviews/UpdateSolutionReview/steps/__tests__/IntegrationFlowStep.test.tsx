@@ -239,11 +239,9 @@ describe('IntegrationFlowStep', () => {
       fireEvent.change(purposeInput, { target: { value: 'Updated Purpose' } });
       
       // Save the changes
-      const saveButton = screen.getAllByRole('button').find(button => 
-        button.getAttribute('title') === 'Save'
-      );
-      fireEvent.click(saveButton!);
-      
+      const saveButton = screen.getByRole('button', { name: /Update Flow/i });
+      fireEvent.click(saveButton);
+
       // Should exit edit mode and show updated values
       expect(screen.getByText('Updated Name')).toBeInTheDocument();
       expect(screen.getByText('Updated Purpose')).toBeInTheDocument();
@@ -270,11 +268,9 @@ describe('IntegrationFlowStep', () => {
       fireEvent.change(nameInput, { target: { value: 'Should Not Save' } });
       
       // Cancel the changes
-      const cancelButton = screen.getAllByRole('button').find(button => 
-        button.getAttribute('title') === 'Cancel'
-      );
-      fireEvent.click(cancelButton!);
-      
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+      fireEvent.click(cancelButton);
+
       // Should exit edit mode and show original values
       expect(screen.getByText('Original Name')).toBeInTheDocument();
       expect(screen.queryByDisplayValue('Should Not Save')).not.toBeInTheDocument();

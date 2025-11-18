@@ -227,7 +227,7 @@ describe('solutionReviewApi', () => {
       const result = await transitionSolutionReviewStateAPI(transitionData);
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        `${API_BASE_URL}/lifecycle/transition`,
+        `${API_BASE_URL}/solution-review/lifecycle/transition`,
         transitionData
       );
       expect(result).toEqual(mockResponse.data);

@@ -207,4 +207,231 @@ describe('SolutionReviewDetail', () => {
     render(<SolutionReviewDetail review={activeReview} onClose={mockOnClose} />);
     expect(screen.getAllByText('ACTIVE').length).toBeGreaterThan(0);
   });
+
+  it('renders with current state', () => {
+    const currentReview = createSolutionReview({
+      documentState: 'CURRENT',
+    });
+    render(<SolutionReviewDetail review={currentReview} onClose={mockOnClose} />);
+    expect(screen.getAllByText('CURRENT').length).toBeGreaterThan(0);
+  });
+
+  it('renders with outdated state', () => {
+    const outdatedReview = createSolutionReview({
+      documentState: 'OUTDATED',
+    });
+    render(<SolutionReviewDetail review={outdatedReview} onClose={mockOnClose} />);
+    expect(screen.getAllByText('OUTDATED').length).toBeGreaterThan(0);
+  });
+
+  it('displays value outcomes', () => {
+    const review = createSolutionReview({
+      solutionOverview: {
+        ...mockReview.solutionOverview,
+        valueOutcome: 'Significant cost reduction and improved efficiency',
+      },
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Significant cost reduction and improved efficiency')).toBeInTheDocument();
+  });
+
+  it('displays application users when present', () => {
+    const review = createSolutionReview({
+      solutionOverview: {
+        ...mockReview.solutionOverview,
+        applicationUsers: ['User Group 1', 'User Group 2', 'User Group 3'],
+      },
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Application Users (3)')).toBeInTheDocument();
+    expect(screen.getByText('• User Group 1')).toBeInTheDocument();
+  });
+
+  it('does not display application users section when empty', () => {
+    const review = createSolutionReview({
+      solutionOverview: {
+        ...mockReview.solutionOverview,
+        applicationUsers: [],
+      },
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.queryByText('Application Users')).not.toBeInTheDocument();
+  });
+
+  it('displays concerns when present', () => {
+    const review = createSolutionReview({
+      solutionOverview: {
+        ...mockReview.solutionOverview,
+        concerns: [
+          { type: 'Security', description: 'Data encryption required', impact: 'High', disposition: 'Mitigated', status: 'Closed' },
+          { type: 'Performance', description: 'Load testing needed', impact: 'Medium', disposition: 'Accepted', status: 'Open' },
+        ],
+      },
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Concerns (2)')).toBeInTheDocument();
+    expect(screen.getByText(/Data encryption required/)).toBeInTheDocument();
+  });
+
+  it('displays empty state for business capabilities', () => {
+    const review = createSolutionReview({
+      businessCapabilities: [],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('No capabilities.')).toBeInTheDocument();
+  });
+
+  it('displays empty state for system components', () => {
+    const review = createSolutionReview({
+      systemComponents: [],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('No system components.')).toBeInTheDocument();
+  });
+
+  it('displays empty state for integration flows', () => {
+    const review = createSolutionReview({
+      integrationFlows: [],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('No integration flows.')).toBeInTheDocument();
+  });
+
+  it('displays empty state for data assets', () => {
+    const review = createSolutionReview({
+      dataAssets: [],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('No data assets.')).toBeInTheDocument();
+  });
+
+  it('displays empty state for technology components', () => {
+    const review = createSolutionReview({
+      technologyComponents: [],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('No technology components.')).toBeInTheDocument();
+  });
+
+  it('displays empty state for enterprise tools', () => {
+    const review = createSolutionReview({
+      enterpriseTools: [],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('No enterprise tools.')).toBeInTheDocument();
+  });
+
+  it('displays empty state for process compliances', () => {
+    const review = createSolutionReview({
+      processCompliances: [],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('No process compliances.')).toBeInTheDocument();
+  });
+
+  it('displays document information section', () => {
+    render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(screen.getByText('Document Information')).toBeInTheDocument();
+  });
+
+  it('displays created and modified metadata', () => {
+    const { container } = render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(container.textContent).toContain('Created:');
+    expect(container.textContent).toContain('Last Modified:');
+  });
+
+  it('displays review type', () => {
+    const { container } = render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(container.textContent).toContain('Review Type:');
+    expect(container.textContent).toContain('NEW_BUILD');
+  });
+
+  it('displays business driver', () => {
+    const { container } = render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+    expect(container.textContent).toContain('Business Driver:');
+    expect(container.textContent).toContain('COST_OPTIMIZATION');
+  });
+
+  it('renders with technology components', () => {
+    const review = createSolutionReview({
+      technologyComponents: [
+        { componentName: 'Backend API', productName: 'Java', productVersion: '17', usage: 'BACKEND' },
+        { componentName: 'Frontend', productName: 'React', productVersion: '18', usage: 'FRONTEND' },
+      ],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Technology Components (2)')).toBeInTheDocument();
+  });
+
+  it('renders with enterprise tools', () => {
+    const review = createSolutionReview({
+      enterpriseTools: [
+        { tool: { name: 'Splunk', type: 'MONITORING' }, onboarded: 'FULLY_ONBOARDED', integrationDetails: 'REST API', issues: 'None' },
+      ],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Enterprise Tools (1)')).toBeInTheDocument();
+  });
+
+  it('renders with data assets', () => {
+    const review = createSolutionReview({
+      dataAssets: [
+        { componentName: 'Customer DB', dataDomain: 'Customer', dataClassification: 'Confidential', dataOwnedBy: 'Data Team', dataEntities: ['Customer', 'Address'], masteredIn: 'CRM' },
+      ],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Data Assets (1)')).toBeInTheDocument();
+  });
+
+  it('renders with integration flows', () => {
+    const review = createSolutionReview({
+      integrationFlows: [
+        { componentName: 'API Gateway', counterpartSystemCode: 'SYS-002', counterpartSystemRole: 'CONSUMER', integrationMethod: 'REST_API', middleware: 'API_GATEWAY', frequency: 'REAL_TIME', purpose: 'Data sync' },
+      ],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Integration Flows (1)')).toBeInTheDocument();
+  });
+
+  it('renders with business capabilities', () => {
+    const review = createSolutionReview({
+      businessCapabilities: [
+        { id: '1', l1Capability: 'Customer Management', l2Capability: 'Onboarding', l3Capability: 'Digital', remarks: 'Test' },
+      ],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Business Capabilities (1)')).toBeInTheDocument();
+  });
+
+  it('renders with process compliances', () => {
+    const review = createSolutionReview({
+      processCompliances: [
+        { standardGuideline: 'GDPR', compliant: 'YES', description: 'Fully compliant' },
+      ],
+    });
+    render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(screen.getByText('Process Compliances (1)')).toBeInTheDocument();
+  });
+
+  it('handles null review type gracefully', () => {
+    const review = createSolutionReview({
+      solutionOverview: {
+        ...mockReview.solutionOverview,
+        reviewType: null as any,
+      },
+    });
+    const { container } = render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(container.textContent).toContain('Review Type:');
+  });
+
+  it('handles null business driver gracefully', () => {
+    const review = createSolutionReview({
+      solutionOverview: {
+        ...mockReview.solutionOverview,
+        businessDriver: null as any,
+      },
+    });
+    const { container } = render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
+    expect(container.textContent).toContain('Business Driver:');
+  });
 });

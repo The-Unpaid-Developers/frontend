@@ -7,6 +7,7 @@ import { useQuery } from '../../hooks/useQuery';
 import type { Query } from '../../types/query';
 import { validateMongoQuery, formatQueryJSON } from '../../utils/queryValidation';
 import { useToast } from '../../context/ToastContext';
+import { GenerateQueryModal } from './GenerateQueryModal';
 
 export const CreateQueryPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export const CreateQueryPage: React.FC = () => {
   });
 
   const [queryValidationError, setQueryValidationError] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -86,6 +88,25 @@ export const CreateQueryPage: React.FC = () => {
       showSuccess('Query formatted successfully');
     } catch (error) {
       showError('Failed to format query. Please check the JSON syntax.');
+    }
+  };
+
+  const handleQueryGenerated = (generatedQuery: string) => {
+    try {
+      // Format the query JSON for better readability
+      const formattedQuery = formatQueryJSON(generatedQuery);
+      setFormData(prev => ({ ...prev, mongoQuery: formattedQuery }));
+    } catch (error) {
+      // If formatting fails, use the unformatted query
+      console.warn('Failed to format generated query, using unformatted version:', error);
+      setFormData(prev => ({ ...prev, mongoQuery: generatedQuery }));
+    }
+
+    if (queryValidationError) {
+      setQueryValidationError('');
+    }
+    if (errors.mongoQuery) {
+      setErrors(prev => ({ ...prev, mongoQuery: '' }));
     }
   };
 
@@ -209,14 +230,37 @@ export const CreateQueryPage: React.FC = () => {
                     Remember to filter $documentState to ACTIVE if you want only active solution reviews.
                   </p>
                 </div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleFormatQuery}
-                  disabled={!formData.mongoQuery.trim() || isLoading}
-                >
-                  Format JSON
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsModalOpen(true)}
+                    disabled={isLoading}
+                  >
+                    <svg
+                      className="w-4 h-4 mr-1.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
+                    </svg>
+                    Generate with AI
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleFormatQuery}
+                    disabled={!formData.mongoQuery.trim() || isLoading}
+                  >
+                    Format JSON
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -301,6 +345,13 @@ export const CreateQueryPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Generate Query Modal */}
+      <GenerateQueryModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onQueryGenerated={handleQueryGenerated}
+      />
     </div>
   );
 };

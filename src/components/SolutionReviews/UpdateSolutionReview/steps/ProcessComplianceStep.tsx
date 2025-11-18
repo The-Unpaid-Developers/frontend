@@ -33,8 +33,6 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
   );
   const [row, setRow] = useState<ProcessCompliance>(empty);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingCompliance, setEditingCompliance] =
-    useState<ProcessCompliance | null>(null);
 
   useEffect(() => {
     if (initialData.processCompliances) {
@@ -47,7 +45,17 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
 
   const addCompliance = () => {
     if (!row.standardGuideline || !row.compliant) return;
-    setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+
+    if (editingIndex !== null) {
+      // Update existing compliance
+      const updated = [...list];
+      updated[editingIndex] = { ...row };
+      setList(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new compliance
+      setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+    }
     setRow(empty);
   };
 
@@ -57,29 +65,13 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditingCompliance({ ...list[index] });
-  };
-
-  const saveEdit = () => {
-    if (editingIndex !== null && editingCompliance) {
-      const updated = [...list];
-      updated[editingIndex] = editingCompliance;
-      setList(updated);
-      setEditingIndex(null);
-      setEditingCompliance(null);
-    }
+    setRow({ ...list[index] });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingCompliance(null);
-  };
-
-  const updateEditingCompliance = (
-    field: keyof ProcessCompliance,
-    value: string
-  ) => {
-    setEditingCompliance((prev) => (prev ? { ...prev, [field]: value } : null));
+    setRow(empty);
   };
 
   const save = async () => {
@@ -94,24 +86,31 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
         <p className="text-gray-600">Define the compliance standards and guidelines that your solution must adhere to</p>
       </div> */}
 
-      {/* Add Process Compliance Form */}
+      {/* Add/Edit Process Compliance Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <svg
-              className="w-5 h-5 mr-2 text-primary-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-              />
-            </svg>
-            Add Process Compliance
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg
+                className="w-5 h-5 mr-2 text-primary-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                />
+              </svg>
+              {editingIndex !== null ? 'Edit Process Compliance' : 'Add Process Compliance'}
+            </div>
+            {editingIndex !== null && (
+              <span className="text-sm text-blue-600 font-normal">
+                Editing compliance #{editingIndex + 1}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -152,7 +151,15 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end gap-2">
+            {editingIndex !== null && (
+              <Button
+                onClick={cancelEdit}
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               onClick={addCompliance}
               disabled={!row.standardGuideline || !row.compliant}
@@ -168,10 +175,10 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 4v16m8-8H4"
+                  d={editingIndex !== null ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"}
                 />
               </svg>
-              Add Compliance
+              {editingIndex !== null ? 'Update Compliance' : 'Add Compliance'}
             </Button>
           </div>
         </CardContent>
@@ -246,148 +253,61 @@ const ProcessComplianceStep: React.FC<StepProps> = ({
                       }
                       className="hover:bg-gray-50"
                     >
-                      {editingIndex === index && editingCompliance ? (
-                        // Edit mode
-                        <>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingCompliance.standardGuideline}
-                              onChange={(e) =>
-                                updateEditingCompliance(
-                                  "standardGuideline",
-                                  e.target.value
-                                )
-                              }
-                              options={STANDARD_GUIDELINE_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingCompliance.compliant}
-                              onChange={(e) =>
-                                updateEditingCompliance(
-                                  "compliant",
-                                  e.target.value
-                                )
-                              }
-                              options={COMPLIANT_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingCompliance.description}
-                              onChange={(e) =>
-                                updateEditingCompliance(
-                                  "description",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Description"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={saveEdit}
-                                className="text-green-600 hover:text-green-900 transition-colors"
-                                title="Save"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="text-gray-600 hover:text-gray-900 transition-colors"
-                                title="Cancel"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M6 18L18 6M6 6l12 12"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        // Display mode
-                        <>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {compliance.standardGuideline}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-900`}
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {compliance.standardGuideline}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-900`}
+                        >
+                          {compliance.compliant}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {compliance.description ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => startEdit(index)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                            title="Edit"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
                             >
-                              {compliance.compliant}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {compliance.description ?? "—"}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => startEdit(index)}
-                                className="text-blue-600 hover:text-blue-900 transition-colors"
-                                title="Edit"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => removeCompliance(index)}
-                                className="text-red-600 hover:text-red-900 transition-colors"
-                                title="Delete"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => removeCompliance(index)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -23,7 +23,6 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
   const [list, setList] = useState<EnterpriseTool[]>(() => initialList ?? []);
   const [row, setRow] = useState<EnterpriseTool>(empty);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editingTool, setEditingTool] = useState<EnterpriseTool | null>(null);
 
   useEffect(() => {
     if (initialData.enterpriseTools) {
@@ -41,8 +40,17 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
 
   const addTool = () => {
     if (!row.tool.name || !row.tool.type) return;
-    
-    setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+
+    if (editingIndex !== null) {
+      // Update existing tool
+      const updated = [...list];
+      updated[editingIndex] = { ...row };
+      setList(updated);
+      setEditingIndex(null);
+    } else {
+      // Add new tool
+      setList([...list, { ...row, id: `temp-${Date.now()}` }]);
+    }
     setRow(empty);
   };
 
@@ -52,34 +60,13 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
 
   const startEdit = (index: number) => {
     setEditingIndex(index);
-    setEditingTool({ ...list[index] });
-  };
-
-  const saveEdit = () => {
-    if (editingIndex !== null && editingTool) {
-      const updated = [...list];
-      updated[editingIndex] = editingTool;
-      setList(updated);
-      setEditingIndex(null);
-      setEditingTool(null);
-    }
+    setRow({ ...list[index] });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
     setEditingIndex(null);
-    setEditingTool(null);
-  };
-
-  const updateEditingTool = (field: keyof EnterpriseTool, value: any) => {
-    setEditingTool(prev => prev ? { ...prev, [field]: value } : null);
-  };
-
-  const updateEditingToolDetails = <K extends keyof EnterpriseTool["tool"]>(
-    k: K,
-    v: EnterpriseTool["tool"][K]
-  ) => {
-    if (!editingTool) return;
-    setEditingTool(prev => prev ? { ...prev, tool: { ...prev.tool, [k]: v } } : null);
+    setRow(empty);
   };
 
   const save = async () => {
@@ -94,15 +81,22 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
         <p className="text-gray-600">Define the enterprise tools that your solution will integrate with</p>
       </div> */}
 
-      {/* Add New Enterprise Tool Form */}
+      {/* Add/Edit Enterprise Tool Form */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Add Enterprise Tool
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 mr-2 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {editingIndex !== null ? 'Edit Enterprise Tool' : 'Add Enterprise Tool'}
+            </div>
+            {editingIndex !== null && (
+              <span className="text-sm text-blue-600 font-normal">
+                Editing tool #{editingIndex + 1}
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -133,7 +127,7 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Onboarding Status
+                  Onboarding Status <span className="text-red-500">*</span>
                   <DropDown
                     placeholder="Select status"
                     value={row.onboarded}
@@ -166,16 +160,24 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
               </div>
             </div>
 
-            <div className="mt-4 flex justify-end">
+            <div className="mt-4 flex justify-end gap-2">
+              {editingIndex !== null && (
+                <Button
+                  onClick={cancelEdit}
+                  variant="ghost"
+                >
+                  Cancel
+                </Button>
+              )}
               <Button
                 onClick={addTool}
                 disabled={!row.tool.name || !row.tool.type}
                 variant="secondary"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={editingIndex !== null ? "M5 13l4 4L19 7" : "M12 4v16m8-8H4"} />
                 </svg>
-                Add Tool
+                {editingIndex !== null ? 'Update Tool' : 'Add Tool'}
               </Button>
             </div>
           </div>
@@ -231,111 +233,45 @@ const EnterpriseToolsStep: React.FC<StepProps> = ({
                 <tbody className="divide-y divide-gray-200">
                   {list.map((tool, index) => (
                     <tr key={tool.id || index} className="hover:bg-gray-50">
-                      {editingIndex === index && editingTool ? (
-                        // Edit mode
-                        <>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingTool.tool.name}
-                              onChange={e => updateEditingToolDetails('name', e.target.value)}
-                              placeholder="Tool name"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingTool.tool.type}
-                              onChange={e => updateEditingToolDetails('type', e.target.value)}
-                              options={TOOL_TYPE_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <DropDown
-                              value={editingTool.onboarded}
-                              onChange={e => updateEditingTool('onboarded', e.target.value)}
-                              options={ONBOARDING_STATUS_OPTIONS}
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingTool.integrationDetails}
-                              onChange={e => updateEditingTool('integrationDetails', e.target.value)}
-                              placeholder="Integration details"
-                            />
-                          </td>
-                          <td className="px-4 py-3">
-                            <Input
-                              value={editingTool.issues}
-                              onChange={e => updateEditingTool('issues', e.target.value)}
-                              placeholder="Issues"
-                            />
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={saveEdit}
-                                className="text-green-600 hover:text-green-900 transition-colors"
-                                title="Save"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={cancelEdit}
-                                className="text-gray-600 hover:text-gray-900 transition-colors"
-                                title="Cancel"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      ) : (
-                        // Display mode
-                        <>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                            {tool.tool.name}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {tool.tool.type}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800`}>
-                              {tool.onboarded ?? 'N/A'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {tool.integrationDetails ?? '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {tool.issues ?? '—'}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-right">
-                            <div className="flex justify-end space-x-2">
-                              <button
-                                onClick={() => startEdit(index)}
-                                className="text-blue-600 hover:text-blue-900 transition-colors"
-                                title="Edit"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => removeTool(index)}
-                                className="text-red-600 hover:text-red-900 transition-colors"
-                                title="Delete"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </td>
-                        </>
-                      )}
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        {tool.tool.name}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {tool.tool.type}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800`}>
+                          {tool.onboarded ?? 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {tool.integrationDetails ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {tool.issues ?? '—'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => startEdit(index)}
+                            className="text-blue-600 hover:text-blue-900 transition-colors"
+                            title="Edit"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => removeTool(index)}
+                            className="text-red-600 hover:text-red-900 transition-colors"
+                            title="Delete"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

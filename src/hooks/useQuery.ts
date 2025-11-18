@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createQueryAPI, deleteQueryAPI, executeQueryAPI, getAllQueriesAPI, getSpecificQueryAPI, updateQueryAPI } from "../services/queryApi";
+import { createQueryAPI, deleteQueryAPI, executeQueryAPI, generateQueryAPI, getAllQueriesAPI, getSpecificQueryAPI, updateQueryAPI } from "../services/queryApi";
 
 export const useQuery = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -92,6 +92,20 @@ export const useQuery = () => {
     }
   };
 
+  const generateQuery = async (data: any) => {
+    setIsLoading(true);
+    try {
+      const responseData = await generateQueryAPI(data);
+      return responseData;
+    } catch (error) {
+      setError(error.message);
+      console.error("Error generating query:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     loadAllQueries,
     loadSpecificQuery,
@@ -99,6 +113,7 @@ export const useQuery = () => {
     createQuery,
     updateQuery,
     deleteQuery,
+    generateQuery,
     isLoading,
     error,
   };

@@ -17,8 +17,7 @@ declare global {
 // API Base URLs - directly read from window._env_ or use defaults
 export const API_CONFIG = {
   CORE_SERVICE_URL: window._env_?.CORE_SERVICE_URL || "http://localhost:8080",
-  DIAGRAM_SERVICE_URL:
-    window._env_?.DIAGRAM_SERVICE_URL || "http://localhost:8081",
+  DIAGRAM_SERVICE_URL: window._env_?.DIAGRAM_SERVICE_URL || "http://localhost:8081"
 };
 
 // Helper to build full API URL

@@ -48,7 +48,7 @@ describe('DataAssetStep', () => {
     it('shows required field indicators', () => {
       render(<DataAssetStep {...defaultProps} />);
       const requiredIndicators = screen.getAllByText('*');
-      expect(requiredIndicators.length).toBe(3); // Component Name, Data Domain, Data Classification
+      expect(requiredIndicators.length).toBe(6); // Component Name, Data Domain, Data Classification, Data Owned By, Mastered In, Data Entities
     });
   });
 
@@ -426,15 +426,15 @@ describe('DataAssetStep', () => {
         ...defaultProps,
         initialData: { dataAssets: [asset] }
       });
-      
+
       render(<DataAssetStep {...props} />);
-      
+
       const editButton = screen.getByTitle('Edit');
       fireEvent.click(editButton);
-      
+
       await waitFor(() => {
-        expect(screen.getByTitle('Save')).toBeInTheDocument();
-        expect(screen.getByTitle('Cancel')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Update Asset/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
       });
     });
 
@@ -444,19 +444,23 @@ describe('DataAssetStep', () => {
         ...defaultProps,
         initialData: { dataAssets: [asset] }
       });
-      
+
       render(<DataAssetStep {...props} />);
-      
+
       const editButton = screen.getByTitle('Edit');
       fireEvent.click(editButton);
-      
+
       await waitFor(() => {
-        const cancelButton = screen.getByTitle('Cancel');
-        fireEvent.click(cancelButton);
+        expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
       });
-      
-      expect(screen.queryByTitle('Save')).not.toBeInTheDocument();
-      expect(screen.queryByTitle('Cancel')).not.toBeInTheDocument();
+
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+      fireEvent.click(cancelButton);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: /Update Asset/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /^Cancel$/i })).not.toBeInTheDocument();
+      });
     });
   });
 
