@@ -62,8 +62,8 @@ describe('ExecuteQueryResultPage', () => {
     mockLoadSpecificQuery.mockResolvedValue(mockQueryDetails);
     mockExecuteQuery.mockResolvedValue(mockResults);
 
-    // Mock performance.now()
-    global.performance.now = vi.fn()
+    // Mock performance.now() using vi.spyOn
+    vi.spyOn(performance, 'now')
       .mockReturnValueOnce(0)  // Start time
       .mockReturnValueOnce(50); // End time
   });
