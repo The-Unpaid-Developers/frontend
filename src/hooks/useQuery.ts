@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createQueryAPI, deleteQueryAPI, executeQueryAPI, generateQueryAPI, getAllQueriesAPI, getSpecificQueryAPI, updateQueryAPI } from "../services/queryApi";
+import { createQueryAPI, deleteQueryAPI, executeQueryAPI, generateQueryAPI, generateQueryStreamAPI, getAllQueriesAPI, getSpecificQueryAPI, updateQueryAPI } from "../services/queryApi";
 
 export const useQuery = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -106,6 +106,30 @@ export const useQuery = () => {
     }
   };
 
+  const generateQueryStream = async (
+    data: any,
+    onChunk: (chunk: string) => void,
+    onComplete: () => void
+  ) => {
+    setIsLoading(true);
+    setError(null);
+
+    return generateQueryStreamAPI(
+      data,
+      onChunk,
+      () => {
+        setIsLoading(false);
+        onComplete();
+      },
+      (err) => {
+        setIsLoading(false);
+        setError(err.message);
+        console.error("Error generating query:", err);
+        throw err;
+      }
+    );
+  };
+
   return {
     loadAllQueries,
     loadSpecificQuery,
@@ -114,6 +138,7 @@ export const useQuery = () => {
     updateQuery,
     deleteQuery,
     generateQuery,
+    generateQueryStream,
     isLoading,
     error,
   };
