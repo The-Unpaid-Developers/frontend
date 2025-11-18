@@ -281,11 +281,9 @@ describe('TechnologyComponentStep', () => {
       fireEvent.change(versionInput, { target: { value: '17' } });
       
       // Save the changes
-      const saveButton = screen.getAllByRole('button').find(button => 
-        button.getAttribute('title') === 'Save'
-      );
-      fireEvent.click(saveButton!);
-      
+      const saveButton = screen.getByRole('button', { name: /Update Component/i });
+      fireEvent.click(saveButton);
+
       // Should exit edit mode and show updated values
       expect(screen.getByText('Updated Component')).toBeInTheDocument();
       expect(screen.getByText('17')).toBeInTheDocument();
@@ -313,11 +311,9 @@ describe('TechnologyComponentStep', () => {
       fireEvent.change(nameInput, { target: { value: 'Should Not Save' } });
       
       // Cancel the changes
-      const cancelButton = screen.getAllByRole('button').find(button => 
-        button.getAttribute('title') === 'Cancel'
-      );
-      fireEvent.click(cancelButton!);
-      
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+      fireEvent.click(cancelButton);
+
       // Should exit edit mode and show original values
       expect(screen.getByText('Original Component')).toBeInTheDocument();
       expect(screen.queryByDisplayValue('Should Not Save')).not.toBeInTheDocument();

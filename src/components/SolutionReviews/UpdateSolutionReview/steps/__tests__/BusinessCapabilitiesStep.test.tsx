@@ -77,13 +77,13 @@ describe('BusinessCapabilitiesStep', () => {
     it('displays error message when hook returns error', () => {
       mockHook.error = 'Failed to load capabilities';
       render(<BusinessCapabilitiesStep {...defaultProps} />);
-      expect(screen.getByText(/Error loading business capabilities: Failed to load capabilities/)).toBeInTheDocument();
+      expect(screen.getByText(/Could not load business capabilities from server/)).toBeInTheDocument();
     });
 
     it('shows error styling', () => {
       mockHook.error = 'Test error';
       render(<BusinessCapabilitiesStep {...defaultProps} />);
-      const errorMessage = screen.getByText(/Error loading business capabilities/);
+      const errorMessage = screen.getByText(/Could not load business capabilities from server/);
       expect(errorMessage).toBeInTheDocument(); // Just check the error message appears
     });
   });
@@ -391,16 +391,15 @@ describe('BusinessCapabilitiesStep', () => {
         ...defaultProps,
         initialData: { businessCapabilities: [capability] }
       });
-      
+
       render(<BusinessCapabilitiesStep {...props} />);
-      
+
       const editButton = screen.getByTitle('Edit');
       fireEvent.click(editButton);
-      
+
       await waitFor(() => {
-        const saveButtons = screen.getAllByText('Save');
-        expect(saveButtons.length).toBeGreaterThan(1); // Both form save and edit save
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Update Capability/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
       });
     });
 
@@ -410,21 +409,25 @@ describe('BusinessCapabilitiesStep', () => {
         ...defaultProps,
         initialData: { businessCapabilities: [capability] }
       });
-      
+
       const { container } = render(<BusinessCapabilitiesStep {...props} />);
-      
+
       // Enter edit mode
       const editButton = screen.getByTitle('Edit');
       fireEvent.click(editButton);
-      
+
       await waitFor(() => {
-        const remarksInput = container.querySelector('.bg-gray-50 input') as HTMLInputElement;
-        fireEvent.change(remarksInput, { target: { value: 'Updated remarks' } });
-        
-        const editSaveButton = container.querySelector('.bg-green-600') as HTMLButtonElement;
-        fireEvent.click(editSaveButton);
+        expect(screen.getByText(/Edit Business Capability/)).toBeInTheDocument();
       });
-      
+
+      // Update remarks
+      const remarksInput = container.querySelector('input[placeholder="Enter remarks"]') as HTMLInputElement;
+      fireEvent.change(remarksInput, { target: { value: 'Updated remarks' } });
+
+      // Click update button
+      const updateButton = screen.getByRole('button', { name: /Update Capability/i });
+      fireEvent.click(updateButton);
+
       await waitFor(() => {
         expect(screen.getByText('Updated remarks')).toBeInTheDocument();
         expect(screen.queryByText(/Edit Business Capability/)).not.toBeInTheDocument();
@@ -437,21 +440,25 @@ describe('BusinessCapabilitiesStep', () => {
         ...defaultProps,
         initialData: { businessCapabilities: [capability] }
       });
-      
+
       const { container } = render(<BusinessCapabilitiesStep {...props} />);
-      
+
       // Enter edit mode
       const editButton = screen.getByTitle('Edit');
       fireEvent.click(editButton);
-      
+
       await waitFor(() => {
-        const remarksInput = container.querySelector('.bg-gray-50 input') as HTMLInputElement;
-        fireEvent.change(remarksInput, { target: { value: 'Changed' } });
-        
-        const cancelButton = screen.getByText('Cancel');
-        fireEvent.click(cancelButton);
+        expect(screen.getByText(/Edit Business Capability/)).toBeInTheDocument();
       });
-      
+
+      // Make a change
+      const remarksInput = container.querySelector('input[placeholder="Enter remarks"]') as HTMLInputElement;
+      fireEvent.change(remarksInput, { target: { value: 'Changed' } });
+
+      // Click cancel button
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i });
+      fireEvent.click(cancelButton);
+
       await waitFor(() => {
         expect(screen.getByText('Original')).toBeInTheDocument(); // Should show original value
         expect(screen.queryByText(/Edit Business Capability/)).not.toBeInTheDocument();

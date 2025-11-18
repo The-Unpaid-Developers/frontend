@@ -129,8 +129,8 @@ describe('ProcessComplianceStep', () => {
     render(<ProcessComplianceStep onSave={mockOnSave} initialData={initialData} />);
     const editButton = screen.getByTitle('Edit');
     fireEvent.click(editButton);
-    expect(screen.getByTitle('Save')).toBeInTheDocument();
-    expect(screen.getByTitle('Cancel')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Update Compliance/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Cancel/i })).toBeInTheDocument();
   });
 
   it('exits edit mode when cancel button clicked', () => {
@@ -142,8 +142,8 @@ describe('ProcessComplianceStep', () => {
     render(<ProcessComplianceStep onSave={mockOnSave} initialData={initialData} />);
     const editButton = screen.getByTitle('Edit');
     fireEvent.click(editButton);
-    const cancelButton = screen.getByTitle('Cancel');
+    const cancelButton = screen.getByRole('button', { name: /Cancel/i });
     fireEvent.click(cancelButton);
-    expect(screen.queryByTitle('Save')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Update Compliance/i })).not.toBeInTheDocument();
   });
 });

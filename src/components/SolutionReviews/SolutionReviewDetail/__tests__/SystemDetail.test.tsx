@@ -402,4 +402,130 @@ describe('SystemDetail', () => {
       expect(mockShowError).toHaveBeenCalled();
     });
   });
+
+  it('handles empty system array', () => {
+    render(
+      <BrowserRouter>
+        <SystemDetail
+          systemCode="SYS-001"
+          system={[]}
+          onClose={mockOnClose}
+          onViewReview={mockOnViewReview}
+        />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByText('SYS-001')).toBeInTheDocument();
+  });
+
+  it('renders system code with special characters', () => {
+    render(
+      <BrowserRouter>
+        <SystemDetail
+          systemCode="SYS-001-TEST_SPECIAL"
+          system={mockSystem}
+          onClose={mockOnClose}
+          onViewReview={mockOnViewReview}
+        />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByText('SYS-001-TEST_SPECIAL')).toBeInTheDocument();
+  });
+
+  it('renders multiple reviews correctly', () => {
+    const multipleReviews = [
+      { ...mockSystem[0], id: 'sr-1' },
+      { ...mockSystem[0], id: 'sr-2' },
+      { ...mockSystem[0], id: 'sr-3' },
+    ];
+
+    render(
+      <BrowserRouter>
+        <SystemDetail
+          systemCode="SYS-001"
+          system={multipleReviews}
+          onClose={mockOnClose}
+          onViewReview={mockOnViewReview}
+        />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByText('sr-1')).toBeInTheDocument();
+    expect(screen.getByText('sr-2')).toBeInTheDocument();
+    expect(screen.getByText('sr-3')).toBeInTheDocument();
+  });
+
+  it('navigates when View Flow Diagram is clicked on specific system', () => {
+    render(
+      <BrowserRouter>
+        <SystemDetail
+          systemCode="CUSTOM-SYS"
+          system={mockSystem}
+          onClose={mockOnClose}
+          onViewReview={mockOnViewReview}
+        />
+      </BrowserRouter>
+    );
+
+    const viewDiagramButton = screen.getByText(/View Flow Diagram/i);
+    fireEvent.click(viewDiagramButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/view-system-flow-diagram/CUSTOM-SYS');
+  });
+
+  it('navigates to edit page for correct draft ID', () => {
+    const draftWithId = [
+      {
+        ...mockSystem[0],
+        id: 'draft-123',
+        documentState: DocumentState.DRAFT,
+      },
+    ];
+
+    render(
+      <BrowserRouter>
+        <SystemDetail
+          systemCode="SYS-001"
+          system={draftWithId}
+          onClose={mockOnClose}
+          onViewReview={mockOnViewReview}
+        />
+      </BrowserRouter>
+    );
+
+    const editButton = screen.getByText(/Edit Draft/i);
+    fireEvent.click(editButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith('/update-solution-review/draft-123');
+  });
+
+  it('navigates with newly created draft ID', async () => {
+    mockCreateSRFromExisting.mockResolvedValue({ id: 'new-draft-999' });
+
+    const activeSystem = [
+      {
+        ...mockSystem[0],
+        documentState: DocumentState.ACTIVE,
+      },
+    ];
+
+    render(
+      <BrowserRouter>
+        <SystemDetail
+          systemCode="SYS-001"
+          system={activeSystem}
+          onClose={mockOnClose}
+          onViewReview={mockOnViewReview}
+        />
+      </BrowserRouter>
+    );
+
+    const createDraftButton = screen.getByText(/Create New Draft/i);
+    fireEvent.click(createDraftButton);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/update-solution-review/new-draft-999');
+    });
+  });
 });

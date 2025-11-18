@@ -312,7 +312,7 @@ describe('ApprovalModal', () => {
     it('disables buttons during approval', async () => {
       mockAddConcernsToSR.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
-      render(<ApprovalModal {...defaultProps} />);
+      const { unmount } = render(<ApprovalModal {...defaultProps} />);
 
       const approveButton = screen.getByRole('button', { name: /Approve Review/i });
       const cancelButton = screen.getByRole('button', { name: /Cancel/i });
@@ -325,12 +325,15 @@ describe('ApprovalModal', () => {
       await waitFor(() => {
         expect(approveButton).not.toBeDisabled();
       });
+      
+      // Ensure component is unmounted after all async operations complete
+      unmount();
     });
 
     it('shows error message on approval failure', async () => {
       mockAddConcernsToSR.mockRejectedValue(new Error('Approval failed'));
 
-      render(<ApprovalModal {...defaultProps} />);
+      const { unmount } = render(<ApprovalModal {...defaultProps} />);
 
       const approveButton = screen.getByRole('button', { name: /Approve Review/i });
       fireEvent.click(approveButton);
@@ -341,6 +344,14 @@ describe('ApprovalModal', () => {
         );
         expect(defaultProps.onClose).not.toHaveBeenCalled();
       });
+
+      // Wait for the finally block to complete (button re-enables)
+      await waitFor(() => {
+        expect(approveButton).not.toBeDisabled();
+      });
+      
+      // Ensure component is unmounted after all async operations complete
+      unmount();
     });
 
     it('sends concerns with backend when approving with concerns', async () => {
@@ -392,6 +403,11 @@ describe('ApprovalModal', () => {
         expect(mockShowError).toHaveBeenCalledWith(
           expect.stringContaining('Solution overview not available')
         );
+      });
+
+      // Wait for the finally block to complete
+      await waitFor(() => {
+        expect(approveButton).not.toBeDisabled();
       });
     });
   });

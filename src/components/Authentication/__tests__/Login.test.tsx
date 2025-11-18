@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { Login } from '../Login';
-import { mockApiService } from '../../../services/mockApiUpdated';
+import * as authApi from '../../../services/authApi';
 import { createLoginCredentials } from '../../../__tests__/testFactories';
 
 // Mock the navigation
@@ -18,10 +18,8 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Mock the API service
-vi.mock('../../../services/mockApiUpdated', () => ({
-  mockApiService: {
-    login: vi.fn(),
-  },
+vi.mock('../../../services/authApi', () => ({
+  login: vi.fn(),
 }));
 
 const renderLogin = () => {
@@ -97,20 +95,20 @@ describe('Login Component', () => {
 
   it('should submit form with valid data', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
     mockLogin.mockResolvedValue({ token: 'mock-token' });
     const credentials = createLoginCredentials();
-    
+
     renderLogin();
-    
+
     const nameInput = screen.getByLabelText(/name/i);
     const roleRadio = screen.getByRole('radio', { name: /solution architect/i });
     const loginButton = screen.getByRole('button', { name: /login/i });
-    
+
     await user.type(nameInput, credentials.username);
     await user.click(roleRadio);
     await user.click(loginButton);
-    
+
     expect(mockLogin).toHaveBeenCalledWith(credentials.username, credentials.role);
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/');
@@ -119,56 +117,56 @@ describe('Login Component', () => {
 
   it('trims whitespace from username before submission', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
     mockLogin.mockResolvedValue({ token: 'mock-token' });
-    
+
     renderLogin();
-    
+
     const nameInput = screen.getByLabelText(/name/i);
     const roleRadio = screen.getByRole('radio', { name: /solution architect/i });
     const loginButton = screen.getByRole('button', { name: /login/i });
-    
+
     await user.type(nameInput, '  John Doe  ');
     await user.click(roleRadio);
     await user.click(loginButton);
-    
+
     expect(mockLogin).toHaveBeenCalledWith('John Doe', 'SA');
   });
 
   it('shows loading state during login', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
     mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
-    
+
     renderLogin();
-    
+
     const nameInput = screen.getByLabelText(/name/i);
     const roleRadio = screen.getByRole('radio', { name: /solution architect/i });
     const loginButton = screen.getByRole('button', { name: /login/i });
-    
+
     await user.type(nameInput, 'John Doe');
     await user.click(roleRadio);
     await user.click(loginButton);
-    
+
     expect(screen.getByText(/signing in/i)).toBeInTheDocument();
     expect(loginButton).toBeDisabled();
   });
 
   it('displays error message on login failure', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
     mockLogin.mockRejectedValue(new Error('Invalid credentials'));
-    
+
     renderLogin();
-    
+
     const nameInput = screen.getByLabelText(/name/i);
     const roleRadio = screen.getByRole('radio', { name: /solution architect/i });
     const loginButton = screen.getByRole('button', { name: /login/i });
-    
+
     await user.type(nameInput, 'John Doe');
     await user.click(roleRadio);
     await user.click(loginButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/invalid credentials/i)).toBeInTheDocument();
     });
@@ -176,19 +174,19 @@ describe('Login Component', () => {
 
   it('displays generic error message when error has no message', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
     mockLogin.mockRejectedValue({});
-    
+
     renderLogin();
-    
+
     const nameInput = screen.getByLabelText(/name/i);
     const roleRadio = screen.getByRole('radio', { name: /solution architect/i });
     const loginButton = screen.getByRole('button', { name: /login/i });
-    
+
     await user.type(nameInput, 'John Doe');
     await user.click(roleRadio);
     await user.click(loginButton);
-    
+
     await waitFor(() => {
       expect(screen.getByText(/login failed/i)).toBeInTheDocument();
     });
@@ -209,36 +207,36 @@ describe('Login Component', () => {
 
   it('handles form submission via Enter key', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
     mockLogin.mockResolvedValue({ token: 'mock-token' });
-    
+
     renderLogin();
-    
+
     const nameInput = screen.getByLabelText(/name/i);
     const roleRadio = screen.getByRole('radio', { name: /solution architect/i });
-    
+
     await user.type(nameInput, 'John Doe');
     await user.click(roleRadio);
     await user.keyboard('{Enter}');
-    
+
     expect(mockLogin).toHaveBeenCalledWith('John Doe', 'SA');
   });
 
   it('does not submit when form is incomplete and Enter is pressed', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
-    
+    const mockLogin = vi.mocked(authApi.login);
+
     renderLogin();
-    
+
     const nameInput = screen.getByLabelText(/name/i);
     await user.type(nameInput, 'John Doe');
     await user.keyboard('{Enter}');
-    
+
     expect(mockLogin).not.toHaveBeenCalled();
   });
 
   it('does not submit form when submitted programmatically with invalid data', () => {
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
 
     const { container } = renderLogin();
 
@@ -254,7 +252,7 @@ describe('Login Component', () => {
 
   it('clears error when starting a new login attempt', async () => {
     const user = userEvent.setup();
-    const mockLogin = vi.mocked(mockApiService.login);
+    const mockLogin = vi.mocked(authApi.login);
 
     // First, cause an error
     mockLogin.mockRejectedValueOnce(new Error('Test error'));
