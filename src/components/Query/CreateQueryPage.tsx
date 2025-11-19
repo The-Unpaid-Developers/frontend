@@ -28,6 +28,11 @@ export const CreateQueryPage: React.FC = () => {
 
   const [queryValidationError, setQueryValidationError] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [lastGenerationParams, setLastGenerationParams] = useState<{
+    lookup: string;
+    fields: string[];
+    description: string;
+  } | null>(null);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -92,15 +97,8 @@ export const CreateQueryPage: React.FC = () => {
   };
 
   const handleQueryGenerated = (generatedQuery: string) => {
-    try {
-      // Format the query JSON for better readability
-      const formattedQuery = formatQueryJSON(generatedQuery);
-      setFormData(prev => ({ ...prev, mongoQuery: formattedQuery }));
-    } catch (error) {
-      // If formatting fails, use the unformatted query
-      console.warn('Failed to format generated query, using unformatted version:', error);
-      setFormData(prev => ({ ...prev, mongoQuery: generatedQuery }));
-    }
+    // Set the raw query during streaming (formatting happens after stream completes)
+    setFormData(prev => ({ ...prev, mongoQuery: generatedQuery }));
 
     if (queryValidationError) {
       setQueryValidationError('');
@@ -351,6 +349,10 @@ export const CreateQueryPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onQueryGenerated={handleQueryGenerated}
+        onGenerationStart={(params) => setLastGenerationParams(params)}
+        initialLookup={lastGenerationParams?.lookup}
+        initialFields={lastGenerationParams?.fields}
+        initialDescription={lastGenerationParams?.description}
       />
     </div>
   );

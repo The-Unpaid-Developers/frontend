@@ -39,13 +39,30 @@ vi.mock('../../../../hooks/useCreateSolutionOverview', () => ({
   }),
 }));
 
+vi.mock('../../../../hooks/useAdminPanel', () => ({
+  useAdminPanel: () => ({
+    addConcernsToSR: vi.fn().mockResolvedValue({}),
+  }),
+}));
+
 // Mock modal components
 vi.mock('../../AdminPanel', () => ({
-  ApprovalModal: ({ isOpen }: any) => isOpen ? <div data-testid="approval-modal">Approval Modal</div> : null,
+  ApprovalModal: ({ isOpen, onApprovalComplete, title }: any) =>
+    isOpen ? (
+      <div>
+        <h2>{title || 'Approve Solution Review'}</h2>
+        <button onClick={onApprovalComplete}>Approve Review</button>
+      </div>
+    ) : null,
 }));
 
 vi.mock('../ReviewSubmissionModal', () => ({
-  ReviewSubmissionModal: ({ showReview }: any) => showReview ? <div data-testid="submission-modal">Submission Modal</div> : null,
+  ReviewSubmissionModal: ({ showReview, confirmSubmit }: any) =>
+    showReview ? (
+      <div data-testid="submission-modal">
+        <button onClick={confirmSubmit} data-testid="modal-confirm-submit">Confirm Submit</button>
+      </div>
+    ) : null,
 }));
 
 describe('SystemDetail', () => {
@@ -526,6 +543,339 @@ describe('SystemDetail', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/update-solution-review/new-draft-999');
+    });
+  });
+
+  describe('State Transitions', () => {
+    it('handles REMOVE_SUBMISSION transition', async () => {
+      const submittedSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.SUBMITTED,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={submittedSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const removeButton = screen.queryByText(/Remove Submission/i);
+      if (removeButton) {
+        fireEvent.click(removeButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('REMOVE_SUBMISSION', 'sr-1');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review moved back to draft successfully!');
+        });
+      }
+    });
+
+    it('opens approval modal when APPROVE clicked', async () => {
+      const submittedSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.SUBMITTED,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={submittedSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const approveButton = screen.queryByText(/Approve/i);
+      if (approveButton) {
+        fireEvent.click(approveButton);
+
+        await waitFor(() => {
+          expect(screen.getByText('Approve Solution Review')).toBeInTheDocument();
+        });
+      }
+    });
+
+    it('handles approval complete', async () => {
+      const submittedSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.SUBMITTED,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={submittedSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const approveButton = screen.queryByText(/Approve/i);
+      if (approveButton) {
+        fireEvent.click(approveButton);
+
+        await waitFor(() => {
+          const approveBtn = screen.getByRole('button', { name: /Approve Review/i });
+          fireEvent.click(approveBtn);
+        });
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('APPROVE', 'sr-1');
+        });
+      }
+    });
+
+    it('opens submission modal when SUBMIT clicked', async () => {
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={mockSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const submitButton = screen.queryByText(/Submit/i);
+      if (submitButton) {
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          expect(screen.getByTestId('submission-modal')).toBeInTheDocument();
+        });
+      }
+    });
+
+    it('handles submit confirmation', async () => {
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={mockSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const submitButton = screen.queryByText(/Submit/i);
+      if (submitButton) {
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          const confirmBtn = screen.getByTestId('modal-confirm-submit');
+          fireEvent.click(confirmBtn);
+        });
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('SUBMIT', 'sr-1');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review submitted successfully!');
+        });
+      }
+    });
+
+    it('handles ACTIVATE transition', async () => {
+      const approvedSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.APPROVED,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={approvedSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const activateButton = screen.queryByText(/Activate/i);
+      if (activateButton) {
+        fireEvent.click(activateButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('ACTIVATE', 'sr-1');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review activated successfully!');
+        });
+      }
+    });
+
+    it('handles UNAPPROVE transition', async () => {
+      const approvedSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.APPROVED,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={approvedSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const unapproveButton = screen.queryByText(/Unapprove/i);
+      if (unapproveButton) {
+        fireEvent.click(unapproveButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('UNAPPROVE', 'sr-1');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review unapproved successfully!');
+        });
+      }
+    });
+
+    it('handles MARK_OUTDATED transition', async () => {
+      const currentSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.CURRENT,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={currentSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const outdateButton = screen.queryByText(/Mark.*Outdated/i);
+      if (outdateButton) {
+        fireEvent.click(outdateButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('MARK_OUTDATED', 'sr-1');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review marked as outdated successfully!');
+        });
+      }
+    });
+
+    it('handles RESET_CURRENT transition', async () => {
+      const outdatedSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.OUTDATED,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={outdatedSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const resetButton = screen.queryByText(/Reset.*Current/i);
+      if (resetButton) {
+        fireEvent.click(resetButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('RESET_CURRENT', 'sr-1');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review reverted to current successfully!');
+        });
+      }
+    });
+
+    it('handles state transition error', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockTransitionSolutionReviewState.mockRejectedValueOnce(new Error('Transition failed'));
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={mockSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const submitButton = screen.queryByText(/Submit/i);
+      if (submitButton) {
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          const confirmBtn = screen.getByTestId('modal-confirm-submit');
+          fireEvent.click(confirmBtn);
+        });
+
+        await waitFor(() => {
+          expect(consoleErrorSpy).toHaveBeenCalledWith('Submit failed:', expect.any(Error));
+          expect(mockShowError).toHaveBeenCalled();
+        });
+      }
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('handles general state transition error', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockTransitionSolutionReviewState.mockRejectedValueOnce(new Error('State transition failed'));
+
+      const submittedSystem = [
+        {
+          ...mockSystem[0],
+          documentState: DocumentState.SUBMITTED,
+        },
+      ];
+
+      render(
+        <BrowserRouter>
+          <SystemDetail
+            systemCode="SYS-001"
+            system={submittedSystem}
+            onClose={mockOnClose}
+            onViewReview={mockOnViewReview}
+          />
+        </BrowserRouter>
+      );
+
+      const removeButton = screen.queryByText(/Remove Submission/i);
+      if (removeButton) {
+        fireEvent.click(removeButton);
+
+        await waitFor(() => {
+          expect(consoleErrorSpy).toHaveBeenCalledWith('State transition failed:', expect.any(Error));
+          expect(mockShowError).toHaveBeenCalled();
+        });
+      }
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

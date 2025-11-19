@@ -6,6 +6,11 @@ const API_BASE_URL = buildApiUrl(
   "/api/v1/queries"
 );
 
+const API_BASE_URL_AI = buildApiUrl(
+  API_CONFIG.CORE_SERVICE_URL,
+  "/api/v1/ai"
+);
+
 export const getAllQueriesAPI = async () => {
   const response = await axios.get(`${API_BASE_URL}`);
   return response.data;
@@ -39,13 +44,107 @@ export const deleteQueryAPI = async (queryName: string) => {
   return response.data;
 };
 
-const mockGenerateQueryResponse = "[{\"$lookup\": {\"from\": \"lookups\",\"pipeline\": [{\"$match\": {\"_id\": \"techCompEOL\"}},{\"$unwind\": \"$data\"},{\"$replaceRoot\": {\"newRoot\": \"$data\"}}],\"as\": \"eolLookup\"}},{\"$unwind\":  {\"path\": \"$technologyComponents\",\"preserveNullAndEmptyArrays\": false}},{\"$addFields\": {\"matchingEOL\": {\"$filter\": {\"input\": \"$eolLookup\",\"as\": \"eol\",\"cond\": {\"$and\": [{\"$eq\": [\"$$eol.Product Name\",          \"$technologyComponents.productName\"]},{\"$eq\": [\"$$eol.Product Version\", \"$technologyComponents.productVersion\"]}]}}}}},{\"$match\": {\"matchingEOL\": {\"$ne\": []}}},{\"$unwind\": \"$matchingEOL\"},{\"$addFields\":  {\"eolDate\": {\"$dateFromString\": {\"dateString\": \"$matchingEOL.End-of-Life Date\",\"format\": \"%m/%d/%Y\"}}}},{\"$match\": {\"$expr\": {\"$and\": [{\"$lte\": [\"$eolDate\", {\"$dateAdd\": {\"startDate\": \"$$NOW\",  \"unit\": \"month\", \"amount\": 1}}]}]}}},{\"$group\": {\"_id\": \"$_id\",\"systemCode\": {\"$first\": \"$systemCode\"},\"documentState\": {\"$first\": \"$documentState\"},\"solutionOverview\": {\"$first\":  \"$solutionOverview\"},\"createdAt\": {\"$first\": \"$createdAt\"},\"lastModifiedAt\": {\"$first\": \"$lastModifiedAt\"},\"lastModifiedBy\": {\"$first\": \"$lastModifiedBy\"},\"expiringComponents\": {\"$push\": {\"componentId\":       \"$technologyComponents._id\",\"componentName\": \"$technologyComponents.componentName\",\"productName\": \"$technologyComponents.productName\",\"productVersion\": \"$technologyComponents.productVersion\",\"usage\":  \"$technologyComponents.usage\",\"eolDate\": \"$matchingEOL.End-of-Life Date\",\"adoptionStatus\": \"$matchingEOL.Adoption Status\",\"productCategory\": \"$matchingEOL.Product Category\"}}}},{\"$sort\": {\"systemCode\": 1}}]";
-
 export const generateQueryAPI = async (data: any) => {
-  // const response = await axios.post(
-  //   `${API_BASE_URL}/generate-query`,
-  //   data
-  // );
-  // return response.data;
-  return { query: mockGenerateQueryResponse };
+  const response = await axios.post(
+    `${API_BASE_URL_AI}/generate-query`,
+    data
+  );
+  return response.data;
+};
+
+export const generateQueryStreamAPI = async (
+  data: any,
+  onChunk: (chunk: string) => void,
+  onComplete: () => void,
+  onError: (error: Error) => void
+) => {
+  try {
+    const response = await fetch(`${API_BASE_URL_AI}/generate-query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+
+    if (!reader) {
+      throw new Error('Response body is not readable');
+    }
+
+    let buffer = '';
+
+    const processMessage = (message: string) => {
+      // SSE messages can have multiple lines like:
+      // data: content1
+      // data: content2
+      // (blank line)
+
+      const lines = message.split('\n').filter(line => line.trim());
+
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          // Handle both "data: " and "data:" formats
+          const content = line.startsWith('data: ')
+            ? line.slice(6)
+            : line.slice(5);
+
+          const trimmedContent = content.trim();
+
+          // Skip empty data or done signals
+          if (!trimmedContent || trimmedContent === '[DONE]') {
+            continue;
+          }
+
+          // Spring's SseEmitter may JSON-encode strings, so we need to parse
+          let finalContent = trimmedContent;
+          try {
+            // If it's a JSON string (wrapped in quotes), parse it
+            const parsed = JSON.parse(trimmedContent);
+            if (typeof parsed === 'string') {
+              finalContent = parsed;
+            }
+          } catch (e) {
+            // Not JSON or parse failed, use as-is
+          }
+
+          onChunk(finalContent);
+        }
+      }
+    };
+
+    while (true) {
+      const { done, value } = await reader.read();
+
+      if (done) {
+        // Process any remaining data in buffer
+        if (buffer.trim()) {
+          processMessage(buffer);
+        }
+        onComplete();
+        break;
+      }
+
+      // Decode and add to buffer
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE messages are delimited by \n\n (double newline)
+      const messages = buffer.split('\n\n');
+
+      // Keep the last potentially incomplete message in the buffer
+      buffer = messages.pop() || '';
+
+      // Process each complete message
+      messages.forEach(processMessage);
+    }
+  } catch (error) {
+    onError(error instanceof Error ? error : new Error('Unknown error occurred'));
+  }
 };

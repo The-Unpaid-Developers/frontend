@@ -7,6 +7,8 @@ import {
   createQueryAPI,
   updateQueryAPI,
   deleteQueryAPI,
+  generateQueryAPI,
+  generateQueryStreamAPI,
 } from '../queryApi';
 import { getApiUrl } from '../../test/config';
 
@@ -522,6 +524,330 @@ describe('queryApi', () => {
       mockedAxios.get.mockRejectedValue(authError);
 
       await expect(getAllQueriesAPI()).rejects.toEqual(authError);
+    });
+  });
+
+  describe('generateQueryAPI', () => {
+    const AI_BASE_URL = getApiUrl('CORE_SERVICE', '/ai');
+
+    it('should generate query successfully', async () => {
+      const requestData = {
+        lookupName: 'users',
+        description: 'Get all active users',
+        step: '1',
+      };
+      const mockResponse = {
+        data: {
+          query: '[{"$match": {"active": true}}]',
+          executionTime: 250,
+        },
+      };
+
+      mockedAxios.post.mockResolvedValue(mockResponse);
+
+      const result = await generateQueryAPI(requestData);
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        `${AI_BASE_URL}/generate-query`,
+        requestData
+      );
+      expect(result).toEqual(mockResponse.data);
+    });
+
+    it('should handle generation errors', async () => {
+      const requestData = { lookupName: 'invalid', description: 'test' };
+      const error = {
+        response: {
+          status: 400,
+          data: { message: 'Invalid request' },
+        },
+      };
+
+      mockedAxios.post.mockRejectedValue(error);
+
+      await expect(generateQueryAPI(requestData)).rejects.toEqual(error);
+    });
+  });
+
+  describe('generateQueryStreamAPI', () => {
+    beforeEach(() => {
+      global.fetch = vi.fn();
+    });
+
+    it('should stream query generation successfully', async () => {
+      const requestData = {
+        lookupName: 'users',
+        description: 'Get all users',
+      };
+
+      const chunks: string[] = [];
+      const onChunk = vi.fn((chunk: string) => chunks.push(chunk));
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      // Mock SSE response
+      const mockReader = {
+        read: vi
+          .fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: [{"$match":\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: {"active": true}}\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: ]\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          }),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader },
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/generate-query'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+          },
+          body: JSON.stringify(requestData),
+        })
+      );
+
+      expect(onChunk).toHaveBeenCalled();
+      expect(onComplete).toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    it('should handle HTTP errors', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.stringContaining('500') })
+      );
+      expect(onComplete).not.toHaveBeenCalled();
+    });
+
+    it('should handle missing response body', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        body: null,
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Response body is not readable' })
+      );
+    });
+
+    it('should handle network errors', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Network error' })
+      );
+    });
+
+    it('should process JSON-encoded chunks', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      const mockReader = {
+        read: vi
+          .fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: "test chunk"\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          }),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader },
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onChunk).toHaveBeenCalledWith('test chunk');
+      expect(onComplete).toHaveBeenCalled();
+    });
+
+    it('should skip [DONE] signals', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      const mockReader = {
+        read: vi
+          .fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: chunk1\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: [DONE]\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          }),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader },
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onChunk).toHaveBeenCalledTimes(1);
+      expect(onChunk).toHaveBeenCalledWith('chunk1');
+    });
+
+    it('should handle data with space after colon', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      const mockReader = {
+        read: vi
+          .fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: test\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          }),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader },
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onChunk).toHaveBeenCalledWith('test');
+    });
+
+    it('should handle data without space after colon', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      const mockReader = {
+        read: vi
+          .fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data:test\n\n'),
+          })
+          .mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          }),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader },
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onChunk).toHaveBeenCalledWith('test');
+    });
+
+    it('should process remaining buffer on completion', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      const mockReader = {
+        read: vi
+          .fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('data: incomplete'),
+          })
+          .mockResolvedValueOnce({
+            done: true,
+            value: undefined,
+          }),
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader },
+      });
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onChunk).toHaveBeenCalled();
+      expect(onComplete).toHaveBeenCalled();
+    });
+
+    it('should handle non-Error exceptions', async () => {
+      const requestData = { lookupName: 'test' };
+      const onChunk = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      global.fetch = vi.fn().mockRejectedValue('string error');
+
+      await generateQueryStreamAPI(requestData, onChunk, onComplete, onError);
+
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Unknown error occurred' })
+      );
     });
   });
 });

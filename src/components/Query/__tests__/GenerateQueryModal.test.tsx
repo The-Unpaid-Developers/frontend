@@ -5,19 +5,21 @@ import { GenerateQueryModal } from '../GenerateQueryModal';
 
 // Mock hooks
 const mockLoadAllLookups = vi.fn();
-const mockGenerateQuery = vi.fn();
+const mockLoadFieldDescriptions = vi.fn();
+const mockGenerateQueryStream = vi.fn();
 const mockShowSuccess = vi.fn();
 const mockShowError = vi.fn();
 
 vi.mock('../../../hooks/useLookup', () => ({
   useLookup: () => ({
     loadAllLookups: mockLoadAllLookups,
+    loadFieldDescriptions: mockLoadFieldDescriptions,
   }),
 }));
 
 vi.mock('../../../hooks/useQuery', () => ({
   useQuery: () => ({
-    generateQuery: mockGenerateQuery,
+    generateQueryStream: mockGenerateQueryStream,
     isLoading: false,
   }),
 }));
@@ -27,6 +29,10 @@ vi.mock('../../../context/ToastContext', () => ({
     showSuccess: mockShowSuccess,
     showError: mockShowError,
   }),
+}));
+
+vi.mock('../../../utils/queryValidation', () => ({
+  formatQueryJSON: (query: string) => query, // Simple pass-through for testing
 }));
 
 // Mock UI components
@@ -96,6 +102,7 @@ describe('GenerateQueryModal', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     mockLoadAllLookups.mockResolvedValue(mockLookups);
+    mockLoadFieldDescriptions.mockResolvedValue({ fieldDescriptions: {} });
   });
 
   describe('Modal Visibility', () => {
@@ -203,17 +210,6 @@ describe('GenerateQueryModal', () => {
       expect(select.value).toBe('techCompEOL');
     });
 
-    it('allows selecting a solution review step', async () => {
-      render(<GenerateQueryModal {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(mockLoadAllLookups).toHaveBeenCalled();
-      });
-
-      const select = screen.getByLabelText('Solution Review Step') as HTMLSelectElement;
-      fireEvent.change(select, { target: { value: '3' } });
-      expect(select.value).toBe('3');
-    });
 
     it('allows typing in description field', async () => {
       render(<GenerateQueryModal {...defaultProps} />);
@@ -226,23 +222,15 @@ describe('GenerateQueryModal', () => {
       fireEvent.change(textarea, { target: { value: 'Get all active solutions' } });
       expect(textarea).toHaveValue('Get all active solutions');
     });
-
-    it('defaults to step 1', async () => {
-      render(<GenerateQueryModal {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(mockLoadAllLookups).toHaveBeenCalled();
-      });
-
-      const select = screen.getByLabelText('Solution Review Step') as HTMLSelectElement;
-      expect(select.value).toBe('1');
-    });
   });
 
   describe('Query Generation', () => {
     it('generates query with valid inputs', async () => {
-      const mockResponse = { query: '[{"$match": {"status": "active"}}]' };
-      mockGenerateQuery.mockResolvedValue(mockResponse);
+      const mockQuery = '[{"$match": {"status": "active"}}]';
+      mockGenerateQueryStream.mockImplementation(async (payload, onChunk, onComplete) => {
+        onChunk(mockQuery);
+        onComplete();
+      });
 
       render(<GenerateQueryModal {...defaultProps} />);
 
@@ -260,34 +248,17 @@ describe('GenerateQueryModal', () => {
       fireEvent.click(generateButton);
 
       await waitFor(() => {
-        expect(mockGenerateQuery).toHaveBeenCalledWith({
-          lookupName: 'techCompEOL',
-          step: '1',
-          description: 'Get all tech components',
-        });
-        expect(mockOnQueryGenerated).toHaveBeenCalledWith(mockResponse.query);
+        expect(mockGenerateQueryStream).toHaveBeenCalledWith(
+          {
+            lookupName: 'techCompEOL',
+            lookupFieldsUsed: [],
+            userPrompt: 'Get all tech components',
+          },
+          expect.any(Function),
+          expect.any(Function)
+        );
+        expect(mockOnQueryGenerated).toHaveBeenCalled();
         expect(mockShowSuccess).toHaveBeenCalledWith('Query generated successfully!');
-      });
-    });
-
-    it('shows error when lookup is "None" selected', async () => {
-      mockGenerateQuery.mockRejectedValue(new Error('Invalid lookup'));
-
-      render(<GenerateQueryModal {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(mockLoadAllLookups).toHaveBeenCalled();
-      });
-
-      // "None" is selected by default
-      const descriptionInput = screen.getByLabelText('Query Description');
-      fireEvent.change(descriptionInput, { target: { value: 'Test description' } });
-
-      const generateButton = screen.getByText('Generate Query');
-      fireEvent.click(generateButton);
-
-      await waitFor(() => {
-        expect(mockGenerateQuery).toHaveBeenCalled();
       });
     });
 
@@ -304,8 +275,11 @@ describe('GenerateQueryModal', () => {
     });
 
     it('trims description before sending', async () => {
-      const mockResponse = { query: '[{"$match": {}}]' };
-      mockGenerateQuery.mockResolvedValue(mockResponse);
+      const mockQuery = '[{"$match": {}}]';
+      mockGenerateQueryStream.mockImplementation(async (payload, onChunk, onComplete) => {
+        onChunk(mockQuery);
+        onComplete();
+      });
 
       render(<GenerateQueryModal {...defaultProps} />);
 
@@ -323,17 +297,21 @@ describe('GenerateQueryModal', () => {
       fireEvent.click(generateButton);
 
       await waitFor(() => {
-        expect(mockGenerateQuery).toHaveBeenCalledWith({
-          lookupName: 'techCompEOL',
-          step: '1',
-          description: 'Test query',
-        });
+        expect(mockGenerateQueryStream).toHaveBeenCalledWith(
+          {
+            lookupName: 'techCompEOL',
+            lookupFieldsUsed: [],
+            userPrompt: 'Test query',
+          },
+          expect.any(Function),
+          expect.any(Function)
+        );
       });
     });
 
     it('handles API error during generation', async () => {
       const error = new Error('API Error');
-      mockGenerateQuery.mockRejectedValue(error);
+      mockGenerateQueryStream.mockRejectedValue(error);
 
       render(<GenerateQueryModal {...defaultProps} />);
 
@@ -353,31 +331,10 @@ describe('GenerateQueryModal', () => {
       });
     });
 
-    it('handles no query in API response', async () => {
-      mockGenerateQuery.mockResolvedValue({});
-
-      render(<GenerateQueryModal {...defaultProps} />);
-
-      await waitFor(() => {
-        const lookupSelect = screen.getByLabelText('Select Lookup');
-        fireEvent.change(lookupSelect, { target: { value: 'techCompEOL' } });
-      });
-
-      const descriptionInput = screen.getByLabelText('Query Description');
-      fireEvent.change(descriptionInput, { target: { value: 'Test' } });
-
-      const generateButton = screen.getByText('Generate Query');
-      fireEvent.click(generateButton);
-
-      await waitFor(() => {
-        expect(mockShowError).toHaveBeenCalledWith('No query returned from the API');
-      });
-    });
-
     it('logs error to console when generation fails', async () => {
       const consoleErrorSpy = vi.spyOn(console, 'error');
       const error = new Error('Test error');
-      mockGenerateQuery.mockRejectedValue(error);
+      mockGenerateQueryStream.mockRejectedValue(error);
 
       render(<GenerateQueryModal {...defaultProps} />);
 
@@ -424,8 +381,11 @@ describe('GenerateQueryModal', () => {
     });
 
     it('closes modal after successful query generation', async () => {
-      const mockResponse = { query: '[{"$match": {}}]' };
-      mockGenerateQuery.mockResolvedValue(mockResponse);
+      const mockQuery = '[{"$match": {}}]';
+      mockGenerateQueryStream.mockImplementation(async (payload, onChunk, onComplete) => {
+        onChunk(mockQuery);
+        onComplete();
+      });
 
       render(<GenerateQueryModal {...defaultProps} />);
 
@@ -455,9 +415,6 @@ describe('GenerateQueryModal', () => {
       const descriptionInput = screen.getByLabelText('Query Description');
       fireEvent.change(descriptionInput, { target: { value: 'Test description' } });
 
-      const stepSelect = screen.getByLabelText('Solution Review Step') as HTMLSelectElement;
-      fireEvent.change(stepSelect, { target: { value: '3' } });
-
       const cancelButton = screen.getByText('Cancel');
       fireEvent.click(cancelButton);
 
@@ -465,6 +422,7 @@ describe('GenerateQueryModal', () => {
 
       vi.clearAllMocks();
       mockLoadAllLookups.mockResolvedValue(mockLookups);
+      mockLoadFieldDescriptions.mockResolvedValue({ fieldDescriptions: {} });
 
       rerender(<GenerateQueryModal {...defaultProps} isOpen={true} />);
 
@@ -473,10 +431,8 @@ describe('GenerateQueryModal', () => {
       });
 
       const newDescriptionInput = screen.getByLabelText('Query Description');
-      const newStepSelect = screen.getByLabelText('Solution Review Step') as HTMLSelectElement;
 
       expect(newDescriptionInput).toHaveValue('');
-      expect(newStepSelect.value).toBe('1');
     });
   });
 
@@ -536,33 +492,4 @@ describe('GenerateQueryModal', () => {
     });
   });
 
-  describe('Solution Review Steps', () => {
-    it('displays all 8 solution review steps', async () => {
-      render(<GenerateQueryModal {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(mockLoadAllLookups).toHaveBeenCalled();
-      });
-
-      const stepSelect = screen.getByLabelText('Solution Review Step') as HTMLSelectElement;
-      expect(stepSelect.options.length).toBe(8);
-      expect(stepSelect.options[0].textContent).toContain('Step 1');
-      expect(stepSelect.options[7].textContent).toContain('Step 8');
-    });
-
-    it('can select different steps', async () => {
-      render(<GenerateQueryModal {...defaultProps} />);
-
-      await waitFor(() => {
-        expect(mockLoadAllLookups).toHaveBeenCalled();
-      });
-
-      const stepSelect = screen.getByLabelText('Solution Review Step') as HTMLSelectElement;
-
-      for (let i = 1; i <= 8; i++) {
-        fireEvent.change(stepSelect, { target: { value: String(i) } });
-        expect(stepSelect.value).toBe(String(i));
-      }
-    });
-  });
 });

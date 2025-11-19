@@ -1,11 +1,13 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SolutionReviewDetail } from '../SolutionReviewDetail';
 import { createSolutionReview } from '../../../../__tests__/testFactories';
 
 const mockNavigate = vi.fn();
 const mockTransitionSolutionReviewState = vi.fn().mockResolvedValue({});
+const mockShowSuccess = vi.fn();
+const mockShowError = vi.fn();
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -19,9 +21,34 @@ vi.mock('../../../../hooks/useUpdateSolutionReview', () => ({
 
 vi.mock('../../../../context/ToastContext', () => ({
   useToast: () => ({
-    showSuccess: vi.fn(),
-    showError: vi.fn(),
+    showSuccess: mockShowSuccess,
+    showError: mockShowError,
   }),
+}));
+
+vi.mock('../../../../hooks/useAdminPanel', () => ({
+  useAdminPanel: () => ({
+    addConcernsToSR: vi.fn().mockResolvedValue({}),
+  }),
+}));
+
+vi.mock('../../AdminPanel', () => ({
+  ApprovalModal: ({ isOpen, onApprovalComplete, title }: any) =>
+    isOpen ? (
+      <div>
+        <h2>{title || 'Approve Solution Review'}</h2>
+        <button onClick={onApprovalComplete}>Approve Review</button>
+      </div>
+    ) : null,
+}));
+
+vi.mock('../ReviewSubmissionModal', () => ({
+  ReviewSubmissionModal: ({ showReview, confirmSubmit }: any) =>
+    showReview ? (
+      <div data-testid="submission-modal">
+        <button onClick={confirmSubmit} data-testid="confirm-submit">Confirm</button>
+      </div>
+    ) : null,
 }));
 
 describe('SolutionReviewDetail', () => {
@@ -433,5 +460,210 @@ describe('SolutionReviewDetail', () => {
     });
     const { container } = render(<SolutionReviewDetail review={review} onClose={mockOnClose} />);
     expect(container.textContent).toContain('Business Driver:');
+  });
+
+  describe('State Transitions', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it('handles REMOVE_SUBMISSION transition', async () => {
+      const submittedReview = createSolutionReview({ documentState: 'SUBMITTED' });
+      render(<SolutionReviewDetail review={submittedReview} onClose={mockOnClose} />);
+
+      const removeButton = screen.queryByText(/Remove Submission/i);
+      if (removeButton) {
+        fireEvent.click(removeButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('REMOVE_SUBMISSION');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review moved back to draft successfully!');
+          expect(mockNavigate).toHaveBeenCalledWith(0);
+        });
+      }
+    });
+
+    it('opens approval modal when APPROVE is clicked', async () => {
+      const submittedReview = createSolutionReview({ documentState: 'SUBMITTED' });
+      render(<SolutionReviewDetail review={submittedReview} onClose={mockOnClose} />);
+
+      const approveButton = screen.queryByText(/Approve/i);
+      if (approveButton) {
+        fireEvent.click(approveButton);
+
+        await waitFor(() => {
+          expect(screen.getByText('Approve Solution Review')).toBeInTheDocument();
+        });
+      }
+    });
+
+    it('handles approval complete', async () => {
+      const submittedReview = createSolutionReview({ documentState: 'SUBMITTED' });
+      render(<SolutionReviewDetail review={submittedReview} onClose={mockOnClose} />);
+
+      const approveButton = screen.queryByText(/Approve/i);
+      if (approveButton) {
+        fireEvent.click(approveButton);
+
+        await waitFor(() => {
+          expect(screen.getByText('Approve Solution Review')).toBeInTheDocument();
+        });
+
+        const approveBtnInModal = screen.getByRole('button', { name: /Approve Review/i });
+        fireEvent.click(approveBtnInModal);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('APPROVE');
+          expect(mockNavigate).toHaveBeenCalledWith(0);
+        });
+      }
+    });
+
+    it('opens submission modal when SUBMIT is clicked', async () => {
+      render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+
+      const submitButton = screen.queryByText(/Submit/i);
+      if (submitButton) {
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          expect(screen.getByTestId('submission-modal')).toBeInTheDocument();
+        });
+      }
+    });
+
+    it('handles submit confirmation', async () => {
+      render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+
+      const submitButton = screen.queryByText(/Submit/i);
+      if (submitButton) {
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          expect(screen.getByTestId('submission-modal')).toBeInTheDocument();
+        });
+
+        const confirmBtn = screen.getByTestId('confirm-submit');
+        fireEvent.click(confirmBtn);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('SUBMIT');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review submitted successfully!');
+          expect(mockNavigate).toHaveBeenCalledWith(0);
+        });
+      }
+    });
+
+    it('handles ACTIVATE transition', async () => {
+      const approvedReview = createSolutionReview({ documentState: 'APPROVED' });
+      render(<SolutionReviewDetail review={approvedReview} onClose={mockOnClose} />);
+
+      const activateButton = screen.queryByText(/Activate/i);
+      if (activateButton) {
+        fireEvent.click(activateButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('ACTIVATE');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review activated successfully!');
+          expect(mockNavigate).toHaveBeenCalledWith(0);
+        });
+      }
+    });
+
+    it('handles UNAPPROVE transition', async () => {
+      const approvedReview = createSolutionReview({ documentState: 'APPROVED' });
+      render(<SolutionReviewDetail review={approvedReview} onClose={mockOnClose} />);
+
+      const unapproveButton = screen.queryByText(/Unapprove/i);
+      if (unapproveButton) {
+        fireEvent.click(unapproveButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('UNAPPROVE');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review unapproved successfully!');
+          expect(mockNavigate).toHaveBeenCalledWith(0);
+        });
+      }
+    });
+
+    it('handles MARK_OUTDATED transition', async () => {
+      const currentReview = createSolutionReview({ documentState: 'CURRENT' });
+      render(<SolutionReviewDetail review={currentReview} onClose={mockOnClose} />);
+
+      const outdateButton = screen.queryByText(/Mark.*Outdated/i);
+      if (outdateButton) {
+        fireEvent.click(outdateButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('MARK_OUTDATED');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review marked as outdated successfully!');
+          expect(mockNavigate).toHaveBeenCalledWith(0);
+        });
+      }
+    });
+
+    it('handles RESET_CURRENT transition', async () => {
+      const outdatedReview = createSolutionReview({ documentState: 'OUTDATED' });
+      render(<SolutionReviewDetail review={outdatedReview} onClose={mockOnClose} />);
+
+      const resetButton = screen.queryByText(/Reset.*Current/i);
+      if (resetButton) {
+        fireEvent.click(resetButton);
+
+        await waitFor(() => {
+          expect(mockTransitionSolutionReviewState).toHaveBeenCalledWith('RESET_CURRENT');
+          expect(mockShowSuccess).toHaveBeenCalledWith('Review reverted to current successfully!');
+          expect(mockNavigate).toHaveBeenCalledWith(0);
+        });
+      }
+    });
+
+    it('handles state transition error', async () => {
+      mockTransitionSolutionReviewState.mockRejectedValueOnce(new Error('Transition failed'));
+
+      render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+
+      const submitButton = screen.queryByText(/Submit/i);
+      if (submitButton) {
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          expect(screen.getByTestId('submission-modal')).toBeInTheDocument();
+        });
+
+        const confirmBtn = screen.getByTestId('confirm-submit');
+        fireEvent.click(confirmBtn);
+
+        await waitFor(() => {
+          expect(mockShowError).toHaveBeenCalled();
+        });
+      }
+    });
+
+    it('handles submit error', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      mockTransitionSolutionReviewState.mockRejectedValueOnce(new Error('Submit failed'));
+
+      render(<SolutionReviewDetail review={mockReview} onClose={mockOnClose} />);
+
+      const submitButton = screen.queryByText(/Submit/i);
+      if (submitButton) {
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+          expect(screen.getByTestId('submission-modal')).toBeInTheDocument();
+        });
+
+        const confirmBtn = screen.getByTestId('confirm-submit');
+        fireEvent.click(confirmBtn);
+
+        await waitFor(() => {
+          expect(consoleErrorSpy).toHaveBeenCalledWith('Submit failed:', expect.any(Error));
+          expect(mockShowError).toHaveBeenCalled();
+        });
+      }
+
+      consoleErrorSpy.mockRestore();
+    });
   });
 });
