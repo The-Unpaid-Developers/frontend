@@ -453,7 +453,7 @@ describe('ApprovalModal', () => {
     it('does not close modal when approving', async () => {
       mockAddConcernsToSR.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
-      render(<ApprovalModal {...defaultProps} />);
+      const { unmount } = render(<ApprovalModal {...defaultProps} />);
 
       const approveButton = screen.getByRole('button', { name: /Approve Review/i });
       fireEvent.click(approveButton);
@@ -463,6 +463,14 @@ describe('ApprovalModal', () => {
 
       // onClose should not be called during approval (beyond the one from approval completion)
       expect(defaultProps.onClose).not.toHaveBeenCalled();
+
+      // Wait for the async operation to complete before test ends
+      await waitFor(() => {
+        expect(approveButton).not.toBeDisabled();
+      });
+
+      // Ensure component is unmounted after all async operations complete
+      unmount();
     });
   });
 
