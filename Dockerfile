@@ -12,6 +12,9 @@ FROM nginx:stable-alpine AS production
 # Copy built files
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Copy custom nginx configuration for SPA routing
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Copy environment config generation script
 COPY generate-env-config.sh /generate-env-config.sh
 COPY docker-entrypoint.sh /docker-entrypoint.sh
