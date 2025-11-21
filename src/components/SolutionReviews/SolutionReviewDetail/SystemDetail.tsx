@@ -111,6 +111,11 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
 
     return changes;
   };
+
+  // Get user role from localStorage
+  const userRole = localStorage.getItem("userToken");
+  const isEAO = userRole === "EAO";
+
   console.log(system);
 
   return (
@@ -186,7 +191,13 @@ export const SystemDetail: React.FC<SystemDetailProps> = ({
             {system.map((review, index) => {
               const previousReview = system[index + 1];
               const changes = getVersionChanges(review, previousReview);
-              const availableTransitions = STATE_TRANSITIONS[review.documentState] ?? [];
+              // Filter available transitions - only show APPROVE if user is EAO
+              const availableTransitions = (STATE_TRANSITIONS[review.documentState] ?? []).filter(transition => {
+                if (transition.operation === "APPROVE") {
+                  return isEAO;
+                }
+                return true;
+              });
 
               return (
                 <div

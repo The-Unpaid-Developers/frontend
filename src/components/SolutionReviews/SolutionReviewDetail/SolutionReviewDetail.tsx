@@ -81,7 +81,17 @@ export const SolutionReviewDetail: React.FC<SolutionReviewDetailProps> = ({
     }
   };
 
-  const availableTransitions = STATE_TRANSITIONS[review.documentState] ?? [];
+  // Get user role from localStorage
+  const userRole = localStorage.getItem("userToken");
+  const isEAO = userRole === "EAO";
+
+  // Filter available transitions - only show APPROVE if user is EAO
+  const availableTransitions = (STATE_TRANSITIONS[review.documentState] ?? []).filter(transition => {
+    if (transition.operation === "APPROVE") {
+      return isEAO;
+    }
+    return true;
+  });
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
