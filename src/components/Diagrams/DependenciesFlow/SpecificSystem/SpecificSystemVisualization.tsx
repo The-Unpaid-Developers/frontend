@@ -267,7 +267,7 @@ const SankeyVisualization: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">
-                {pinnedSystemId} {data.metadata.review} Visualisation
+                {pinnedSystemId} Visualisation
               </h1>
               <p className="text-gray-600 mt-1">
                 Generated on: <span>{data.metadata.generatedDate}</span>
