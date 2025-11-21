@@ -36,7 +36,7 @@ jobs:
         with:
           args: >
             -Dsonar.projectKey=The-Unpaid-Developers_frontend_3bf8280c-79a3-4a8b-91bb-8377ce5b1d50
-            -Dsonar.projectName="frontend"
+            -Dsonar.projectName=frontend
             -Dsonar.sources=src
             -Dsonar.tests=src
             -Dsonar.test.inclusions=**/__tests__/**/*,**/*.test.*,**/*.spec.*
